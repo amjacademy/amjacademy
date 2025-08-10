@@ -10,18 +10,18 @@ const About = () => {
             <img src="images/Poster.png?height=300&width=400" alt="About Me" />
           </div>
           <div className="about-text">
-            <h2 className="section-title">Meet Your Expert Music Tutor</h2>
-            <h3 className="section-subtitle">A M JOSHUA</h3>
+            <h2 className="section-title">Meet Our Founder</h2>
+            <h3 className="section-subtitle"></h3>
             <p className="about-intro">
-              Hello! I am A.M. Joshua, founder and lead tutor at AMJ Academy. With 7+ years as a passionate music teacher,
-              I believe music is for everyone: children, teenagers, and adults alike.
+              "The visionary behind AMJ Academy, our Founder and CEO is a beacon of inspiration,
+               shaping minds and futures with passion, purpose, and unwavering dedication."
             </p>
             
             <div className="about-details">
               <div className="detail-item">
                 <div className="detail-icon">🎹</div>
                 <div className="detail-content">
-                  <h4>Piano Specialist</h4>
+                  <h4>Piano / Keyboard Specialist</h4>
                   <p>Expert instruction in classical, contemporary, and jazz piano techniques</p>
                 </div>
               </div>
@@ -38,7 +38,7 @@ const About = () => {
                 <div className="detail-icon">👥</div>
                 <div className="detail-content">
                   <h4>All Ages Welcome</h4>
-                  <p>Experience teaching students from age 4 to 70+, adapting to individual learning styles</p>
+                  <p>Experience teaching students from age 5 to 50+, adapting to individual learning styles</p>
                 </div>
               </div>
             </div>
@@ -47,10 +47,10 @@ const About = () => {
               <h3>Qualifications & Achievements</h3>
               <ul>
                 <li>Bachelor's Degree in Music Education</li>
-                <li>Certified Piano Teacher (ABRSM Grade 8)</li>
+                <li>Certified Piano / keyboard Teacher (Trinity College of London Grade 8)</li>
                 <li>7+ Years Professional Teaching Experience</li>
-                <li>200+ Successful Students</li>
-                <li>Regular Performer at Local Venues</li>
+                <li>100+ Successful Students</li>
+                <li>Regular Performer at Domestic Venues and Abroad's</li>
               </ul>
             </div>
           </div>

@@ -6,8 +6,8 @@ const Services = () => {
     {
       icon: '🎹',
       title: 'Piano and Keyboard Lessons',
-      description: 'One-on-one personalized instruction tailored to your skill level and musical goals.',
-      features: ['Beginner to Advanced', 'Classical & Contemporary', 'Flexible Scheduling', 'Performance Preparation']
+      description: '1:1 personalized teachings and Group teaching to enachance your skill level in music goal',
+      features: ['Beginner to Advanced','Trinity Exam' ,'Classical & Contemporary', 'Flexible Scheduling']
     },
     // {
     //   icon: '👥',
@@ -19,13 +19,13 @@ const Services = () => {
       icon: '🎵',
       title: 'Music Theory & Composition',
       description: 'Comprehensive music theory education and composition guidance.',
-      features: ['Harmony & Analysis', 'Songwriting', 'Arrangement', 'Music Production Basics']
+      features: ['Harmony & Analysis', 'Stratch to Advance', 'Arrangement', 'Music Production Basics']
     },
     {
       icon: '💻',
-      title: 'On Going Online Class',
+      title: 'Recorded Classes',
       description: 'Build confidence and stage presence for recitals and competitions.',
-      features: ['Stage Presence', 'Audition Prep', 'Recital Training', 'Competition Coaching']
+      features: ['Beginner to Advance', 'Classical & Contemporary', 'Recital Training', 'Competition Coaching']
     },
     // {
     //   icon: '💻',
@@ -44,7 +44,7 @@ const Services = () => {
   return (
     <section id="services" className="section services">
       <div className="container">
-        <h2 className="section-title">Courses we offer</h2>
+        <h2 className="section-title">Courses We Offer</h2>
         <p className="section-subtitle">
           Comprehensive music education tailored to your individual needs and aspirations
         </p>
