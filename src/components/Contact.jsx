@@ -56,7 +56,7 @@ const Contact = () => {
 
         <div className="contact-content">
           {/* Contact Info */}
-          <div className="contact-info">
+          {/* <div className="contact-info">
             <h3>Let's Connect</h3>
             <p>
               I'd love to hear about your musical goals and help you achieve them.
@@ -70,7 +70,7 @@ const Contact = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Contact Form */}
           <form className="contact-form" onSubmit={handleSubmit}>

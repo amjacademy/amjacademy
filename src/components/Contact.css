@@ -3,8 +3,8 @@
 }
 
 .contact-content {
-  display: grid;
-  grid-template-columns: 1fr 1.2fr;
+  display: flex;
+  justify-content: center;
   gap: 60px;
   align-items: start;
 }
