@@ -13,8 +13,8 @@ const About = () => {
             <h2 className="section-title">Meet Your Expert Music Tutor</h2>
             <h3 className="section-subtitle">A M JOSHUA</h3>
             <p className="about-intro">
-              7+ Years Experienced Music Tutor
-              Electronic Keyboard, Piano, and Theory of Music Specialist
+              Hello! I am A.M. Joshua, founder and lead tutor at AMJ Academy. With 7+ years as a passionate music teacher,
+              I believe music is for everyone: children, teenagers, and adults alike.
             </p>
             
             <div className="about-details">
