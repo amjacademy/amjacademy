@@ -12,8 +12,8 @@ const About = () => {
           <div className="about-text">
             <h2 className="section-title">About Me</h2>
             <p className="about-intro">
-              Hello! I'm a passionate music educator with over 7 years of experience in nurturing 
-              musical talent and inspiring students to reach their full potential.
+              Hello! I am A.M. Joshua, founder and lead tutor at AMJ Academy. With 7+ years as a passionate music teacher,
+              I believe music is for everyone: children, teenagers, and adults alike.
             </p>
             
             <div className="about-details">
