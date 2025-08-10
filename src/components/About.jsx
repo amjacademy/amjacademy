@@ -10,10 +10,11 @@ const About = () => {
             <img src="images/Poster.png?height=300&width=400" alt="About Me" />
           </div>
           <div className="about-text">
-            <h2 className="section-title">About Me</h2>
+            <h2 className="section-title">Meet Your Expert Music Tutor</h2>
+            <h3 className="section-subtitle">A M JOSHUA</h3>
             <p className="about-intro">
-              Hello! I am A.M. Joshua, founder and lead tutor at AMJ Academy. With 7+ years as a passionate music teacher,
-              I believe music is for everyone: children, teenagers, and adults alike.
+              7+ Years Experienced Music Tutor
+              Electronic Keyboard, Piano, and Theory of Music Specialist
             </p>
             
             <div className="about-details">
