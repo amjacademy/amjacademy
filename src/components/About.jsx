@@ -1,5 +1,5 @@
-import React from 'react';
-import './About.css';
+"use client"
+import "./About.css"
 
 const About = () => {
   return (
@@ -11,12 +11,12 @@ const About = () => {
           </div>
           <div className="about-text">
             <h2 className="section-title">Meet Our Founder</h2>
-            <h3 className="section-subtitle"></h3>
+            {/* <h3 className="section-subtitle"></h3> */}
             <p className="about-intro">
-              "The visionary behind AMJ Academy, our Founder and CEO is a beacon of inspiration,
-               shaping minds and futures with passion, purpose, and unwavering dedication."
+              "The visionary behind AMJ Academy, our Founder and CEO is a beacon of inspiration, shaping minds and
+              futures with passion, purpose, and unwavering dedication."
             </p>
-            
+
             <div className="about-details">
               <div className="detail-item">
                 <div className="detail-icon">🎹</div>
@@ -25,7 +25,7 @@ const About = () => {
                   <p>Expert instruction in classical, contemporary, and jazz piano techniques</p>
                 </div>
               </div>
-              
+
               <div className="detail-item">
                 <div className="detail-icon">🎵</div>
                 <div className="detail-content">
@@ -33,7 +33,7 @@ const About = () => {
                   <p>Comprehensive understanding of music theory, composition, and arrangement</p>
                 </div>
               </div>
-              
+
               <div className="detail-item">
                 <div className="detail-icon">👥</div>
                 <div className="detail-content">
@@ -42,7 +42,6 @@ const About = () => {
                 </div>
               </div>
             </div>
-
             <div className="qualifications">
               <h3>Qualifications & Achievements</h3>
               <ul>
@@ -55,9 +54,27 @@ const About = () => {
             </div>
           </div>
         </div>
+
+        {/* Animated Musical Elements for About Section */}
+        <div className="about-musical-elements">
+          <div className="about-note about-note-1">🎼</div>
+          <div className="about-note about-note-2">🎹</div>
+          <div className="about-note about-note-3">🎵</div>
+          <div className="about-note about-note-4">♪</div>
+          <div className="about-note about-note-5">🎶</div>
+          <div className="about-note about-note-6">♫</div>
+        </div>
+
+        {/* Floating Colorful Elements */}
+        <div className="about-floating-elements">
+          <div className="about-circle about-circle-1"></div>
+          <div className="about-circle about-circle-2"></div>
+          <div className="about-circle about-circle-3"></div>
+          <div className="about-circle about-circle-4"></div>
+        </div>
       </div>
     </section>
-  );
-};
+  )
+}
 
-export default About;
+export default About

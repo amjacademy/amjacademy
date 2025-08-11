@@ -35,7 +35,7 @@ const Hero = () => {
                 Start Your Musical Journey
               </button>
               <a href="#about" className="btn btn-outline">
-                Learn More About Me
+                Book Demo For Free
               </a>
             </div>
           </div>
