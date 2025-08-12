@@ -1,4 +1,5 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header/header';
 import Hero from './components/Hero';
 import About from './components/About';
@@ -8,25 +9,58 @@ import Testimonials from './components/Testimonials';
 import FAQ from './components/FAQ';
 import Contact from './components/Contact';
 import Footer from './components/Footer/footer';
-import PianoLessons from './components/PianoLessons'
+import PianoLessons from './components/PianoLessons';
 import RecordedClasses from './components/RecordedClasses';
 import './App.css';
 
-function App() {
+// Home Page Component
+function HomePage() {
   return (
-    <div className="App">
+    <>
       <Header />
       <Hero />
       <About />
       <Services />
       {/* <Experience /> */}
-      <PianoLessons />
-      <RecordedClasses />
       <Testimonials />
       <FAQ/>
       <Contact />
       <Footer />
-    </div>
+    </>
+  );
+}
+
+// Piano Lessons Page Component
+function PianoLessonsPage() {
+  return (
+    <>
+      <Header />
+      <PianoLessons />
+      <Footer />
+    </>
+  );
+}
+
+// Recorded Classes Page Component
+function RecordedClassesPage() {
+  return (
+    <>
+      <Header />
+      <RecordedClasses />
+      <Footer />
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/piano-lessons" element={<PianoLessonsPage />} />
+        <Route path="/recorded-classes" element={<RecordedClassesPage />} />
+      </Routes>
+    </Router>
   );
 }
 

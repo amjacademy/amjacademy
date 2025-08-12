@@ -110,9 +110,9 @@
 .icon-wrapper {
   display: inline-block;
   font-size: 4rem;
-  background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
-  padding: 20px;
-  border-radius: 50%;
+  background: linear-gradient(135deg, #e0e9f7, #0497c4);
+  /* padding: 10px; */
+  border-radius: 10%;
   box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
   animation: iconFloat 3s ease-in-out infinite;
 }
@@ -146,7 +146,7 @@
 }
 
 .learn-more {
-  background: linear-gradient(135deg, #4ecdc4, #44a08d);
+  background: linear-gradient(135deg, #469cd1, #0a458e);
   color: white;
   padding: 12px 25px;
   border-radius: 25px;
@@ -261,7 +261,7 @@
   width: 60px;
   height: 60px;
   background: linear-gradient(45deg, #a8edea, #fed6e3);
-  bottom: 30%;
+  bottom: 5%;
   left: 2%;
   animation-delay: 2s;
 }
@@ -281,6 +281,38 @@
   background: linear-gradient(45deg, #a8e6cf, #dcedc1);
   bottom: 15%;
   left: 5%;
+  animation-delay: 6s;
+}
+.services-circle-5 {
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(45deg, #a8e6cf, #dcedc1);
+  bottom: 15%;
+  right: 5%;
+  animation-delay: 6s;
+}
+.services-circle-6 {
+    width: 80px;
+  height: 80px;
+  background: linear-gradient(45deg, #ff9a9e, #fecfef);
+  top: 20%;
+  left: 3%;
+  animation-delay: 0s;
+}
+.services-circle-7 {
+    width: 100px;
+  height: 100px;
+  background: linear-gradient(45deg, #ffecd2, #fcb69f);
+  top: 50%;
+  left: 2%;
+  animation-delay: 4s;
+}
+.services-circle-8 {
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(45deg, #a8e6cf, #dcedc1);
+  bottom: 25%;
+  right: 5%;
   animation-delay: 6s;
 }
 

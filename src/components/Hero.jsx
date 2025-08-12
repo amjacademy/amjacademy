@@ -52,22 +52,22 @@ const Hero = () => {
         </div>
         {/* New Animated Musical Elements */}
         <div className="musical-background">
-          <div className="animated-instrument piano">🎹</div>
+          {/* <div className="animated-instrument piano">🎹</div> */}
           <div className="animated-instrument guitar">🎸</div>
-          <div className="animated-instrument violin">🎻</div>
-          <div className="animated-instrument trumpet">🎺</div>
+          {/* <div className="animated-instrument violin">🎻</div> */}
+          {/* <div className="animated-instrument trumpet">🎺</div> */}
           <div className="animated-instrument drums">🥁</div>
           <div className="animated-instrument microphone">🎤</div>
 
           <div className="bouncing-notes">
-            <div className="bouncing-note note-bounce-1">🎵</div>
-            <div className="bouncing-note note-bounce-2">🎶</div>
-            <div className="bouncing-note note-bounce-3">🎼</div>
+            {/* <div className="bouncing-note note-bounce-1">🎵</div> */}
+            {/* <div className="bouncing-note note-bounce-2">🎶</div> */}
+            {/* <div className="bouncing-note note-bounce-3">🎼</div> */}
             <div className="bouncing-note note-bounce-4">♩</div>
             <div className="bouncing-note note-bounce-5">♪</div>
             <div className="bouncing-note note-bounce-6">♫</div>
             <div className="bouncing-note note-bounce-7">♬</div>
-            <div className="bouncing-note note-bounce-8">🎵</div>
+            {/* <div className="bouncing-note note-bounce-8">🎵</div> */}
           </div>
 
           <div className="colorful-circles">

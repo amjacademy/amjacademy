@@ -3,7 +3,7 @@ import "./Services.css"
 
 const Services = () => {
   const handleModuleClick = (module) => {
-    // This would typically use Next.js router
+    // Use React Router for navigation
     if (module === "piano") {
       window.location.href = "/piano-lessons"
     } else if (module === "recorded") {
@@ -36,7 +36,7 @@ const Services = () => {
               <div className="icon-wrapper">🎹</div>
             </div>
             <h3>Piano and Keyboard Lessons</h3>
-            <p>1:1 personalized teachings and Group teaching to enhance your skill level in music goal</p>
+            <p>1:1 professional teachings and Group teaching to enhance your skill level in music goal</p>
             <div className="service-features">
               <div className="feature">✨ Personalized Learning</div>
               <div className="feature">🎵 All Skill Levels</div>
@@ -87,14 +87,14 @@ const Services = () => {
         </div>
 
         {/* Animated Musical Elements */}
-        <div className="services-musical-elements">
+        {/* <div className="services-musical-elements">
           <div className="services-note services-note-1">🎵</div>
           <div className="services-note services-note-2">🎶</div>
           <div className="services-note services-note-3">♪</div>
           <div className="services-note services-note-4">♫</div>
           <div className="services-note services-note-5">🎼</div>
           <div className="services-note services-note-6">🎹</div>
-        </div>
+        </div> */}
 
         {/* Floating Colorful Elements */}
         <div className="services-floating-elements">
@@ -102,6 +102,10 @@ const Services = () => {
           <div className="services-circle services-circle-2"></div>
           <div className="services-circle services-circle-3"></div>
           <div className="services-circle services-circle-4"></div>
+          <div className="services-circle services-circle-5"></div>
+          <div className="services-circle services-circle-6"></div>
+          <div className="services-circle services-circle-7"></div>
+          <div className="services-circle services-circle-8"></div>
         </div>
       </div>
     </section>
