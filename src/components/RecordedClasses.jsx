@@ -32,7 +32,7 @@ const RecordedClasses = () => {
             </div>
             <div className="recorded-hero-image">
               <div className="recorded-image-container">
-                <img src="/placeholder.svg?height=400&width=400&text=Recorded+Classes" alt="Recorded Classes" />
+                <img src="images/Recordings.png?height=400&width=400&text=Recorded+Classes" alt="Recorded Classes" />
               </div>
             </div>
           </div>
