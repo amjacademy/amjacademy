@@ -1,13 +1,16 @@
 "use client"
+import { useNavigate } from 'react-router-dom';
 import "./Services.css"
 
 const Services = () => {
+  const navigate = useNavigate();
+
   const handleModuleClick = (module) => {
     // Use React Router for navigation
     if (module === "piano") {
-      window.location.href = "/piano-lessons"
+      navigate("/piano-lessons");
     } else if (module === "recorded") {
-      window.location.href = "/recorded-classes"
+      navigate("/recorded-classes");
     }
   }
 
