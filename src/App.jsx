@@ -21,6 +21,13 @@ function HomePage() {
       <Hero />
       <About />
       <Services />
+      <Router>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/piano-lessons" element={<PianoLessonsPage />} />
+        <Route path="/recorded-classes" element={<RecordedClassesPage />} />
+      </Routes>
+      </Router>
       {/* <Experience /> */}
       <Testimonials />
       <FAQ/>
