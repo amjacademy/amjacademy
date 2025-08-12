@@ -255,7 +255,7 @@ export default function PianoLessonsLanding() {
           </div>
 
           <div className="hero-image">
-            <img src="/placeholder.svg?height=400&width=500" alt="Child playing keyboard" className="hero-img" />
+            <img src="images/Flux_Dev_create_an_image_for_amjacademy_featuring_a_real_human_1 (1).jpg?height=400&width=500" alt="Child playing keyboard" className="hero-img" />
           </div>
         </div>
       </section>

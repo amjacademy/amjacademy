@@ -4,6 +4,7 @@
   background: white;
   position: relative;
   overflow-x: hidden;
+  padding-top: 80px; /* Account for fixed header */
 }
 
 /* Animated Background */
