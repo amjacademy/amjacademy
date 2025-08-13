@@ -1,7 +1,7 @@
 "use client"
 import "./Hero.css"
 
-const Hero = () => {
+const Hero = ({ onOpenRegistration }) => {
   const scrollToContact = () => {
     const element = document.getElementById("contact")
     if (element) {
@@ -16,7 +16,7 @@ const Hero = () => {
         <span>INTRODUCTION TO</span>
       </div>
       <div className="ribbon-center">
-        <span>THIS CONVENIENCE IS OPEN 24/7</span>
+        <span>THIS CONVENIENCE IS OPEN FOR 24/7</span>
       </div>
       <div className="ribbon-right">
         <span>ONLINE CLASS</span>
@@ -37,9 +37,9 @@ const Hero = () => {
               <button className="btn btn-primary" onClick={scrollToContact}>
                 Start Your Musical Journey
               </button>
-              <a href="#about" className="btn btn-outline">
+              <button className="btn btn-outline" onClick={onOpenRegistration}>
                 Book Demo For Free
-              </a>
+              </button>
             </div>
           </div>
           <div className="hero-image">

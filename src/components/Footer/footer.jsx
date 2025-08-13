@@ -30,9 +30,9 @@ const Footer = () => {
             <ul>
               <li><a href="#home">Home</a></li>
               <li><a href="#about">About Me</a></li>
-              <li><a href="#services">Services</a></li>
-              <li><a href="#experience">Experience</a></li>
-              <li><a href="#testimonials">Testimonials</a></li>
+              <li><a href="#services">Cources</a></li>
+              {/* <li><a href="#experience">Experience</a></li> */}
+              <li><a href="#testimonials">Accolades</a></li>
               <li><a href="#contact">Contact</a></li>
             </ul>
           </div>
@@ -40,24 +40,24 @@ const Footer = () => {
           <div className="footer-section">
             <h4>Services</h4>
             <ul>
-              <li><a href="#services">Private Piano Lessons</a></li>
-              <li><a href="#services">Trinity exam preparation</a></li>
+              <li><a href="#services">Online Class</a></li>
+              <li><a href="#services">1:1 Class</a></li>
               <li><a href="#services">Group Classes</a></li>
+              <li><a href="#services">Trinity Exam's Preparation</a></li>
               <li><a href="#services">Music Theory</a></li>
-              <li><a href="#services">Performance Coaching</a></li>
-              <li><a href="#services">Online Lessons</a></li>
-              <li><a href="#services">Exam Preparation</a></li>
+              <li><a href="#services">Performance Couching</a></li>
+              <li><a href="#services">Online source</a></li>
             </ul>
           </div>
 
           <div className="footer-section">
             <h4>Contact Info</h4>
             <div className="footer-contact">
-              <p>📧 amjacademy196015@gmail.com.com</p>
-              <p>📱 +91-901790179881</p>
-              <p>📍 2nd cross street, Kothauda Ramar Nagar,
-                     Perungudi, CH-96
-              </p>
+              <p>📧 amjacademy196015@gmail.com</p>
+              <p>📱 +91-91717 19881</p>
+              <a>📍 No. 02, 2nd cross street, KothandaRamar Nagar,
+                     Perungudi, Ch - 96
+              </a>
               <p>⏰ 24/7 Available</p>
             </div>
           </div>

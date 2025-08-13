@@ -15,11 +15,11 @@ import RecordedClasses from './components/RecordedClasses';
 import './App.css';
 
 // Home Page Component
-function HomePage() {
+function HomePage({ onOpenRegistration }) {
   return (
     <>
       <Header />
-      <Hero />
+      <Hero onOpenRegistration={onOpenRegistration} />
       <About />
       <OurOutlook />
       <Services />

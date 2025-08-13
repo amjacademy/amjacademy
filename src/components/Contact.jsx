@@ -82,7 +82,7 @@ const Contact = () => {
                 <label htmlFor="age">Age</label>
                 <select id="age" name="age" value={formData.age} onChange={handleChange}>
                   <option value="">Select Age Range</option>
-                  <option value="4-7">4-7 years</option>
+                  <option value="4-7">5-7 years</option>
                   <option value="8-12">8-12 years</option>
                   <option value="13-17">13-17 years</option>
                   <option value="18-30">18-30 years</option>
@@ -103,14 +103,26 @@ const Contact = () => {
               </div>
             </div>
             <div className="form-group">
-              <label htmlFor="message">Tell me about your musical goals *</label>
+              <label htmlFor="message">Address *</label>
               <textarea
                 id="message"
                 name="message"
                 rows={5}
                 value={formData.message}
                 onChange={handleChange}
-                placeholder="What would you like to achieve?"
+                placeholder="Your residential address"
+                required
+              ></textarea>
+            </div>
+            <div className="form-group">
+              <label htmlFor="message">Your Music Preference *</label>
+              <textarea
+                id="message"
+                name="message"
+                rows={5}
+                value={formData.message}
+                onChange={handleChange}
+                placeholder="What is your Music preference ??"
                 required
               ></textarea>
             </div>

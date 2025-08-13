@@ -28,6 +28,7 @@
 .about-image img {
   width: 80%;
   height: auto;
+  margin-top: 100px;
   border-radius: 20px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
   transition: transform 0.3s ease;

@@ -104,7 +104,7 @@
 
 .form-group textarea {
   resize: vertical;
-  min-height: 120px;
+  height: 60px;
   font-family: inherit;
 }
 

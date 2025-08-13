@@ -512,6 +512,10 @@
   .floating-note {
     font-size: 2rem;
   }
+
+  .ribbon-center {
+    display: none;
+  }
 }
 
 @media (max-width: 480px) {
