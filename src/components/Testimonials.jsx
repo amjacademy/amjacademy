@@ -6,19 +6,19 @@ const Testimonials = () => {
     {
       name: 'Name',
       role: 'Experience',
-      image: '/placeholder.svg?height=80&width=80',
+      image: 'images/Accolades.jpg?height=80&width=80',
       text: 'Be the first to embrace the AMJ experience, and let your voice be heard.'
     },
     {
       name: 'Name',
       role: 'Experience',
-      image: '/placeholder.svg?height=80&width=80',
+      image: 'images/Accolades.jpg?height=80&width=80',
       text: 'Be the first to embrace the AMJ experience, and let your voice be heard.'
     },
     {
       name: 'Name',
       role: 'Experience',
-      image: '/placeholder.svg?height=80&width=80',
+      image: 'images/Accolades.jpg?height=80&width=80',
       text: 'Be the first to embrace the AMJ experience, and let your voice be heard.'
     },
     // {
@@ -57,7 +57,7 @@ const Testimonials = () => {
                 <p>{testimonial.text}</p>
               </div>
               <div className="testimonial-author">
-                <img src={testimonial.image || "/placeholder.svg"} alt={testimonial.name} />
+                <img src={testimonial.image || "images/Accolades.jpg"} alt={testimonial.name} />
                 <div className="author-info">
                   <h4>{testimonial.name}</h4>
                   <span>{testimonial.role}</span>

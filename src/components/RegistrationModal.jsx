@@ -3,179 +3,262 @@
 import { useState } from "react"
 import "./RegistrationModal.css"
 
-export default function RegistrationModal({ isOpen, onClose, selectedPlan, selectedLevel }) {
-  const [activeTab, setActiveTab] = useState("Sign In")
-  const [countryCode, setCountryCode] = useState("IN (+91)")
-  const [phoneNumber, setPhoneNumber] = useState("")
-  const [email, setEmail] = useState("")
-  const [showEmailInput, setShowEmailInput] = useState(false)
+const Registration = ({ isOpen, onClose }) => {
+  const [currentStep, setCurrentStep] = useState(1)
+  const [useEmail, setUseEmail] = useState(false)
+  const [formData, setFormData] = useState({
+    phone: "",
+    email: "",
+    name: "",
+    age: "",
+    experience: "",
+  })
 
-  if (!isOpen) return null
+  const handleInputChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    })
+  }
 
-  const handleGetVerificationCode = () => {
-    if (showEmailInput) {
-      console.log("Getting verification code for email:", email)
-    } else {
-      console.log("Getting verification code for phone:", countryCode, phoneNumber)
+  const handleNextStep = () => {
+    if (currentStep < 3) {
+      setCurrentStep(currentStep + 1)
     }
   }
 
-  const handleEmailToggle = () => {
-    setShowEmailInput(!showEmailInput)
+  const handlePrevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1)
+    }
   }
 
-  return (
-    <div className="registration-modal-overlay">
-      <div className="registration-modal">
-        <div className="registration-left">
-          <div className="logo-section">
-            <div className="logo">
-              <span className="logo-icon">TG</span>
-              <span className="logo-text">TalentGum</span>
-            </div>
-          </div>
+  const handleSubmit = () => {
+    // Handle form submission
+    console.log("Registration submitted:", formData)
+    onClose()
+  }
 
-          <div className="trust-section">
-            <h2 className="trust-title">Trusted by</h2>
-            <h1 className="trust-number">10,000+ parents</h1>
-            <h2 className="trust-location">worldwide</h2>
+  const toggleEmailPhone = () => {
+    setUseEmail(!useEmail)
+    // Clear the other field when switching
+    if (!useEmail) {
+      setFormData({ ...formData, phone: "" })
+    } else {
+      setFormData({ ...formData, email: "" })
+    }
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="registration-overlay">
+      <div className="registration-modal">
+        {/* Animated Background Elements */}
+        <div className="registration-bg-elements">
+          <div className="floating-note note-1">♪</div>
+          <div className="floating-note note-2">♫</div>
+          <div className="floating-note note-3">🎹</div>
+          <div className="floating-note note-4">🎵</div>
+          <div className="floating-circle circle-1"></div>
+          <div className="floating-circle circle-2"></div>
+        </div>
+
+        {/* Header Section */}
+        <div className="registration-header">
+          <div className="trust-badge">
+            <h3>Trusted by</h3>
+            <div className="trust-number">500+ students</div>
+            <p>learning music with us</p>
+          </div>
+          <button className="close-btn" onClick={onClose}>
+            ×
+          </button>
+        </div>
+
+        {/* Progress Steps */}
+        <div className="progress-steps">
+          <div className={`step ${currentStep >= 1 ? "active" : ""}`}>
+            <div className="step-icon">🎵</div>
+            <span>Contact</span>
+          </div>
+          <div className={`step ${currentStep >= 2 ? "active" : ""}`}>
+            <div className="step-icon">✓</div>
+            <span>Verify</span>
+          </div>
+          <div className={`step ${currentStep >= 3 ? "active" : ""}`}>
+            <div className="step-icon">ℹ</div>
+            <span>Details</span>
           </div>
         </div>
 
-        <div className="registration-right">
-          <div className="modal-header">
-            <div className="tab-navigation">
-              <button
-                className={`nav-tab ${activeTab === "Sign In" ? "active" : ""}`}
-                onClick={() => setActiveTab("Sign In")}
-              >
-                <span className="tab-icon">👤</span>
-                Sign In
-              </button>
-              <button
-                className={`nav-tab ${activeTab === "Verify" ? "active" : ""}`}
-                onClick={() => setActiveTab("Verify")}
-              >
-                <span className="tab-icon">✓</span>
-                Verify
-              </button>
-              <button
-                className={`nav-tab ${activeTab === "Info" ? "active" : ""}`}
-                onClick={() => setActiveTab("Info")}
-              >
-                <span className="tab-icon">ℹ</span>
-                Info
-              </button>
-            </div>
-            <button className="close-button" onClick={onClose}>
-              ✕
-            </button>
-          </div>
+        {/* Form Content */}
+        <div className="registration-content">
+          {currentStep === 1 && (
+            <div className="step-content">
+              <h2>Join AMJ Academy</h2>
+              <p className="step-subtitle">
+                <span className="music-icon">🎼</span>
+                Start your musical journey with us today
+              </p>
 
-          <div className="form-content">
-            {!showEmailInput ? (
-              <>
-                <h2 className="form-title">Enter Your WhatsApp Number</h2>
-                <p className="form-subtitle">
-                  <span className="whatsapp-icon">📱</span>
-                  We will only use it for important updates
-                </p>
+              {!useEmail ? (
+                <>
+                  <div className="input-group">
+                    <label>WhatsApp Number</label>
+                    <div className="phone-input">
+                      <select className="country-code">
+                        <option value="+91">IN (+91)</option>
+                        <option value="+1">US (+1)</option>
+                        <option value="+44">UK (+44)</option>
+                      </select>
+                      <input
+                        type="tel"
+                        name="phone"
+                        placeholder="Enter WhatsApp Number"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                  </div>
 
-                <div className="input-group">
-                  <div className="phone-input-container">
-                    <select
-                      className="country-select"
-                      value={countryCode}
-                      onChange={(e) => setCountryCode(e.target.value)}
-                    >
-                      <option value="IN (+91)">IN (+91)</option>
-                      <option value="US (+1)">US (+1)</option>
-                      <option value="UK (+44)">UK (+44)</option>
-                      <option value="CA (+1)">CA (+1)</option>
-                      <option value="AU (+61)">AU (+61)</option>
-                    </select>
+                  <button className="primary-btn" onClick={handleNextStep}>
+                    GET VERIFICATION CODE
+                  </button>
+
+                  <div className="alternative-option">
+                    <p>Have trouble signing in?</p>
+                    <button className="link-btn" onClick={toggleEmailPhone}>
+                      Use Email Address instead
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="input-group">
+                    <label>Email Address</label>
                     <input
-                      type="tel"
-                      className="phone-input"
-                      placeholder="Enter WhatsApp Number"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      type="email"
+                      name="email"
+                      placeholder="Enter your email address"
+                      value={formData.email}
+                      onChange={handleInputChange}
                     />
                   </div>
-                </div>
 
-                <button
-                  className="verification-button"
-                  onClick={handleGetVerificationCode}
-                  disabled={!phoneNumber.trim()}
-                >
-                  GET VERIFICATION CODE
-                </button>
-
-                <div className="alternative-signin">
-                  <p className="trouble-text">Have trouble signing in?</p>
-                  <button className="email-link" onClick={handleEmailToggle}>
-                    Use Email Address instead.
+                  <button className="primary-btn" onClick={handleNextStep}>
+                    SEND EMAIL VERIFICATION
                   </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <h2 className="form-title">Enter Your Email Address</h2>
-                <p className="form-subtitle">
-                  <span className="email-icon">📧</span>
-                  We will send you a verification link
-                </p>
 
+                  <div className="alternative-option">
+                    <p>Prefer WhatsApp?</p>
+                    <button className="link-btn" onClick={toggleEmailPhone}>
+                      Use WhatsApp instead
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {currentStep === 2 && (
+            <div className="step-content">
+              <h2>Verify Your {useEmail ? 'Email' : 'Number'}</h2>
+              <p className="step-subtitle">
+                <span className="music-icon">{useEmail ? '📧' : '📱'}</span>
+                We've sent a code to your {useEmail ? 'email' : 'WhatsApp'}
+              </p>
+
+              <div className="verification-code">
+                <input type="text" maxLength="1" />
+                <input type="text" maxLength="1" />
+                <input type="text" maxLength="1" />
+                <input type="text" maxLength="1" />
+                <input type="text" maxLength="1" />
+                <input type="text" maxLength="1" />
+              </div>
+
+              <div className="button-group">
+                <button className="secondary-btn" onClick={handlePrevStep}>
+                  Back
+                </button>
+                <button className="primary-btn" onClick={handleNextStep}>
+                  Verify Code
+                </button>
+              </div>
+
+              <div className="alternative-option">
+                <p>Didn't receive code?</p>
+                <button className="link-btn">Resend Code</button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 3 && (
+            <div className="step-content">
+              <h2>Tell Us About Yourself</h2>
+              <p className="step-subtitle">
+                <span className="music-icon">🎯</span>
+                Help us personalize your learning experience
+              </p>
+
+              <div className="form-grid">
                 <div className="input-group">
+                  <label>Full Name</label>
                   <input
-                    type="email"
-                    className="email-input"
-                    placeholder="Enter Email Address"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    type="text"
+                    name="name"
+                    placeholder="Enter your full name"
+                    value={formData.name}
+                    onChange={handleInputChange}
                   />
                 </div>
 
-                <button className="verification-button" onClick={handleGetVerificationCode} disabled={!email.trim()}>
-                  SEND VERIFICATION LINK
-                </button>
-
-                <div className="alternative-signin">
-                  <p className="trouble-text">Prefer WhatsApp?</p>
-                  <button className="email-link" onClick={handleEmailToggle}>
-                    Use WhatsApp Number instead.
-                  </button>
+                <div className="input-group">
+                  <label>Age Group</label>
+                  <select name="age" value={formData.age} onChange={handleInputChange}>
+                    <option value="">Select Age Range</option>
+                    <option value="4-7">4-7 years</option>
+                    <option value="8-12">8-12 years</option>
+                    <option value="13-17">13-17 years</option>
+                    <option value="18-30">18-30 years</option>
+                    <option value="31-50">31-50 years</option>
+                    <option value="50+">50+ years</option>
+                  </select>
                 </div>
-              </>
-            )}
 
-            <div className="rating-section">
-              <div className="rating-display">
-                <span className="rating-number">4.6/5</span>
-                <div className="stars">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className={`star ${i < 4 ? "filled" : "empty"}`}>
-                      ⭐
-                    </span>
-                  ))}
+                <div className="input-group full-width">
+                  <label>Musical Experience</label>
+                  <select name="experience" value={formData.experience} onChange={handleInputChange}>
+                    <option value="">Select Experience Level</option>
+                    <option value="complete-beginner">Complete Beginner</option>
+                    <option value="some-experience">Some Experience</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                    <option value="returning">Returning to Music</option>
+                  </select>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {selectedPlan && selectedLevel && (
-            <div className="selected-plan-info">
-              <p className="plan-text">
-                Selected:{" "}
-                <strong>
-                  {selectedLevel} - {selectedPlan}
-                </strong>
-              </p>
+              <div className="button-group">
+                <button className="secondary-btn" onClick={handlePrevStep}>
+                  Back
+                </button>
+                <button className="primary-btn" onClick={handleSubmit}>
+                  Complete Registration
+                </button>
+              </div>
             </div>
           )}
+        </div>
+
+        {/* Footer */}
+        <div className="registration-footer">
+          <p>By registering, you agree to our Terms of Service and Privacy Policy</p>
         </div>
       </div>
     </div>
   )
 }
+
+export default Registration

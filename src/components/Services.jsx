@@ -19,7 +19,7 @@ const Services = () => {
       <div className="container">
         <div className="services-header">
           <h2>Courses We Offer</h2>
-          <p>Comprehensive music education tailored to your individual needs and aspirations</p>
+          <p>Personalized music training designed around your goals and ambitions.</p>
         </div>
 
         <div className="services-grid">

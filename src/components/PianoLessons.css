@@ -275,28 +275,108 @@
 .tab-buttons {
   display: flex;
   justify-content: center;
-  gap: 1rem;
+  gap: 1.5rem;
   margin-top: 2rem;
+  flex-wrap: wrap;
 }
 
 .tab-button {
-  padding: 0.5rem 2rem;
+  padding: 0.75rem 2.5rem;
   border-radius: 50px;
-  border: 1px solid #d1d5db;
-  background: white;
-  color: #374151;
+  border: none;
+  font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
 }
 
-.tab-button.active {
-  background: #3b82f6;
+/* OVERVIEW Button - Sunset Dream */
+.tab-button:nth-child(1) {
+  background: linear-gradient(135deg, #ff6b6b 0%, #feca57 50%, #48dbfb 100%);
   color: white;
-  border-color: #3b82f6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-.tab-button:hover {
-  border-color: #3b82f6;
+.tab-button:nth-child(1):hover {
+  background: linear-gradient(135deg, #ff5252 0%, #ff9ff3 50%, #54a0ff 100%);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+}
+
+.tab-button:nth-child(1).active {
+  background: linear-gradient(135deg, #ff3838 0%, #ff6348 50%, #ff9500 100%);
+  box-shadow: 0 8px 30px rgba(255, 107, 107, 0.6);
+  transform: translateY(-2px);
+}
+
+/* CURRICULUM Button - Ocean Breeze */
+.tab-button:nth-child(2) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.tab-button:nth-child(2):hover {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 50%, #a8edea 100%);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.tab-button:nth-child(2).active {
+  background: linear-gradient(135deg, #36d1dc 0%, #5b86e5 50%, #36d1dc 100%);
+  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.6);
+  transform: translateY(-2px);
+}
+
+/* Button shimmer effect */
+.tab-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.5s;
+}
+
+.tab-button:hover::before {
+  left: 100%;
+}
+
+/* Pulse animation for active state */
+.tab-button.active {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .tab-buttons {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .tab-button {
+    width: 250px;
+    max-width: 100%;
+  }
 }
 
 /* Stats Section */
@@ -460,24 +540,105 @@
 }
 
 .level-button {
-  padding: 0.5rem 1.5rem;
+  padding: 0.75rem 2rem;
   border-radius: 50px;
-  border: 1px solid #d1d5db;
-  background: white;
-  color: #374151;
+  border: none;
+  font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 500;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-.level-button.active {
-  background: #f97316;
+/* Beginner Button - Fresh Spring */
+.level-button:nth-child(1) {
+  background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 90%, #dcedc8 100%);
   color: white;
-  border-color: #f97316;
 }
 
-.level-button:hover {
-  border-color: #f97316;
+.level-button:nth-child(1):hover {
+  background: linear-gradient(135deg, #4caf50 0%, #81c784 50%, #c8e6c9 100%);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+}
+
+.level-button:nth-child(1).active {
+  background: linear-gradient(135deg, #388e3c 0%, #66bb6a 50%, #a5d6a7 100%);
+  box-shadow: 0 8px 30px rgba(76, 175, 80, 0.6);
+  transform: translateY(-2px);
+}
+
+/* Intermediate Button - Royal Purple */
+.level-button:nth-child(2) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  color: white;
+}
+
+.level-button:nth-child(2):hover {
+  background: linear-gradient(135deg, #5e35b1 0%, #7e57c2 50%, #9575cd 100%);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(103, 58, 183, 0.4);
+}
+
+.level-button:nth-child(2).active {
+  background: linear-gradient(135deg, #512da8 0%, #673ab7 50%, #8e24aa 100%);
+  box-shadow: 0 8px 30px rgba(103, 58, 183, 0.6);
+  transform: translateY(-2px);
+}
+
+/* Advanced Button - Fiery Sunset */
+.level-button:nth-child(3) {
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ffcc02 100%);
+  color: white;
+}
+
+.level-button:nth-child(3):hover {
+  background: linear-gradient(135deg, #e65100 0%, #ff9800 50%, #ffb74d 100%);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+}
+
+.level-button:nth-child(3).active {
+  background: linear-gradient(135deg, #ef6c00 0%, #ff6f00 50%, #ff8f00 100%);
+  box-shadow: 0 8px 30px rgba(255, 152, 0, 0.6);
+  transform: translateY(-2px);
+}
+
+/* Button shimmer effect for all level buttons */
+.level-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.5s;
+}
+
+.level-button:hover::before {
+  left: 100%;
+}
+
+/* Pulse animation for active state */
+.level-button.active {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  }
 }
 
 .pricing-grid {
@@ -515,7 +676,7 @@
 .popular-badge {
   position: absolute;
   top: 0;
-  right: 0;
+  left: 50%;
   background: #7c3aed;
   color: white;
   padding: 0.25rem 0.75rem;

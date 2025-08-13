@@ -6,7 +6,7 @@ import RegistrationModal from "./RegistrationModal"
 
 export default function PianoLessonsLanding() {
   const [selectedLevel, setSelectedLevel] = useState("Advanced")
-  const [selectedPlan, setSelectedPlan] = useState("Buddy")
+  const [selectedPlan, setSelectedPlan] = useState("Companion")
   const [showRegistrationModal, setShowRegistrationModal] = useState(false)
   const [enrollmentData, setEnrollmentData] = useState({ plan: "", level: "" })
 
@@ -55,27 +55,27 @@ export default function PianoLessonsLanding() {
         {
           type: "Group",
           badge: "No Cost EMI*",
-          students: "3-6 kids per batch",
-          originalPrice: "₹350",
-          currentPrice: "₹288*",
-          discount: "18% OFF",
+          students: "3-4 kids per batch",
+          originalPrice: "₹2,460",
+          currentPrice: "₹1,960*",
+          discount: "28% OFF",
           features: [
-            "Partner - 1-2 Sessions",
-            "6 live sessions per month",
+            "Partner - 1-4 ",
+            "8 live sessions per month",
             "Basic Keyboard Introduction",
             "Interactive Live Sessions, Access to Learning Resources",
           ],
         },
         {
-          type: "Buddy",
+          type: "Companion",
           badge: "No Cost EMI*",
           students: "2 kids per batch",
-          originalPrice: "₹550",
-          currentPrice: "₹451*",
-          discount: "18% OFF",
+          originalPrice: "₹2,964",
+          currentPrice: "₹2,464*",
+          discount: "28% OFF",
           features: [
-            "Partner - 1-2 Sessions",
-            "6 live sessions per month",
+            "Partner - 1-2",
+            "8 live sessions per month",
             "Basic Keyboard Introduction",
             "Interactive Live Sessions, Access to Learning Resources",
           ],
@@ -85,12 +85,12 @@ export default function PianoLessonsLanding() {
           type: "Individual",
           badge: "No Cost EMI*",
           students: "1 kid per batch",
-          originalPrice: "₹750",
-          currentPrice: "₹615*",
-          discount: "18% OFF",
+          originalPrice: "₹3,460",
+          currentPrice: "₹2,960*",
+          discount: "28% OFF",
           features: [
-            "Partner - 1-2 Sessions",
-            "6 live sessions per month",
+            "Person - 1",
+            "8 live sessions per month",
             "Basic Keyboard Introduction",
             "Interactive Live Sessions, Access to Learning Resources",
           ],
@@ -100,24 +100,24 @@ export default function PianoLessonsLanding() {
         {
           type: "Group",
           badge: "No Cost EMI*",
-          students: "3-6 kids per batch",
-          originalPrice: "₹450",
-          currentPrice: "₹368*",
-          discount: "18% OFF",
+          students: "3-4 kids per batch",
+          originalPrice: "₹3,020",
+          currentPrice: "₹2,520*",
+          discount: "28% OFF",
           features: [
-            "Partner - 1-2 Sessions",
+            "Partner - 1-4",
             "8 live sessions per month",
             "Intermediate Techniques",
             "Interactive Live Sessions, Access to Learning Resources",
           ],
         },
         {
-          type: "Buddy",
+          type: "Companion",
           badge: "No Cost EMI*",
           students: "2 kids per batch",
-          originalPrice: "₹650",
-          currentPrice: "₹533*",
-          discount: "18% OFF",
+          originalPrice: "₹3,420",
+          currentPrice: "₹2,920*",
+          discount: "28% OFF",
           features: [
             "Partner - 1-2 Sessions",
             "8 live sessions per month",
@@ -130,11 +130,11 @@ export default function PianoLessonsLanding() {
           type: "Individual",
           badge: "No Cost EMI*",
           students: "1 kid per batch",
-          originalPrice: "₹850",
-          currentPrice: "₹697*",
-          discount: "18% OFF",
+          originalPrice: "₹3,980",
+          currentPrice: "₹3,480*",
+          discount: "28% OFF",
           features: [
-            "Partner - 1-2 Sessions",
+            "Person - 1",
             "8 live sessions per month",
             "Intermediate Techniques",
             "Interactive Live Sessions, Access to Learning Resources",
@@ -145,27 +145,27 @@ export default function PianoLessonsLanding() {
         {
           type: "Group",
           badge: "No Cost EMI*",
-          students: "3-6 kids per batch",
-          originalPrice: "₹550",
-          currentPrice: "₹451*",
-          discount: "18% OFF",
+          students: "3-4 kids per batch",
+          originalPrice: "₹3,740",
+          currentPrice: "₹3,240*",
+          discount: "28% OFF",
           features: [
-            "Partner - 1-2 Sessions",
-            "10 live sessions per month",
+            "Partner - 1-4 ",
+            "8 live sessions per month",
             "Advanced Compositions",
             "Interactive Live Sessions, Access to Learning Resources",
           ],
         },
         {
-          type: "Buddy",
+          type: "Companion",
           badge: "No Cost EMI*",
           students: "2 kids per batch",
-          originalPrice: "₹750",
-          currentPrice: "₹615*",
-          discount: "18% OFF",
+          originalPrice: "₹4,280",
+          currentPrice: "₹3,680*",
+          discount: "28% OFF",
           features: [
-            "Partner - 1-2 Sessions",
-            "10 live sessions per month",
+            "Partner - 1-2 ",
+            "8 live sessions per month",
             "Advanced Compositions",
             "Interactive Live Sessions, Access to Learning Resources",
           ],
@@ -175,12 +175,12 @@ export default function PianoLessonsLanding() {
           type: "Individual",
           badge: "No Cost EMI*",
           students: "1 kid per batch",
-          originalPrice: "₹950",
-          currentPrice: "₹779*",
-          discount: "18% OFF",
+          originalPrice: "₹4,700",
+          currentPrice: "₹4,200*",
+          discount: "28% OFF",
           features: [
-            "Partner - 1-2 Sessions",
-            "10 live sessions per month",
+            "Person - 1 ",
+            "8 live sessions per month",
             "Advanced Compositions",
             "Interactive Live Sessions, Access to Learning Resources",
           ],
@@ -247,8 +247,8 @@ export default function PianoLessonsLanding() {
                 Book a free demo
               </button>
               <div className="price-info">
-                <span className="current-price">₹368</span>
-                <span className="original-price">₹0</span>
+                <span className="current-price">₹0</span>
+                <span className="original-price">₹360</span>
                 <span className="price-text">for the first class - 100% Free</span>
               </div>
             </div>
@@ -265,27 +265,40 @@ export default function PianoLessonsLanding() {
         <div className="about-content1">
           <h2 className="section-title">About the course</h2>
           <p className="about-text">
-            Affiliated with Trinity College London, our online Keyboard & Piano classes have been crafted by expert
-            musicians to help your little one start their music journey! This course will help kids to build a robust
-            foundation in music and get them started on the path to Trinity's graded exams.
+            In association with Trinity College London, our online Piano and Keyboard lessons
+             are designed by seasoned musicians to guide your child’s first steps in music. 
+             This program lays a strong musical foundation and prepares young learners for
+              Trinity’s graded examinations.
           </p>
-          <p className="about-text">
+          {/* <p className="about-text">
             With our interactive live sessions, students will not only be able to play popular Bollywood and Western
             songs confidently but will also learn Music Theory with engaging games and activities ensuring a high fun
             quotient in every class. Our expert teachers will provide personalised attention and give continuous
             feedback to the learners while also mapping their progress throughout the course.
-          </p>
+          </p> */}
 
           <div className="tab-buttons">
             <button
               className={`tab-button ${selectedLevel === "OVERVIEW" ? "active" : ""}`}
-              onClick={() => setSelectedLevel("OVERVIEW")}
+              onClick={() => {
+                setSelectedLevel("OVERVIEW");
+                document.getElementById('course-details')?.scrollIntoView({ 
+                  behavior: 'smooth',
+                  block: 'start'
+                });
+              }}
             >
               OVERVIEW
             </button>
             <button
               className={`tab-button ${selectedLevel === "CURRICULUM" ? "active" : ""}`}
-              onClick={() => setSelectedLevel("CURRICULUM")}
+              onClick={() => {
+                setSelectedLevel("CURRICULUM");
+                document.getElementById('course-details')?.scrollIntoView({ 
+                  behavior: 'smooth',
+                  block: 'start'
+                });
+              }}
             >
               CURRICULUM
             </button>
@@ -294,7 +307,7 @@ export default function PianoLessonsLanding() {
       </section>
 
       {/* Course Details Stats */}
-      <section className="stats-section">
+      {/* <section className="stats-section" id="course-details">
         <div className="stats-content">
           <h2 className="section-title">Course Details</h2>
           <div className="stats-grid">
@@ -318,9 +331,9 @@ export default function PianoLessonsLanding() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
-      {/* What You Will Receive */}
+      {/* What You Will Receive
       <section className="features-section">
         <div className="features-content">
           <h2 className="section-title">What you will receive</h2>
@@ -336,7 +349,7 @@ export default function PianoLessonsLanding() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Learning Style Selection */}
       <section className="pricing-section">
@@ -414,14 +427,14 @@ export default function PianoLessonsLanding() {
             </p>
             <p>
               • For any queries, please contact us via WhatsApp at{" "}
-              <span className="contact-number">+91 9958137502</span>
+              <span className="contact-number">+91 9171719881</span>
             </p>
           </div>
         </div>
       </section>
 
       {/* Meet Your Teachers */}
-      <section className="teachers-section">
+      {/* <section className="teachers-section">
         <div className="teachers-content">
           <h2 className="section-title">Meet your teachers</h2>
           <div className="teacher-card">
@@ -442,7 +455,7 @@ export default function PianoLessonsLanding() {
       </section>
 
       {/* Reviews Section */}
-      <section className="reviews-section">
+      {/* <section className="reviews-section">
         <div className="reviews-content">
           <h2 className="section-title">Reviews from Parents</h2>
           <div className="reviews-grid">
@@ -475,7 +488,7 @@ export default function PianoLessonsLanding() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */} 
 
       {/* Registration Modal */}
       <RegistrationModal

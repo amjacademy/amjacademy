@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header/header';
 import Hero from './components/Hero';
 import About from './components/About';
+import OurOutlook from './components/OurOutlook';
 import Services from './components/Services';
 import Experience from './components/Experience';
 import Testimonials from './components/Testimonials';
@@ -20,6 +21,7 @@ function HomePage() {
       <Header />
       <Hero />
       <About />
+      <OurOutlook />
       <Services />
       {/* <Experience /> */}
       <Testimonials />

@@ -22,6 +22,7 @@
   font-weight: 800;
   line-height: 1.2;
   color: #2c3e50;
+  margin-top: 31px;
   margin-bottom: 24px;
 }
 
@@ -91,6 +92,7 @@
 
 /* Ribbon Styles */
 .ribbon-left,
+.ribbon-center,
 .ribbon-right {
   position: absolute;
   top: 80px;
@@ -108,12 +110,28 @@
   box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
   z-index: 10;
   overflow: hidden;
+  margin-top: 10px;
 }
 
 .ribbon-left {
   left: 0;
   transform-origin: top left;
   clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
+}
+
+.ribbon-center {
+  left: 50%;
+  transform: translateX(-50%);
+  transform-origin: top center;
+  width: 300px;
+  /* clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
+  clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%); */
+  padding: 0 30px;
+  border-radius: 15px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  white-space: nowrap;
 }
 
 .ribbon-right {
@@ -123,6 +141,7 @@
 }
 
 .ribbon-left::before,
+.ribbon-center::before,
 .ribbon-right::before {
   content: "";
   position: absolute;
@@ -144,8 +163,10 @@
 }
 
 .ribbon-left span,
+.ribbon-center span 
 .ribbon-right span {
-  position: relative;
+  position: center;
+  margin-top: 15px;
   z-index: 2;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
@@ -451,6 +472,7 @@
   }
 
   .hero-text h1 {
+    margin-top: 15%;
     font-size: 2.5rem;
   }
 
@@ -460,6 +482,11 @@
 
   .hero-buttons {
     justify-content: center;
+  }
+
+  .hero-image-container img {
+    width: 100%;
+    height: 100%;
   }
 
   /* Responsive ribbons */

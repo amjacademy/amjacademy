@@ -15,6 +15,9 @@ const Hero = () => {
       <div className="ribbon-left">
         <span>INTRODUCTION TO</span>
       </div>
+      <div className="ribbon-center">
+        <span>THIS CONVENIENCE IS OPEN 24/7</span>
+      </div>
       <div className="ribbon-right">
         <span>ONLINE CLASS</span>
       </div>

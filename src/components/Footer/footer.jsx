@@ -41,6 +41,7 @@ const Footer = () => {
             <h4>Services</h4>
             <ul>
               <li><a href="#services">Private Piano Lessons</a></li>
+              <li><a href="#services">Trinity exam preparation</a></li>
               <li><a href="#services">Group Classes</a></li>
               <li><a href="#services">Music Theory</a></li>
               <li><a href="#services">Performance Coaching</a></li>
@@ -52,10 +53,12 @@ const Footer = () => {
           <div className="footer-section">
             <h4>Contact Info</h4>
             <div className="footer-contact">
-              <p>📧 info@amjacademy.com</p>
-              <p>📱 +1 (555) 123-4567</p>
-              <p>📍 Music Studio & Online</p>
-              <p>⏰ Mon-Sat: 9AM-8PM</p>
+              <p>📧 amjacademy196015@gmail.com.com</p>
+              <p>📱 +91-901790179881</p>
+              <p>📍 2nd cross street, Kothauda Ramar Nagar,
+                     Perungudi, CH-96
+              </p>
+              <p>⏰ 24/7 Available</p>
             </div>
           </div>
         </div>

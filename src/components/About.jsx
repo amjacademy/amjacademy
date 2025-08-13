@@ -17,7 +17,7 @@ const About = () => {
               futures with passion, purpose, and unwavering dedication."
             </p>
 
-            <div className="about-details">
+            {/* <div className="about-details">
               <div className="detail-item">
                 <div className="detail-icon">🎹</div>
                 <div className="detail-content">
@@ -39,9 +39,9 @@ const About = () => {
                 <div className="detail-content">
                   <h4>All Ages Welcome</h4>
                   <p>Experience teaching students from age 5 to 50+, adapting to individual learning styles</p>
-                </div>
-              </div>
-            </div>
+                </div> */}
+              {/* </div> */}
+            {/* </div> */}
             <div className="qualifications">
               <h3>Qualifications & Achievements</h3>
               <ul>
