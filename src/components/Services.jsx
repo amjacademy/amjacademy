@@ -9,8 +9,10 @@ const Services = () => {
     // Use React Router for navigation
     if (module === "piano") {
       navigate("/piano-lessons");
+      window.scrollTo(0, 0);
     } else if (module === "recorded") {
       navigate("/recorded-classes");
+      window.scrollTo(0, 0);
     }
   }
 

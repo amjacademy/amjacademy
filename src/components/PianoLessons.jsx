@@ -5,7 +5,7 @@ import "./PianoLessons.css"
 import RegistrationModal from "./RegistrationModal"
 
 export default function PianoLessonsLanding() {
-  const [selectedLevel, setSelectedLevel] = useState("Advanced")
+  const [selectedLevel, setSelectedLevel] = useState("Beginner")
   const [selectedPlan, setSelectedPlan] = useState("Companion")
   const [showRegistrationModal, setShowRegistrationModal] = useState(false)
   const [enrollmentData, setEnrollmentData] = useState({ plan: "", level: "" })
@@ -53,135 +53,135 @@ export default function PianoLessonsLanding() {
     const basePlans = {
       Beginner: [
         {
-          type: "Group",
-          badge: "No Cost EMI*",
-          students: "3-4 kids per batch",
-          originalPrice: "₹2,460",
-          currentPrice: "₹1,960*",
-          discount: "28% OFF",
-          features: [
-            "Partner - 1-4 ",
-            "8 live sessions per month",
-            "Basic Keyboard Introduction",
-            "Interactive Live Sessions, Access to Learning Resources",
-          ],
-        },
-        {
           type: "Companion",
           badge: "No Cost EMI*",
-          students: "2 kids per batch",
+          // students: "2 kids per batch",
           originalPrice: "₹2,964",
           currentPrice: "₹2,464*",
           discount: "28% OFF",
           features: [
-            "Partner - 1-2",
+            "1:2 Session",
             "8 live sessions per month",
-            "Basic Keyboard Introduction",
+            // "Basic Keyboard Introduction",
+            "Interactive Live Sessions, Access to Learning Resources",
+          ],
+        },
+        {
+          type: "Individual",
+          badge: "No Cost EMI*",
+          // students: "1 kid per batch",
+          originalPrice: "₹3,460",
+          currentPrice: "₹2,960*",
+          discount: "28% OFF",
+          features: [
+            "1:1 Session",
+            "8 live sessions per month",
+            // "Basic Keyboard Introduction",
             "Interactive Live Sessions, Access to Learning Resources",
           ],
           popular: true,
         },
         {
-          type: "Individual",
+          type: "Group",
           badge: "No Cost EMI*",
-          students: "1 kid per batch",
-          originalPrice: "₹3,460",
-          currentPrice: "₹2,960*",
+          // students: "3-4 kids per batch",
+          originalPrice: "₹2,460",
+          currentPrice: "₹1,960*",
           discount: "28% OFF",
           features: [
-            "Person - 1",
+            "1:4 Session",
             "8 live sessions per month",
-            "Basic Keyboard Introduction",
+            // "Basic Keyboard Introduction",
             "Interactive Live Sessions, Access to Learning Resources",
           ],
         },
       ],
       Intermediate: [
         {
-          type: "Group",
-          badge: "No Cost EMI*",
-          students: "3-4 kids per batch",
-          originalPrice: "₹3,020",
-          currentPrice: "₹2,520*",
-          discount: "28% OFF",
-          features: [
-            "Partner - 1-4",
-            "8 live sessions per month",
-            "Intermediate Techniques",
-            "Interactive Live Sessions, Access to Learning Resources",
-          ],
-        },
-        {
           type: "Companion",
           badge: "No Cost EMI*",
-          students: "2 kids per batch",
+          // students: "2 kids per batch",
           originalPrice: "₹3,420",
           currentPrice: "₹2,920*",
           discount: "28% OFF",
           features: [
-            "Partner - 1-2 Sessions",
+            "1:2 Sessions",
             "8 live sessions per month",
-            "Intermediate Techniques",
+            // "Intermediate Techniques",
+            "Interactive Live Sessions, Access to Learning Resources",
+          ],
+        },
+        {
+          type: "Individual",
+          badge: "No Cost EMI*",
+          // students: "1 kid per batch",
+          originalPrice: "₹3,980",
+          currentPrice: "₹3,480*",
+          discount: "28% OFF",
+          features: [
+            "1:1 Session",
+            "8 live sessions per month",
+            // "Intermediate Techniques",
             "Interactive Live Sessions, Access to Learning Resources",
           ],
           popular: true,
         },
         {
-          type: "Individual",
+          type: "Group",
           badge: "No Cost EMI*",
-          students: "1 kid per batch",
-          originalPrice: "₹3,980",
-          currentPrice: "₹3,480*",
+          // students: "3-4 kids per batch",
+          originalPrice: "₹3,020",
+          currentPrice: "₹2,520*",
           discount: "28% OFF",
           features: [
-            "Person - 1",
+            "1:4 Session",
             "8 live sessions per month",
-            "Intermediate Techniques",
+            // "Intermediate Techniques",
             "Interactive Live Sessions, Access to Learning Resources",
           ],
         },
       ],
       Advanced: [
         {
-          type: "Group",
-          badge: "No Cost EMI*",
-          students: "3-4 kids per batch",
-          originalPrice: "₹3,740",
-          currentPrice: "₹3,240*",
-          discount: "28% OFF",
-          features: [
-            "Partner - 1-4 ",
-            "8 live sessions per month",
-            "Advanced Compositions",
-            "Interactive Live Sessions, Access to Learning Resources",
-          ],
-        },
-        {
           type: "Companion",
           badge: "No Cost EMI*",
-          students: "2 kids per batch",
+          // students: "2 kids per batch",
           originalPrice: "₹4,280",
           currentPrice: "₹3,680*",
           discount: "28% OFF",
           features: [
-            "Partner - 1-2 ",
+            "1:2 Session ",
             "8 live sessions per month",
-            "Advanced Compositions",
+            // "Advanced Compositions",
+            "Interactive Live Sessions, Access to Learning Resources",
+          ],
+        },
+        {
+          type: "Individual",
+          badge: "No Cost EMI*",
+          // students: "1 kid per batch",
+          originalPrice: "₹4,700",
+          currentPrice: "₹4,200*",
+          discount: "28% OFF",
+          features: [
+            "1:1 Session ",
+            "8 live sessions per month",
+            // "Advanced Compositions",
             "Interactive Live Sessions, Access to Learning Resources",
           ],
           popular: true,
         },
         {
-          type: "Individual",
+          type: "Group",
           badge: "No Cost EMI*",
-          students: "1 kid per batch",
-          originalPrice: "₹4,700",
-          currentPrice: "₹4,200*",
+          // students: "3-4 kids per batch",
+          originalPrice: "₹3,740",
+          currentPrice: "₹3,240*",
           discount: "28% OFF",
           features: [
-            "Person - 1 ",
+            "1:4 Session ",
             "8 live sessions per month",
-            "Advanced Compositions",
+            // "Advanced Compositions",
             "Interactive Live Sessions, Access to Learning Resources",
           ],
         },
@@ -282,7 +282,7 @@ export default function PianoLessonsLanding() {
               className={`tab-button ${selectedLevel === "OVERVIEW" ? "active" : ""}`}
               onClick={() => {
                 setSelectedLevel("OVERVIEW");
-                document.getElementById('course-details')?.scrollIntoView({ 
+                document.querySelector('.pricing-section')?.scrollIntoView({ 
                   behavior: 'smooth',
                   block: 'start'
                 });
@@ -426,7 +426,7 @@ export default function PianoLessonsLanding() {
               IST). Classes outside these hours may incur surcharges.
             </p>
             <p>
-              • For any queries, please contact us via WhatsApp at{" "}
+              • For any queries, please contact us with{" "}
               <span className="contact-number">+91 9171719881</span>
             </p>
           </div>

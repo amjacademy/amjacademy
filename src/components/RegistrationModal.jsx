@@ -1,28 +1,419 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import "./RegistrationModal.css"
 
-const Registration = ({ isOpen, onClose }) => {
+const RegistrationEnhanced = ({ isOpen, onClose }) => {
   const [currentStep, setCurrentStep] = useState(1)
-  const [useEmail, setUseEmail] = useState(false)
+  const [registrationType, setRegistrationType] = useState("") // "whatsapp" or "email"
   const [formData, setFormData] = useState({
     phone: "",
     email: "",
+    otp: ["", "", "", "", "", ""],
     name: "",
     age: "",
     experience: "",
+    instrument: "",
+    address: "",
+    parentName: "",
+    parentPhone: "",
+    selectedDate: "",
+    selectedTime: "",
+    location: "AMJ Academy Main Center",
   })
 
+  // OTP input refs
+  const otpRefs = useRef([])
+
+  // Generate next 7 days from today
+  const getNext3Days = () => {
+    const days = []
+    const today = new Date()
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today)
+      date.setDate(today.getDate() + i)
+      days.push({
+        date: date.toISOString().split("T")[0],
+        day: date.toLocaleDateString("en-US", { weekday: "short" }),
+        dayNum: date.getDate(),
+        month: date.toLocaleDateString("en-US", { month: "short" }),
+      })
+    }
+    return days
+  }
+
+  const [availableDays] = useState(getNext3Days())
+
+  // Time slots
+  const timeSlots = [
+    "04:00-10:45 am",
+    "05:00-11:45 am",
+    "06:00-12:45 am",
+    "05:00-05:45 pm",
+    "06:00-06:45 pm",
+    "07:00-07:45 pm",
+    "08:00-08:45 pm",
+    "09:00-09:45 pm",
+  ]
+
+  // country code
+  const countryCodes = [
+  { name: "Afghanistan", code: "+93" },
+  { name: "Albania", code: "+355" },
+  { name: "Algeria", code: "+213" },
+  { name: "Andorra", code: "+376" },
+  { name: "Angola", code: "+244" },
+  { name: "Antigua and Barbuda", code: "+1-268" },
+  { name: "Argentina", code: "+54" },
+  { name: "Armenia", code: "+374" },
+  { name: "Australia", code: "+61" },
+  { name: "Austria", code: "+43" },
+  { name: "Azerbaijan", code: "+994" },
+  { name: "Bahamas", code: "+1-242" },
+  { name: "Bahrain", code: "+973" },
+  { name: "Bangladesh", code: "+880" },
+  { name: "Barbados", code: "+1-246" },
+  { name: "Belarus", code: "+375" },
+  { name: "Belgium", code: "+32" },
+  { name: "Belize", code: "+501" },
+  { name: "Benin", code: "+229" },
+  { name: "Bhutan", code: "+975" },
+  { name: "Bolivia", code: "+591" },
+  { name: "Bosnia and Herzegovina", code: "+387" },
+  { name: "Botswana", code: "+267" },
+  { name: "Brazil", code: "+55" },
+  { name: "Brunei Darussalam", code: "+673" },
+  { name: "Bulgaria", code: "+359" },
+  { name: "Burkina Faso", code: "+226" },
+  { name: "Burundi", code: "+257" },
+  { name: "Cambodia", code: "+855" },
+  { name: "Cameroon", code: "+237" },
+  { name: "Canada", code: "+1" },
+  { name: "Cape Verde", code: "+238" },
+  { name: "Central African Republic", code: "+236" },
+  { name: "Chad", code: "+235" },
+  { name: "Chile", code: "+56" },
+  { name: "China", code: "+86" },
+  { name: "Colombia", code: "+57" },
+  { name: "Comoros", code: "+269" },
+  { name: "Congo", code: "+242" },
+  { name: "Costa Rica", code: "+506" },
+  { name: "Croatia", code: "+385" },
+  { name: "Cuba", code: "+53" },
+  { name: "Cyprus", code: "+357" },
+  { name: "Czech Republic", code: "+420" },
+  { name: "Denmark", code: "+45" },
+  { name: "Djibouti", code: "+253" },
+  { name: "Dominica", code: "+1-767" },
+  { name: "Dominican Republic", code: "+1-809" },
+  { name: "Ecuador", code: "+593" },
+  { name: "Egypt", code: "+20" },
+  { name: "El Salvador", code: "+503" },
+  { name: "Equatorial Guinea", code: "+240" },
+  { name: "Eritrea", code: "+291" },
+  { name: "Estonia", code: "+372" },
+  { name: "Eswatini", code: "+268" },
+  { name: "Ethiopia", code: "+251" },
+  { name: "Fiji", code: "+679" },
+  { name: "Finland", code: "+358" },
+  { name: "France", code: "+33" },
+  { name: "Gabon", code: "+241" },
+  { name: "Gambia", code: "+220" },
+  { name: "Georgia", code: "+995" },
+  { name: "Germany", code: "+49" },
+  { name: "Ghana", code: "+233" },
+  { name: "Greece", code: "+30" },
+  { name: "Grenada", code: "+1-473" },
+  { name: "Guatemala", code: "+502" },
+  { name: "Guinea", code: "+224" },
+  { name: "Guyana", code: "+592" },
+  { name: "Haiti", code: "+509" },
+  { name: "Honduras", code: "+504" },
+  { name: "Hungary", code: "+36" },
+  { name: "Iceland", code: "+354" },
+  { name: "India", code: "+91" },
+  { name: "Indonesia", code: "+62" },
+  { name: "Iran", code: "+98" },
+  { name: "Iraq", code: "+964" },
+  { name: "Ireland", code: "+353" },
+  { name: "Israel", code: "+972" },
+  { name: "Italy", code: "+39" },
+  { name: "Jamaica", code: "+1-876" },
+  { name: "Japan", code: "+81" },
+  { name: "Jordan", code: "+962" },
+  { name: "Kazakhstan", code: "+7" },
+  { name: "Kenya", code: "+254" },
+  { name: "Kiribati", code: "+686" },
+  { name: "Kuwait", code: "+965" },
+  { name: "Kyrgyzstan", code: "+996" },
+  { name: "Laos", code: "+856" },
+  { name: "Latvia", code: "+371" },
+  { name: "Lebanon", code: "+961" },
+  { name: "Lesotho", code: "+266" },
+  { name: "Liberia", code: "+231" },
+  { name: "Libya", code: "+218" },
+  { name: "Liechtenstein", code: "+423" },
+  { name: "Lithuania", code: "+370" },
+  { name: "Luxembourg", code: "+352" },
+  { name: "Madagascar", code: "+261" },
+  { name: "Malawi", code: "+265" },
+  { name: "Malaysia", code: "+60" },
+  { name: "Maldives", code: "+960" },
+  { name: "Mali", code: "+223" },
+  { name: "Malta", code: "+356" },
+  { name: "Marshall Islands", code: "+692" },
+  { name: "Mauritania", code: "+222" },
+  { name: "Mauritius", code: "+230" },
+  { name: "Mexico", code: "+52" },
+  { name: "Micronesia", code: "+691" },
+  { name: "Moldova", code: "+373" },
+  { name: "Monaco", code: "+377" },
+  { name: "Mongolia", code: "+976" },
+  { name: "Montenegro", code: "+382" },
+  { name: "Morocco", code: "+212" },
+  { name: "Mozambique", code: "+258" },
+  { name: "Myanmar", code: "+95" },
+  { name: "Namibia", code: "+264" },
+  { name: "Nauru", code: "+674" },
+  { name: "Nepal", code: "+977" },
+  { name: "Netherlands", code: "+31" },
+  { name: "New Zealand", code: "+64" },
+  { name: "Nicaragua", code: "+505" },
+  { name: "Niger", code: "+227" },
+  { name: "Nigeria", code: "+234" },
+  { name: "North Korea", code: "+850" },
+  { name: "North Macedonia", code: "+389" },
+  { name: "Norway", code: "+47" },
+  { name: "Oman", code: "+968" },
+  { name: "Pakistan", code: "+92" },
+  { name: "Palau", code: "+680" },
+  { name: "Palestine", code: "+970" },
+  { name: "Panama", code: "+507" },
+  { name: "Papua New Guinea", code: "+675" },
+  { name: "Paraguay", code: "+595" },
+  { name: "Peru", code: "+51" },
+  { name: "Philippines", code: "+63" },
+  { name: "Poland", code: "+48" },
+  { name: "Portugal", code: "+351" },
+  { name: "Qatar", code: "+974" },
+  { name: "Romania", code: "+40" },
+  { name: "Russia", code: "+7" },
+  { name: "Rwanda", code: "+250" },
+  { name: "Saint Kitts and Nevis", code: "+1-869" },
+  { name: "Saint Lucia", code: "+1-758" },
+  { name: "Saint Vincent and the Grenadines", code: "+1-784" },
+  { name: "Samoa", code: "+685" },
+  { name: "San Marino", code: "+378" },
+  { name: "Sao Tome and Principe", code: "+239" },
+  { name: "Saudi Arabia", code: "+966" },
+  { name: "Senegal", code: "+221" },
+  { name: "Serbia", code: "+381" },
+  { name: "Seychelles", code: "+248" },
+  { name: "Sierra Leone", code: "+232" },
+  { name: "Singapore", code: "+65" },
+  { name: "Slovakia", code: "+421" },
+  { name: "Slovenia", code: "+386" },
+  { name: "Solomon Islands", code: "+677" },
+  { name: "Somalia", code: "+252" },
+  { name: "South Africa", code: "+27" },
+  { name: "South Korea", code: "+82" },
+  { name: "South Sudan", code: "+211" },
+  { name: "Spain", code: "+34" },
+  { name: "Sri Lanka", code: "+94" },
+  { name: "Sudan", code: "+249" },
+  { name: "Suriname", code: "+597" },
+  { name: "Sweden", code: "+46" },
+  { name: "Switzerland", code: "+41" },
+  { name: "Syria", code: "+963" },
+  { name: "Taiwan", code: "+886" },
+  { name: "Tajikistan", code: "+992" },
+  { name: "Tanzania", code: "+255" },
+  { name: "Thailand", code: "+66" },
+  { name: "Togo", code: "+228" },
+  { name: "Tonga", code: "+676" },
+  { name: "Trinidad and Tobago", code: "+1-868" },
+  { name: "Tunisia", code: "+216" },
+  { name: "Turkey", code: "+90" },
+  { name: "Turkmenistan", code: "+993" },
+  { name: "Tuvalu", code: "+688" },
+  { name: "Uganda", code: "+256" },
+  { name: "Ukraine", code: "+380" },
+  { name: "United Arab Emirates", code: "+971" },
+  { name: "United Kingdom", code: "+44" },
+  { name: "United States", code: "+1" },
+  { name: "Uruguay", code: "+598" },
+  { name: "Uzbekistan", code: "+998" },
+  { name: "Vanuatu", code: "+678" },
+  { name: "Vatican City", code: "+379" },
+  { name: "Venezuela", code: "+58" },
+  { name: "Vietnam", code: "+84" },
+  { name: "Yemen", code: "+967" },
+  { name: "Zambia", code: "+260" },
+  { name: "Zimbabwe", code: "+263" }
+];
+
+  const [countryCode, setCountryCode] = useState("+91") // Default to India
+  const [errors, setErrors] = useState({})
+  
+  // Validation functions
+  const validatePhone = (phone) => {
+    const phoneRegex = /^[0-9]{10}$/
+    return phoneRegex.test(phone)
+  }
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
+
+  const validateAge = (age) => {
+    const ageRegex = /^\d+$/
+    return ageRegex.test(age) && parseInt(age) >= 4 && parseInt(age) <= 100
+  }
+
+  const handleCountryCodeChange = (e) => {
+    setCountryCode(e.target.value)
+  }
+
   const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    })
+    const { name, value } = e.target
+    
+    // Handle numeric inputs with restrictions
+    if (name === 'phone' || name === 'parentPhone') {
+      const numericValue = value.replace(/[^0-9]/g, '')
+      if (numericValue.length <= 10) {
+        setFormData({
+          ...formData,
+          [name]: numericValue
+        })
+        // Clear error when user starts typing
+        if (errors[name]) {
+          setErrors({ ...errors, [name]: '' })
+        }
+      }
+    } else if (name === 'age') {
+      const numericValue = value.replace(/[^0-9]/g, '')
+      if (numericValue.length <= 3) {
+        setFormData({
+          ...formData,
+          [name]: numericValue
+        })
+        if (errors[name]) {
+          setErrors({ ...errors, [name]: '' })
+        }
+      }
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      })
+      if (errors[name]) {
+        setErrors({ ...errors, [name]: '' })
+      }
+    }
+  }
+
+  const handleOtpChange = (index, value) => {
+    // Only allow digits
+    const digit = value.replace(/[^0-9]/g, '')
+    if (digit.length <= 1) {
+      const newOtp = [...formData.otp]
+      newOtp[index] = digit
+      setFormData({ ...formData, otp: newOtp })
+
+      // Auto-focus next input
+      if (digit && index < 5) {
+        otpRefs.current[index + 1]?.focus()
+      }
+    }
+  }
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === "Backspace" && !formData.otp[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus()
+    }
+  }
+
+  // Check if OTP is complete (6 digits)
+  const isOtpComplete = () => {
+    return formData.otp.every(digit => digit !== '') && formData.otp.length === 6
+  }
+
+  // Check if phone number is valid (10 digits)
+  const isPhoneValid = () => {
+    return formData.phone.length === 10 && /^[0-9]+$/.test(formData.phone)
+  }
+
+  // Check if email is valid
+  const isEmailValid = () => {
+    return validateEmail(formData.email)
+  }
+
+  const handleRegistrationTypeSelect = (type) => {
+    setRegistrationType(type)
+    setCurrentStep(2)
   }
 
   const handleNextStep = () => {
-    if (currentStep < 3) {
+    // Validate current step before proceeding
+    let currentErrors = {}
+    let isValid = true
+
+    if (currentStep === 2) {
+      if (registrationType === "whatsapp") {
+        if (!isPhoneValid()) {
+          currentErrors.phone = "Please enter a valid 10-digit phone number"
+          isValid = false
+        }
+      } else {
+        if (!isEmailValid()) {
+          currentErrors.email = "Please enter a valid email address"
+          isValid = false
+        }
+      }
+    }
+
+    if (currentStep === 3) {
+      if (!isOtpComplete()) {
+        currentErrors.otp = "Please enter the complete 6-digit verification code"
+        isValid = false
+      }
+    }
+
+    if (currentStep === 4) {
+      if (!formData.name.trim()) {
+        currentErrors.name = "Please enter your full name"
+        isValid = false
+      }
+      if (!formData.age) {
+        currentErrors.age = "Please select your age group"
+        isValid = false
+      }
+      if (!formData.instrument) {
+        currentErrors.instrument = "Please select your preferred instrument"
+        isValid = false
+      }
+      if (!formData.experience) {
+        currentErrors.experience = "Please select your experience level"
+        isValid = false
+      }
+    }
+
+    if (currentStep === 5) {
+      if (!formData.selectedDate) {
+        currentErrors.selectedDate = "Please select a date"
+        isValid = false
+      }
+      if (!formData.selectedTime) {
+        currentErrors.selectedTime = "Please select a time slot"
+        isValid = false
+      }
+    }
+
+    setErrors(currentErrors)
+
+    if (isValid && currentStep < 6) {
       setCurrentStep(currentStep + 1)
     }
   }
@@ -30,24 +421,38 @@ const Registration = ({ isOpen, onClose }) => {
   const handlePrevStep = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1)
+      setErrors({})
     }
   }
 
   const handleSubmit = () => {
-    // Handle form submission
     console.log("Registration submitted:", formData)
+    alert("Registration completed successfully! We'll contact you soon.")
     onClose()
   }
 
-  const toggleEmailPhone = () => {
-    setUseEmail(!useEmail)
-    // Clear the other field when switching
-    if (!useEmail) {
-      setFormData({ ...formData, phone: "" })
-    } else {
-      setFormData({ ...formData, email: "" })
+  // Reset state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentStep(1)
+      setRegistrationType("")
+      setFormData({
+        phone: "",
+        email: "",
+        otp: ["", "", "", "", "", ""],
+        name: "",
+        age: "",
+        experience: "",
+        instrument: "",
+        address: "",
+        parentName: "",
+        parentPhone: "",
+        selectedDate: "",
+        selectedTime: "",
+        location: "AMJ Academy Main Center",
+      })
     }
-  }
+  }, [isOpen])
 
   if (!isOpen) return null
 
@@ -79,7 +484,7 @@ const Registration = ({ isOpen, onClose }) => {
         {/* Progress Steps */}
         <div className="progress-steps">
           <div className={`step ${currentStep >= 1 ? "active" : ""}`}>
-            <div className="step-icon">🎵</div>
+            <div className="step-icon">📱</div>
             <span>Contact</span>
           </div>
           <div className={`step ${currentStep >= 2 ? "active" : ""}`}>
@@ -90,100 +495,134 @@ const Registration = ({ isOpen, onClose }) => {
             <div className="step-icon">ℹ</div>
             <span>Details</span>
           </div>
+          <div className={`step ${currentStep >= 4 ? "active" : ""}`}>
+            <div className="step-icon">📅</div>
+            <span>Schedule</span>
+          </div>
+          <div className={`step ${currentStep >= 5 ? "active" : ""}`}>
+            <div className="step-icon">📋</div>
+            <span>Review</span>
+          </div>
         </div>
 
         {/* Form Content */}
         <div className="registration-content">
+          {/* Step 1: Choose Registration Method */}
           {currentStep === 1 && (
             <div className="step-content">
-              <h2>Join AMJ Academy</h2>
+              <h2>JOIN DEMO CLASS</h2>
               <p className="step-subtitle">
                 <span className="music-icon">🎼</span>
-                Start your musical journey with us today
+                Choose your preferred registration method
               </p>
 
-              {!useEmail ? (
-                <>
-                  <div className="input-group">
-                    <label>WhatsApp Number</label>
-                    <div className="phone-input">
-                      <select className="country-code">
-                        <option value="+91">IN (+91)</option>
-                        <option value="+1">US (+1)</option>
-                        <option value="+44">UK (+44)</option>
-                      </select>
-                      <input
-                        type="tel"
-                        name="phone"
-                        placeholder="Enter WhatsApp Number"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                  </div>
+              <div className="registration-options">
+                <div className="option-card" onClick={() => handleRegistrationTypeSelect("whatsapp")}>
+                  <div className="option-icon">📱</div>
+                  <h3>WhatsApp Number</h3>
+                  <p>Quick registration with WhatsApp verification</p>
+                </div>
 
-                  <button className="primary-btn" onClick={handleNextStep}>
-                    GET VERIFICATION CODE
-                  </button>
-
-                  <div className="alternative-option">
-                    <p>Have trouble signing in?</p>
-                    <button className="link-btn" onClick={toggleEmailPhone}>
-                      Use Email Address instead
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="input-group">
-                    <label>Email Address</label>
-                    <input
-                      type="email"
-                      name="email"
-                      placeholder="Enter your email address"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-
-                  <button className="primary-btn" onClick={handleNextStep}>
-                    SEND EMAIL VERIFICATION
-                  </button>
-
-                  <div className="alternative-option">
-                    <p>Prefer WhatsApp?</p>
-                    <button className="link-btn" onClick={toggleEmailPhone}>
-                      Use WhatsApp instead
-                    </button>
-                  </div>
-                </>
-              )}
+                <div className="option-card" onClick={() => handleRegistrationTypeSelect("email")}>
+                  <div className="option-icon">📧</div>
+                  <h3>Email Address</h3>
+                  <p>Register using your email address</p>
+                </div>
+              </div>
             </div>
           )}
 
+          {/* Step 2: Contact & Verification */}
           {currentStep === 2 && (
             <div className="step-content">
-              <h2>Verify Your {useEmail ? 'Email' : 'Number'}</h2>
+              <h2>Contact & Verification</h2>
               <p className="step-subtitle">
-                <span className="music-icon">{useEmail ? '📧' : '📱'}</span>
-                We've sent a code to your {useEmail ? 'email' : 'WhatsApp'}
+                <span className="music-icon">📱</span>
+                Enter your contact details and verify
               </p>
 
-              <div className="verification-code">
-                <input type="text" maxLength="1" />
-                <input type="text" maxLength="1" />
-                <input type="text" maxLength="1" />
-                <input type="text" maxLength="1" />
-                <input type="text" maxLength="1" />
-                <input type="text" maxLength="1" />
+              {registrationType === "whatsapp" ? (
+                <div className="input-group">
+                  <label>WhatsApp Number</label>
+                  <div className="phone-input">
+                    <select className="country-code" value={countryCode} onChange={handleCountryCodeChange}>
+                      {countryCodes.map((country, index) => (
+                        <option key={index} value={country.code}>
+                          {country.name} ({country.code})
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="tel"
+                      name="phone"
+                      placeholder="Enter 10-digit WhatsApp Number"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      maxLength="10"
+                      pattern="[0-9]*"
+                      inputMode="numeric"
+                    />
+                  </div>
+                  {errors.phone && <span className="error-message">{errors.phone}</span>}
+                </div>
+              ) : (
+                <div className="input-group">
+                  <label>Email Address</label>
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="Enter your email address"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                  />
+                  {errors.email && <span className="error-message">{errors.email}</span>}
+                </div>
+              )}
+
+              <div className="input-group">
+                <button 
+                  className="primary-btn" 
+                  onClick={() => {
+                    // Simulate sending OTP
+                    alert("Verification code sent!");
+                  }}
+                  disabled={registrationType === "whatsapp" ? !isPhoneValid() : !isEmailValid()}
+                >
+                  GET VERIFICATION CODE
+                </button>
+              </div>
+
+              <div className="input-group">
+                <label>Verification Code</label>
+                <div className="verification-code">
+                  {formData.otp.map((digit, index) => (
+                    <input
+                      key={index}
+                      ref={(el) => (otpRefs.current[index] = el)}
+                      type="text"
+                      maxLength="1"
+                      value={digit}
+                      onChange={(e) => handleOtpChange(index, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                      className="otp-input"
+                      pattern="[0-9]*"
+                      inputMode="numeric"
+                    />
+                  ))}
+                </div>
+                {errors.otp && <span className="error-message">{errors.otp}</span>}
               </div>
 
               <div className="button-group">
                 <button className="secondary-btn" onClick={handlePrevStep}>
                   Back
                 </button>
-                <button className="primary-btn" onClick={handleNextStep}>
-                  Verify Code
+                <button 
+                  className="primary-btn" 
+                  onClick={handleNextStep}
+                  disabled={!isOtpComplete()}
+                >
+                  Verify & Continue
                 </button>
               </div>
 
@@ -194,29 +633,34 @@ const Registration = ({ isOpen, onClose }) => {
             </div>
           )}
 
+          {/* Step 3: Personal Details */}
           {currentStep === 3 && (
+
+          {/* Step 4: Personal Details */}
+          {currentStep === 4 && (
             <div className="step-content">
-              <h2>Tell Us About Yourself</h2>
+              <h2>Personal Information</h2>
               <p className="step-subtitle">
-                <span className="music-icon">🎯</span>
-                Help us personalize your learning experience
+                <span className="music-icon">👤</span>
+                Tell us about yourself and your musical interests
               </p>
 
               <div className="form-grid">
                 <div className="input-group">
-                  <label>Full Name</label>
+                  <label>Full Name *</label>
                   <input
                     type="text"
                     name="name"
                     placeholder="Enter your full name"
                     value={formData.name}
                     onChange={handleInputChange}
+                    required
                   />
                 </div>
 
                 <div className="input-group">
-                  <label>Age Group</label>
-                  <select name="age" value={formData.age} onChange={handleInputChange}>
+                  <label>Age Group *</label>
+                  <select name="age" value={formData.age} onChange={handleInputChange} required>
                     <option value="">Select Age Range</option>
                     <option value="4-7">4-7 years</option>
                     <option value="8-12">8-12 years</option>
@@ -227,9 +671,19 @@ const Registration = ({ isOpen, onClose }) => {
                   </select>
                 </div>
 
-                <div className="input-group full-width">
-                  <label>Musical Experience</label>
-                  <select name="experience" value={formData.experience} onChange={handleInputChange}>
+                <div className="input-group">
+                  <label>Preferred Instrument *</label>
+                  <select name="instrument" value={formData.instrument} onChange={handleInputChange} required>
+                    <option value="">Select Instrument</option>
+                    <option value="piano">Piano</option>
+                    <option value="keyboard">Keyboard</option>
+                    <option value="both">Both Piano & Keyboard</option>
+                  </select>
+                </div>
+
+                <div className="input-group">
+                  <label>Musical Experience *</label>
+                  <select name="experience" value={formData.experience} onChange={handleInputChange} required>
                     <option value="">Select Experience Level</option>
                     <option value="complete-beginner">Complete Beginner</option>
                     <option value="some-experience">Some Experience</option>
@@ -238,13 +692,198 @@ const Registration = ({ isOpen, onClose }) => {
                     <option value="returning">Returning to Music</option>
                   </select>
                 </div>
+
+                <div className="input-group full-width">
+                  <label>Address</label>
+                  <textarea
+                    name="address"
+                    placeholder="Enter your address"
+                    value={formData.address}
+                    onChange={handleInputChange}
+                    rows="3"
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label>Parent/Guardian Name (if under 18)</label>
+                  <input
+                    type="text"
+                    name="parentName"
+                    placeholder="Parent/Guardian name"
+                    value={formData.parentName}
+                    onChange={handleInputChange}
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label>Parent/Guardian Phone (if under 18)</label>
+                  <input
+                    type="tel"
+                    name="parentPhone"
+                    placeholder="Parent/Guardian phone"
+                    value={formData.parentPhone}
+                    onChange={handleInputChange}
+                  />
+                </div>
               </div>
 
               <div className="button-group">
                 <button className="secondary-btn" onClick={handlePrevStep}>
                   Back
                 </button>
-                <button className="primary-btn" onClick={handleSubmit}>
+                <button className="primary-btn" onClick={handleNextStep}>
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 5: Schedule Demo Class */}
+          {currentStep === 5 && (
+            <div className="step-content">
+              <h2>Schedule Your Demo Class</h2>
+              <p className="step-subtitle">
+                <span className="music-icon">📅</span>
+                Choose your preferred date and time for a free demo class
+              </p>
+
+              <div className="scheduling-section">
+                <div className="date-selection">
+                  <h3>Select Date</h3>
+                  <div className="date-cards">
+                    {availableDays.map((day, index) => (
+                      <div
+                        key={index}
+                        className={`date-card ${formData.selectedDate === day.date ? "selected" : ""}`}
+                        onClick={() => setFormData({ ...formData, selectedDate: day.date })}
+                      >
+                        <div className="day-name">{day.day}</div>
+                        <div className="day-number">{day.dayNum}</div>
+                        <div className="month-name">{day.month}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="time-selection">
+                  <h3>Select Time</h3>
+                  <div className="time-slots">
+                    {timeSlots.map((time, index) => (
+                      <button
+                        key={index}
+                        className={`time-slot ${formData.selectedTime === time ? "selected" : ""}`}
+                        onClick={() => setFormData({ ...formData, selectedTime: time })}
+                      >
+                        {time}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="location-info">
+                  <h3>Location</h3>
+                  <div className="location-card">
+                    <div className="location-icon">📍</div>
+                    <div className="location-details">
+                      <h4>AMJ Academy Main Center</h4>
+                      <p>
+                        123 Music Street, Harmony District
+                        <br />
+                        City, State - 123456
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="button-group">
+                <button className="secondary-btn" onClick={handlePrevStep}>
+                  Back
+                </button>
+                <button
+                  className="primary-btn"
+                  onClick={handleNextStep}
+                  disabled={!formData.selectedDate || !formData.selectedTime}
+                >
+                  Review Details
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 6: Review and Submit */}
+          {currentStep === 6 && (
+            <div className="step-content">
+              <h2>Review Your Registration</h2>
+              <p className="step-subtitle">
+                <span className="music-icon">📋</span>
+                Please review your details before submitting
+              </p>
+
+              <div className="review-sections">
+                <div className="review-section">
+                  <h3>Contact Information</h3>
+                  <div className="review-item">
+                    <span className="label">{registrationType === "whatsapp" ? "WhatsApp:" : "Email:"}</span>
+                    <span className="value">{registrationType === "whatsapp" ? formData.phone : formData.email}</span>
+                  </div>
+                </div>
+
+                <div className="review-section">
+                  <h3>Personal Details</h3>
+                  <div className="review-item">
+                    <span className="label">Name:</span>
+                    <span className="value">{formData.name}</span>
+                  </div>
+                  <div className="review-item">
+                    <span className="label">Age Group:</span>
+                    <span className="value">{formData.age}</span>
+                  </div>
+                  <div className="review-item">
+                    <span className="label">Instrument:</span>
+                    <span className="value">{formData.instrument}</span>
+                  </div>
+                  <div className="review-item">
+                    <span className="label">Experience:</span>
+                    <span className="value">{formData.experience}</span>
+                  </div>
+                  {formData.parentName && (
+                    <div className="review-item">
+                      <span className="label">Parent/Guardian:</span>
+                      <span className="value">{formData.parentName}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="review-section">
+                  <h3>Demo Class Schedule</h3>
+                  <div className="review-item">
+                    <span className="label">Date:</span>
+                    <span className="value">
+                      {new Date(formData.selectedDate).toLocaleDateString("en-US", {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </span>
+                  </div>
+                  <div className="review-item">
+                    <span className="label">Time:</span>
+                    <span className="value">{formData.selectedTime}</span>
+                  </div>
+                  <div className="review-item">
+                    <span className="label">Location:</span>
+                    <span className="value">{formData.location}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="button-group">
+                <button className="secondary-btn" onClick={handlePrevStep}>
+                  Back
+                </button>
+                <button className="primary-btn submit-btn" onClick={handleSubmit}>
                   Complete Registration
                 </button>
               </div>
@@ -261,4 +900,4 @@ const Registration = ({ isOpen, onClose }) => {
   )
 }
 
-export default Registration
+export default RegistrationEnhanced

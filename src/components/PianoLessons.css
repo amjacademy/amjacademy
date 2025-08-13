@@ -802,7 +802,7 @@
 }
 
 .enroll-button {
-  width: 100%;
+  width: 87%;
   padding: 0.75rem;
   margin: 1.5rem;
   margin-top: 1rem;
@@ -866,6 +866,13 @@
   align-items: center;
   margin-top: 3rem;
 }
+
+@media (max-width: 768px) {
+  .enroll-button {
+    width: 93%;
+  }
+}
+
 
 @media (min-width: 768px) {
   .teacher-card {

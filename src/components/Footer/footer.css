@@ -46,8 +46,11 @@
 .footer-social a {
   display: inline-block;
   font-size: 1.3rem;
+  justify-items: center;
+  width: 10%;
   padding: 8px;
-  border-radius: 50%;
+  border-radius: 30%;
+  color: white;
   background: rgba(52, 152, 219, 0.1);
   transition: all 0.3s ease;
   text-decoration: none;

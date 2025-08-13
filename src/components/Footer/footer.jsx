@@ -1,4 +1,5 @@
 import React from 'react';
+import { FaFacebookF, FaInstagram, FaYoutube, FaLinkedinIn } from "react-icons/fa";
 import './footer.css';
 
 const Footer = () => {
@@ -18,10 +19,10 @@ const Footer = () => {
               Join our community of music lovers and discover your potential.
             </p>
             <div className="footer-social">
-              <a href="#" aria-label="Facebook">📘</a>
-              <a href="#" aria-label="Instagram">📷</a>
-              <a href="#" aria-label="YouTube">📺</a>
-              <a href="#" aria-label="LinkedIn">💼</a>
+              <a href="#" aria-label="Facebook"><FaFacebookF /></a>
+              <a href="https://www.instagram.com/amj_academy_/" aria-label="Instagram"><FaInstagram /></a>
+              <a href="#" aria-label="YouTube"><FaYoutube /></a>
+              <a href="https://www.linkedin.com/in/amj-academy-54038437a/" aria-label="LinkedIn"><FaLinkedinIn /></a>
             </div>
           </div>
 
