@@ -114,18 +114,18 @@ const Contact = () => {
                 required
               ></textarea>
             </div>
-            <div className="form-group">
+            {/* <div className="form-group">
               <label htmlFor="message">Your Music Preference *</label>
               <textarea
-                id="message"
+                id="message1"
                 name="message"
                 rows={5}
-                value={formData.message}
+                value={formData.message1}
                 onChange={handleChange}
                 placeholder="What is your Music preference ??"
                 required
               ></textarea>
-            </div>
+            </div> */}
             <button type="submit" className="btn btn-primary">
               Send Message
             </button>
