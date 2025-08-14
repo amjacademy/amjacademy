@@ -383,10 +383,20 @@
 }
 
 .date-cards {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Always 3 cards per row */
   gap: 15px;
-  justify-content: center;
+  justify-items: center; /* Center cards in each column */
   margin-bottom: 30px;
+}
+
+.date-cards::-webkit-scrollbar {
+  height: 6px;
+}
+
+.date-cards::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
 }
 
 .date-card {
@@ -398,6 +408,7 @@
   transition: all 0.3s ease;
   text-align: center;
   min-width: 80px;
+  width: 100%; /* Stretch to fill grid cell */
 }
 
 .date-card:hover {
@@ -484,6 +495,7 @@
   font-size: 0.9rem;
   line-height: 1.4;
 }
+
 
 /* Review Section */
 .review-sections {

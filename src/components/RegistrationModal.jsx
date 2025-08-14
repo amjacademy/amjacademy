@@ -6,6 +6,7 @@ import "./RegistrationModal.css"
 const RegistrationEnhanced = ({ isOpen, onClose }) => {
   const [currentStep, setCurrentStep] = useState(1)
   const [registrationType, setRegistrationType] = useState("") // "whatsapp" or "email"
+  const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     phone: "",
     email: "",
@@ -44,6 +45,25 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
   }
 
   const [availableDays] = useState(getNext3Days())
+  const [slotStatus, setSlotStatus] = useState({}); // { "09:00-10:00": "open", ... }
+
+  // Fetch slot availability whenever date changes
+useEffect(() => {
+  if (formData.selectedDate) {
+    fetch(`http://localhost:5000/get-slots/${formData.selectedDate}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          const statusMap = {};
+          data.slots.forEach(slot => {
+            statusMap[slot.selectedTime] = slot.status;
+          });
+          setSlotStatus(statusMap);
+        }
+      })
+      .catch(err => console.error("Error fetching slots", err));
+  }
+}, [formData.selectedDate]);
 
   // Time slots
   const timeSlots = [
@@ -437,11 +457,133 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
     }
   }
 
-  const handleSubmit = () => {
-    console.log("Registration submitted:", formData)
-    alert("Registration completed successfully! We'll contact you soon.")
-    onClose()
+    const sendOtp = async () => {
+    try {
+      setLoading(true)
+      const method = registrationType
+      const value =
+  method === "whatsapp"
+    ? formData.phone.trim() // keep + for international format
+    : formData.email.trim();
+
+      const res = await fetch("http://localhost:5000/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ method, value }),
+      })
+      const data = await res.json()
+      setLoading(false)
+
+      if (data.success) {
+        alert("OTP sent successfully!")
+        handleNextStep()
+      } else {
+        alert(data.message || "Failed to send OTP")
+      }
+    } catch (err) {
+      setLoading(false)
+      alert("Error sending OTP")
+    }
   }
+
+  const verifyOtp = async () => {
+    try {
+      setLoading(true)
+      const value =
+  registrationType === "whatsapp"
+    ? formData.phone.trim() // keep '+' for consistency
+    : formData.email.trim();
+
+      const otpValue = formData.otp.join("")
+
+      const res = await fetch("http://localhost:5000/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ value, otp: otpValue }),
+      })
+      const data = await res.json()
+      setLoading(false)
+
+      if (data.success) {
+        alert("OTP verified successfully!")
+        handleNextStep();
+    
+      } else {
+        alert(data.message || "Invalid OTP")
+      }
+    } catch (err) {
+      setLoading(false)
+      alert("Error verifying OTP")
+    }
+  }
+
+const handleSaveDetails = async () => {
+  try {
+    setLoading(true);
+    const res = await fetch("http://localhost:5000/save-user-details", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        phone: formData.phone,
+        email: formData.email,
+        name: formData.name,
+        age: formData.age,
+        experience: formData.experience,
+        instrument: formData.instrument,
+        address: formData.address,
+        parentName: formData.parentName,
+        parentPhone: formData.parentPhone
+      })
+    });
+
+    const data = await res.json();
+    setLoading(false);
+
+   if (data.success) {
+  setFormData(prev => ({ ...prev, id: data.id })); // use prev to preserve all other values
+  alert("Details saved successfully!");
+  handleNextStep();
+  //setCurrentStep(5);  Go to slot selection
+ 
+} else {
+  alert(data.message || "Failed to save details");
+}
+
+  } catch (err) {
+    setLoading(false);
+    alert("Error saving details");
+  }
+};
+
+const handleSubmit = async () => {
+  try {
+    setLoading(true);
+    const res = await fetch(`http://localhost:5000/complete-registration`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+       id: formData.id,
+    name: formData.name,
+    email: formData.email,
+    selectedDate: formData.selectedDate,
+    selectedTime: formData.selectedTime,
+    registrationData: formData 
+      })
+    });
+    const data = await res.json();
+    setLoading(false);
+
+    if (data.success) {
+      alert("Registration completed successfully!");
+      onClose();
+    } else {
+      alert(data.message || "Failed to complete registration");
+    }
+  } catch (err) {
+    setLoading(false);
+    alert("Error completing registration");
+  }
+};
 
   // Reset state when modal opens
   useEffect(() => {
@@ -595,25 +737,23 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
                 </div>
               )}
 
-              <div className="input-group">
+             {/*  <div className="input-group">
                 <button 
                   className="primary-btn" 
-                  onClick={() => {
-                    // Simulate sending OTP
-                    alert("Verification code sent!");
-                  }}
-                  disabled={registrationType === "whatsapp" ? !isPhoneValid() : !isEmailValid()}
+                 onClick={sendOtp}
+                  disabled={registrationType === "whatsapp" ? !isPhoneValid() : !isEmailValid() || loading}
                 >
-                  GET VERIFICATION CODE
+                  
+                  {loading ? "Sending..." : "GET VERIFICATION CODE"}
                 </button>
-              </div>
+              </div> */}
 
               <div className="button-group">
                 <button className="secondary-btn" onClick={handlePrevStep}>
                   Back
                 </button>
-                <button className="primary-btn" onClick={handleNextStep}>
-                  Next
+                <button className="primary-btn" onClick={sendOtp} disabled={registrationType === "whatsapp" ? !isPhoneValid() : !isEmailValid() || loading} >
+                 {loading ? "Sending..." : "GET VERIFICATION CODE"}
                 </button>
               </div>
             </div>
@@ -655,8 +795,8 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
                 </button>
                 <button 
                   className="primary-btn" 
-                  onClick={handleNextStep}
                   disabled={!isOtpComplete()}
+                  onClick={verifyOtp}
                 >
                   Verify & Continue
                 </button>
@@ -760,8 +900,9 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
                 <button className="secondary-btn" onClick={handlePrevStep}>
                   Back
                 </button>
-                <button className="primary-btn" onClick={handleNextStep}>
-                  Next
+                
+                <button className="primary-btn" onClick={handleSaveDetails} disabled={loading}>
+                  {loading ? "Saving..." : "Next"}
                 </button>
               </div>
             </div>
@@ -827,11 +968,43 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
                   Back
                 </button>
                 <button
+                //handleNextStep
                   className="primary-btn"
-                  onClick={handleNextStep}
+                  onClick={async () => {
+  if (!formData.selectedDate || !formData.selectedTime) {
+    alert("Please select a date and time slot before continuing.");
+    return;
+  }
+
+  setLoading(true);
+  try {
+    const res = await fetch("http://localhost:5000/update-slot", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: formData.id,
+           name: formData.name, 
+        selectedDate: formData.selectedDate,
+        selectedTime: formData.selectedTime
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      handleNextStep();
+      //setCurrentStep(6); // move to review
+    } else {
+      alert(data.message || "Failed to block slot.");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Error connecting to server.");
+  } finally {
+    setLoading(false);
+  }
+}}
                   disabled={!formData.selectedDate || !formData.selectedTime}
                 >
-                  Review Details
+                  {loading ? "Saving..." : "Review Details"}
                 </button>
               </div>
             </div>
