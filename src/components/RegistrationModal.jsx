@@ -941,12 +941,23 @@ const handleSubmit = async () => {
                   <div className="time-slots">
                     {timeSlots.map((time, index) => (
                       <button
-                        key={index}
-                        className={`time-slot ${formData.selectedTime === time ? "selected" : ""}`}
-                        onClick={() => setFormData({ ...formData, selectedTime: time })}
-                      >
-                        {time}
-                      </button>
+                      key={index}
+                      className={`time-slot ${formData.selectedTime === time ? "selected" : ""}`}
+                      onClick={() => {
+  if (!formData.selectedDate) {
+    alert("Please select a date first.");
+    return;
+  }
+  // Just store the selection locally — no API call here
+  setFormData(prev => ({
+    ...prev,
+    selectedTime: time
+  }));
+}}
+
+                      disabled={slotStatus[time] && slotStatus[time] !== "open"}>
+                      {time} {slotStatus[time] === "blocked" ? "(Blocked)" : slotStatus[time] === "booked" ? "(Booked)" : ""}
+                          </button>
                     ))}
                   </div>
                 </div>
