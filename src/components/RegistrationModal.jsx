@@ -50,7 +50,7 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
   // Fetch slot availability whenever date changes
 useEffect(() => {
   if (formData.selectedDate) {
-    fetch(`http://localhost:5000/get-slots/${formData.selectedDate}`)
+    fetch(`https://amjacademy.onrender.com/get-slots/${formData.selectedDate}`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -466,7 +466,7 @@ useEffect(() => {
     ? formData.phone.trim() // keep + for international format
     : formData.email.trim();
 
-      const res = await fetch("http://localhost:5000/send-otp", {
+      const res = await fetch("https://amjacademy.onrender.com/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ method, value }),
@@ -496,7 +496,7 @@ useEffect(() => {
 
       const otpValue = formData.otp.join("")
 
-      const res = await fetch("http://localhost:5000/verify-otp", {
+      const res = await fetch("https://amjacademy.onrender.com/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ value, otp: otpValue }),
@@ -520,7 +520,7 @@ useEffect(() => {
 const handleSaveDetails = async () => {
   try {
     setLoading(true);
-    const res = await fetch("http://localhost:5000/save-user-details", {
+    const res = await fetch("https://amjacademy.onrender.com/save-user-details", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -558,7 +558,7 @@ const handleSaveDetails = async () => {
 const handleSubmit = async () => {
   try {
     setLoading(true);
-    const res = await fetch(`http://localhost:5000/complete-registration`, {
+    const res = await fetch(`https://amjacademy.onrender.com/complete-registration`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -978,7 +978,7 @@ const handleSubmit = async () => {
 
   setLoading(true);
   try {
-    const res = await fetch("http://localhost:5000/update-slot", {
+    const res = await fetch("https://amjacademy.onrender.com/update-slot", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
