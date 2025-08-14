@@ -18,7 +18,7 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
     instrument: "",
     address: "",
     parentName: "",
-    parentPhone: "",
+    PhoneNumber: "",
     selectedDate: "",
     selectedTime: "",
     location: "AMJ Academy Main Center",
@@ -301,7 +301,7 @@ useEffect(() => {
     const { name, value } = e.target
     
     // Handle numeric inputs with restrictions
-    if (name === 'phone' || name === 'parentPhone') {
+    if (name === 'phone' || name === 'parentPhone' || name === 'PhoneNumber') {
       const numericValue = value.replace(/[^0-9]/g, '')
       if (numericValue.length <= 10) {
         setFormData({
@@ -533,7 +533,7 @@ const handleSaveDetails = async () => {
         instrument: formData.instrument,
         address: formData.address,
         parentName: formData.parentName,
-        parentPhone: formData.parentPhone
+        PhoneNumber: formData.PhoneNumber
       })
     });
 
@@ -566,6 +566,7 @@ const handleSubmit = async () => {
        id: formData.id,
     name: formData.name,
     email: formData.email,
+    PhoneNumber: formData.PhoneNumber,
     selectedDate: formData.selectedDate,
     selectedTime: formData.selectedTime,
     registrationData: formData 
@@ -601,7 +602,7 @@ const handleSubmit = async () => {
         instrument: "",
         address: "",
         parentName: "",
-        parentPhone: "",
+        PhoneNumber: "",
         selectedDate: "",
         selectedTime: "",
         location: "AMJ Academy Main Center",
@@ -895,6 +896,16 @@ const handleSubmit = async () => {
                     onChange={handleInputChange}
                   />
                 </div>
+                <div className="input-group">
+                  <label>Phone Number</label>
+                  <input
+                    type="tel"
+                    name="PhoneNumber"
+                    placeholder="Phone number"
+                    value={formData.PhoneNumber}
+                    onChange={handleInputChange}
+                  />
+                </div>
               </div>
 
               <div className="button-group">
@@ -944,17 +955,16 @@ const handleSubmit = async () => {
                       <button
                       key={index}
                       className={`time-slot ${formData.selectedTime === time ? "selected" : ""}`}
-                      onClick={() => {
-  if (!formData.selectedDate) {
-    alert("Please select a date first.");
-    return;
-  }
+                      onClick={() => { if (!formData.selectedDate) {
+                                           alert("Please select a date first.");
+                                          return;
+                                         }
   // Just store the selection locally — no API call here
-  setFormData(prev => ({
-    ...prev,
-    selectedTime: time
-  }));
-}}
+                      setFormData(prev => ({
+                                            ...prev,
+                                            selectedTime: time
+                                          }));
+                                          }}
 
                       disabled={slotStatus[time] && slotStatus[time] !== "open"}>
                       {time} {slotStatus[time] === "blocked" ? "(Blocked)" : slotStatus[time] === "booked" ? "(Booked)" : ""}
@@ -1057,6 +1067,10 @@ const handleSubmit = async () => {
                   <div className="review-item">
                     <span className="label">Experience:</span>
                     <span className="value">{formData.experience}</span>
+                  </div>
+                  <div className="review-item">
+                    <span className="label">Phone:</span>
+                    <span className="value">{formData.PhoneNumber}</span>
                   </div>
                   {formData.parentName && (
                     <div className="review-item">
