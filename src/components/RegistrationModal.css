@@ -622,6 +622,30 @@
   color: #666;
 }
 
+/* Age group select styling */
+.age-select {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #e1e8ed;
+  border-radius: 10px;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.age-select:focus {
+  border-color: #667eea;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.age-select option {
+  padding: 8px;
+  background: white;
+  color: #333;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .registration-modal {

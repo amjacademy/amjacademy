@@ -293,15 +293,13 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
         }
       }
     } else if (name === 'age') {
-      const numericValue = value.replace(/[^0-9]/g, '')
-      if (numericValue.length <= 3) {
-        setFormData({
-          ...formData,
-          [name]: numericValue
-        })
-        if (errors[name]) {
-          setErrors({ ...errors, [name]: '' })
-        }
+      // For age group, directly use the value without numeric filtering
+      setFormData({
+        ...formData,
+        [name]: value
+      })
+      if (errors[name]) {
+        setErrors({ ...errors, [name]: '' })
       }
     } else {
       setFormData({
@@ -426,7 +424,9 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
         setCurrentStep(5); // Move directly to review step after personal details
       } else if (currentStep === 5) {
         setCurrentStep(6); // Move to review step after scheduling
-      } // No action needed for step 6
+       } //else if (currentStep === 6) {
+      //   handleSubmit(); // Submit the form on final step
+      // }
     }
   }
 
@@ -693,9 +693,14 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
 
                 <div className="input-group">
                   <label>Age Group *</label>
-                  <select name="age" value={formData.age} onChange={handleInputChange} required>
+                  <select 
+                    name="age" 
+                    value={formData.age} 
+                    onChange={handleInputChange} 
+                    required
+                  >
                     <option value="">Select Age Range</option>
-                    <option value="4-7">5-7 years</option>
+                    <option value="5-7">5-7 years</option>
                     <option value="8-12">8-12 years</option>
                     <option value="13-17">13-17 years</option>
                     <option value="18-30">18-30 years</option>
@@ -810,7 +815,7 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
                   <div className="location-card">
                     <div className="location-icon">📍</div>
                     <p className="location-details">
-                      <h>AMJ Academy Main Center (Remote) </h>
+                      <h>AMJ Academy (Remote) </h>
                       </p>
                     </div>
                   </div>
