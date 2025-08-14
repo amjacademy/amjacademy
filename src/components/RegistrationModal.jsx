@@ -810,12 +810,7 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
                   <div className="location-card">
                     <div className="location-icon">📍</div>
                     <p className="location-details">
-                      <h4>AMJ Academy Main Center</h4>
-                      <p>
-                        123 Music Street, Harmony District
-                        <br />
-                        City, State - 123456
-                      </p>
+                      <h>AMJ Academy Main Center (Remote) </h>
                       </p>
                     </div>
                   </div>
