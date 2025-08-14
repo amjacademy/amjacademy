@@ -1,12 +1,20 @@
 "use client"
+import { useNavigate } from 'react-router-dom';
 import "./Hero.css"
 
-const Hero = ({ onOpenRegistration }) => {
+const Hero = () => {
+  const navigate = useNavigate();
+
   const scrollToContact = () => {
     const element = document.getElementById("contact")
     if (element) {
       element.scrollIntoView({ behavior: "smooth" })
     }
+  }
+
+  const handleBookDemo = () => {
+    navigate('/registration'); // Navigate to the registration page
+    window.scrollTo(0, 0);
   }
 
   return (
@@ -37,7 +45,7 @@ const Hero = ({ onOpenRegistration }) => {
               <button className="btn btn-primary" onClick={scrollToContact}>
                 Start Your Musical Journey
               </button>
-              <button className="btn btn-outline" onClick={onOpenRegistration}>
+              <button className="btn btn-outline" onClick={handleBookDemo}>
                 Book Demo For Free
               </button>
             </div>
@@ -55,22 +63,15 @@ const Hero = ({ onOpenRegistration }) => {
         </div>
         {/* New Animated Musical Elements */}
         <div className="musical-background">
-          {/* <div className="animated-instrument piano">🎹</div> */}
           <div className="animated-instrument guitar">🎸</div>
-          {/* <div className="animated-instrument violin">🎻</div> */}
-          {/* <div className="animated-instrument trumpet">🎺</div> */}
           <div className="animated-instrument drums">🥁</div>
           <div className="animated-instrument microphone">🎤</div>
 
           <div className="bouncing-notes">
-            {/* <div className="bouncing-note note-bounce-1">🎵</div> */}
-            {/* <div className="bouncing-note note-bounce-2">🎶</div> */}
-            {/* <div className="bouncing-note note-bounce-3">🎼</div> */}
             <div className="bouncing-note note-bounce-4">♩</div>
             <div className="bouncing-note note-bounce-5">♪</div>
             <div className="bouncing-note note-bounce-6">♫</div>
             <div className="bouncing-note note-bounce-7">♬</div>
-            {/* <div className="bouncing-note note-bounce-8">🎵</div> */}
           </div>
 
           <div className="colorful-circles">

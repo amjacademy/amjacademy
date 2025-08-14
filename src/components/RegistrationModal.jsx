@@ -47,9 +47,9 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
 
   // Time slots
   const timeSlots = [
-    "04:00-10:45 am",
-    "05:00-11:45 am",
-    "06:00-12:45 am",
+    "04:00-04:45 am",
+    "05:00-05:45 am",
+    "06:00-06:45 am",
     "05:00-05:45 pm",
     "06:00-06:45 pm",
     "07:00-07:45 pm",
@@ -398,6 +398,10 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
         currentErrors.experience = "Please select your experience level"
         isValid = false
       }
+      if (!formData.address.trim()) {
+        currentErrors.address = "Please enter your address"
+        isValid = false
+      }
     }
 
     if (currentStep === 5) {
@@ -413,8 +417,16 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
 
     setErrors(currentErrors)
 
-    if (isValid && currentStep < 6) {
-      setCurrentStep(currentStep + 1)
+    if (isValid) {
+      if (currentStep === 2) {
+        setCurrentStep(3); // Move to the OTP step only if valid
+      } else if (currentStep === 3) {
+        setCurrentStep(4); // Move to personal details only after OTP verification
+      } else if (currentStep === 4) {
+        setCurrentStep(5); // Move directly to review step after personal details
+      } else if (currentStep === 5) {
+        setCurrentStep(6); // Move to review step after scheduling
+      } // No action needed for step 6
     }
   }
 
@@ -492,14 +504,18 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
             <span>Verify</span>
           </div>
           <div className={`step ${currentStep >= 3 ? "active" : ""}`}>
+            <div className="step-icon">✅</div>
+            <span>OTP</span>
+          </div>
+          <div className={`step ${currentStep >= 4 ? "active" : ""}`}>
             <div className="step-icon">ℹ</div>
             <span>Details</span>
           </div>
-          <div className={`step ${currentStep >= 4 ? "active" : ""}`}>
+          <div className={`step ${currentStep >= 5 ? "active" : ""}`}>
             <div className="step-icon">📅</div>
             <span>Schedule</span>
           </div>
-          <div className={`step ${currentStep >= 5 ? "active" : ""}`}>
+          <div className={`step ${currentStep >= 6 ? "active" : ""}`}>
             <div className="step-icon">📋</div>
             <span>Review</span>
           </div>
@@ -510,7 +526,7 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
           {/* Step 1: Choose Registration Method */}
           {currentStep === 1 && (
             <div className="step-content">
-              <h2>JOIN DEMO CLASS</h2>
+              <h2>SCHEDULE DEMO CLASS</h2>
               <p className="step-subtitle">
                 <span className="music-icon">🎼</span>
                 Choose your preferred registration method
@@ -652,7 +668,7 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
               </div>
             </div>
           )}
-          
+
           {/* Step 4: Personal Details */}
           {currentStep === 4 && (
             <div className="step-content">
@@ -679,7 +695,7 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
                   <label>Age Group *</label>
                   <select name="age" value={formData.age} onChange={handleInputChange} required>
                     <option value="">Select Age Range</option>
-                    <option value="4-7">4-7 years</option>
+                    <option value="4-7">5-7 years</option>
                     <option value="8-12">8-12 years</option>
                     <option value="13-17">13-17 years</option>
                     <option value="18-30">18-30 years</option>
@@ -694,7 +710,7 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
                     <option value="">Select Instrument</option>
                     <option value="piano">Piano</option>
                     <option value="keyboard">Keyboard</option>
-                    <option value="both">Both Piano & Keyboard</option>
+                    {/* <option value="both">Both Piano & Keyboard</option> */}
                   </select>
                 </div>
 
@@ -711,14 +727,16 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
                 </div>
 
                 <div className="input-group full-width">
-                  <label>Address</label>
+                  <label>Address *</label>
                   <textarea
                     name="address"
                     placeholder="Enter your address"
                     value={formData.address}
                     onChange={handleInputChange}
                     rows="3"
+                    required
                   />
+                  {errors.address && <span className="error-message">{errors.address}</span>}
                 </div>
 
                 <div className="input-group">
@@ -728,17 +746,6 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
                     name="parentName"
                     placeholder="Parent/Guardian name"
                     value={formData.parentName}
-                    onChange={handleInputChange}
-                  />
-                </div>
-
-                <div className="input-group">
-                  <label>Parent/Guardian Phone (if under 18)</label>
-                  <input
-                    type="tel"
-                    name="parentPhone"
-                    placeholder="Parent/Guardian phone"
-                    value={formData.parentPhone}
                     onChange={handleInputChange}
                   />
                 </div>
@@ -919,4 +926,4 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
   )
 }
 
-export default RegistrationEnhanced 
+export default RegistrationEnhanced

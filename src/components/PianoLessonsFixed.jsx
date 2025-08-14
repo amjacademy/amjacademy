@@ -1,13 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from 'react-router-dom'
 import "./PianoLessons.css"
 
 export default function PianoLessonsLanding() {
+  const navigate = useNavigate()
   const [selectedLevel, setSelectedLevel] = useState("Beginner")
   const [selectedPlan, setSelectedPlan] = useState("Companion")
-  const navigate = useNavigate()
 
   const courseFeatures = [
     {
@@ -54,28 +54,24 @@ export default function PianoLessonsLanding() {
         {
           type: "Companion",
           badge: "No Cost EMI*",
-          // students: "2 kids per batch",
           originalPrice: "₹2,964",
           currentPrice: "₹2,464*",
           discount: "28% OFF",
           features: [
             "1:2 Session",
             "8 live sessions per month",
-            // "Basic Keyboard Introduction",
             "Interactive Live Sessions, Access to Learning Resources",
           ],
         },
         {
           type: "Individual",
           badge: "No Cost EMI*",
-          // students: "1 kid per batch",
           originalPrice: "₹3,460",
           currentPrice: "₹2,960*",
           discount: "28% OFF",
           features: [
             "1:1 Session",
             "8 live sessions per month",
-            // "Basic Keyboard Introduction",
             "Interactive Live Sessions, Access to Learning Resources",
           ],
           popular: true,
@@ -83,14 +79,12 @@ export default function PianoLessonsLanding() {
         {
           type: "Group",
           badge: "No Cost EMI*",
-          // students: "3-4 kids per batch",
           originalPrice: "₹2,460",
           currentPrice: "₹1,960*",
           discount: "28% OFF",
           features: [
             "1:4 Session",
             "8 live sessions per month",
-            // "Basic Keyboard Introduction",
             "Interactive Live Sessions, Access to Learning Resources",
           ],
         },
@@ -99,28 +93,24 @@ export default function PianoLessonsLanding() {
         {
           type: "Companion",
           badge: "No Cost EMI*",
-          // students: "2 kids per batch",
           originalPrice: "₹3,420",
           currentPrice: "₹2,920*",
           discount: "28% OFF",
           features: [
             "1:2 Sessions",
             "8 live sessions per month",
-            // "Intermediate Techniques",
             "Interactive Live Sessions, Access to Learning Resources",
           ],
         },
         {
           type: "Individual",
           badge: "No Cost EMI*",
-          // students: "1 kid per batch",
           originalPrice: "₹3,980",
           currentPrice: "₹3,480*",
           discount: "28% OFF",
           features: [
             "1:1 Session",
             "8 live sessions per month",
-            // "Intermediate Techniques",
             "Interactive Live Sessions, Access to Learning Resources",
           ],
           popular: true,
@@ -128,14 +118,12 @@ export default function PianoLessonsLanding() {
         {
           type: "Group",
           badge: "No Cost EMI*",
-          // students: "3-4 kids per batch",
           originalPrice: "₹3,020",
           currentPrice: "₹2,520*",
           discount: "28% OFF",
           features: [
             "1:4 Session",
             "8 live sessions per month",
-            // "Intermediate Techniques",
             "Interactive Live Sessions, Access to Learning Resources",
           ],
         },
@@ -144,28 +132,24 @@ export default function PianoLessonsLanding() {
         {
           type: "Companion",
           badge: "No Cost EMI*",
-          // students: "2 kids per batch",
           originalPrice: "₹4,280",
           currentPrice: "₹3,680*",
           discount: "28% OFF",
           features: [
             "1:2 Session ",
             "8 live sessions per month",
-            // "Advanced Compositions",
             "Interactive Live Sessions, Access to Learning Resources",
           ],
         },
         {
           type: "Individual",
           badge: "No Cost EMI*",
-          // students: "1 kid per batch",
           originalPrice: "₹4,700",
           currentPrice: "₹4,200*",
           discount: "28% OFF",
           features: [
             "1:1 Session ",
             "8 live sessions per month",
-            // "Advanced Compositions",
             "Interactive Live Sessions, Access to Learning Resources",
           ],
           popular: true,
@@ -173,14 +157,12 @@ export default function PianoLessonsLanding() {
         {
           type: "Group",
           badge: "No Cost EMI*",
-          // students: "3-4 kids per batch",
           originalPrice: "₹3,740",
           currentPrice: "₹3,240*",
           discount: "28% OFF",
           features: [
             "1:4 Session ",
             "8 live sessions per month",
-            // "Advanced Compositions",
             "Interactive Live Sessions, Access to Learning Resources",
           ],
         },
@@ -189,8 +171,14 @@ export default function PianoLessonsLanding() {
     return basePlans[level] || basePlans.Advanced
   }
 
+  const handleBookDemo = () => {
+    navigate('/registration')
+    window.scrollTo(0, 0)
+  }
+
   const handleEnrollClick = (planType, level) => {
     navigate('/registration')
+    window.scrollTo(0, 0)
   }
 
   const reviews = [
@@ -241,7 +229,7 @@ export default function PianoLessonsLanding() {
             <h1 className="hero-title">Online Keyboard And Piano Classes for Kids</h1>
             <p className="hero-subtitle">Enter the world of Music and play magical tunes on Piano!</p>
             <div className="hero-actions">
-              <button className="cta-button" onClick={() => navigate('/registration')}>
+              <button className="cta-button" onClick={handleBookDemo}>
                 Book a free demo
               </button>
               <div className="price-info">
@@ -264,26 +252,20 @@ export default function PianoLessonsLanding() {
           <h2 className="section-title">About the course</h2>
           <p className="about-text">
             In association with Trinity College London, our online Piano and Keyboard lessons
-             are designed by seasoned musicians to guide your child’s first steps in music. 
+             are designed by seasoned musicians to guide your child's first steps in music. 
              This program lays a strong musical foundation and prepares young learners for
-              Trinity’s graded examinations.
+              Trinity's graded examinations.
           </p>
-          {/* <p className="about-text">
-            With our interactive live sessions, students will not only be able to play popular Bollywood and Western
-            songs confidently but will also learn Music Theory with engaging games and activities ensuring a high fun
-            quotient in every class. Our expert teachers will provide personalised attention and give continuous
-            feedback to the learners while also mapping their progress throughout the course.
-          </p> */}
 
           <div className="tab-buttons">
             <button
               className={`tab-button ${selectedLevel === "OVERVIEW" ? "active" : ""}`}
               onClick={() => {
-                setSelectedLevel("OVERVIEW");
+                setSelectedLevel("OVERVIEW")
                 document.querySelector('.pricing-section')?.scrollIntoView({ 
                   behavior: 'smooth',
                   block: 'start'
-                });
+                })
               }}
             >
               OVERVIEW
@@ -291,11 +273,11 @@ export default function PianoLessonsLanding() {
             <button
               className={`tab-button ${selectedLevel === "CURRICULUM" ? "active" : ""}`}
               onClick={() => {
-                setSelectedLevel("CURRICULUM");
+                setSelectedLevel("CURRICULUM")
                 document.getElementById('course-details')?.scrollIntoView({ 
                   behavior: 'smooth',
                   block: 'start'
-                });
+                })
               }}
             >
               CURRICULUM
@@ -304,52 +286,7 @@ export default function PianoLessonsLanding() {
         </div>
       </section>
 
-      {/* Course Details Stats */}
-      {/* <section className="stats-section" id="course-details">
-        <div className="stats-content">
-          <h2 className="section-title">Course Details</h2>
-          <div className="stats-grid">
-            <div className="stat-item">
-              <div className="stat-number purple">96</div>
-              <div className="stat-label">Guided Sessions</div>
-              <div className="stat-sublabel">over 12 Months</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-number blue">03</div>
-              <div className="stat-label">Years of Syllabus</div>
-              <div className="stat-sublabel">(3-1 / 1-2 or 1-3)</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-number green">50+</div>
-              <div className="stat-label">Countries</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-number orange">6000+</div>
-              <div className="stat-label">Active Students</div>
-            </div>
-          </div>
-        </div>
-      </section> */}
-
-      {/* What You Will Receive
-      <section className="features-section">
-        <div className="features-content">
-          <h2 className="section-title">What you will receive</h2>
-          <div className="features-grid">
-            {courseFeatures.map((feature, index) => (
-              <div key={index} className="feature-card">
-                <div className="feature-header">
-                  <span className="feature-icon">{feature.icon}</span>
-                  <h3 className="feature-title">{feature.title}</h3>
-                </div>
-                <p className="feature-description">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section> */}
-
-      {/* Learning Style Selection */}
+      {/* Pricing Section */}
       <section className="pricing-section">
         <div className="pricing-content">
           <div className="pricing-header">
@@ -415,7 +352,6 @@ export default function PianoLessonsLanding() {
             ))}
           </div>
 
-          {/* Additional Info */}
           <div className="pricing-info">
             <p>• All listed rates are exclusive of GST</p>
             <p>• *No-cost EMI options are available for select credit & debit cards</p>
@@ -431,29 +367,8 @@ export default function PianoLessonsLanding() {
         </div>
       </section>
 
-      {/* Meet Your Teachers */}
-      {/* <section className="teachers-section">
-        <div className="teachers-content">
-          <h2 className="section-title">Meet your teachers</h2>
-          <div className="teacher-card">
-            <div className="teacher-image">
-              <img src="/placeholder.svg?height=150&width=150" alt="Music Teacher" className="teacher-img" />
-            </div>
-            <div className="teacher-info">
-              <p className="teacher-description">
-                Vivek is a professional music facilitator teaching Keyboard/Piano, Guitar and Ukulele for over 3 years.
-                He prepares students for Trinity and ABRSM grade examinations and has been conducting online music
-                sessions for students across the globe. He has been a part of all age groups starting from 3-65 (3-65
-                years) all across the globe. His teaching approach is fun and easy ensuring that every student falls in
-                love with their instrument.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Reviews Section */}
-      {/* <section className="reviews-section">
+      <section className="reviews-section">
         <div className="reviews-content">
           <h2 className="section-title">Reviews from Parents</h2>
           <div className="reviews-grid">
@@ -461,7 +376,7 @@ export default function PianoLessonsLanding() {
               <div key={index} className="review-card">
                 <div className="review-header">
                   <img
-                    src={review.avatar || "/placeholder.svg?height=50&width=50&query=parent profile picture"}
+                    src={review.avatar || "/placeholder.svg?height=50&width=50"}
                     alt={review.name}
                     className="reviewer-avatar"
                   />
@@ -486,9 +401,7 @@ export default function PianoLessonsLanding() {
             ))}
           </div>
         </div>
-      </section> */} 
-
-      {/* Registration Modal - Removed as navigation is now handled by React Router */}
+      </section>
     </div>
   )
 }
