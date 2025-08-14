@@ -8,15 +8,22 @@ const cors = require("cors");
 const admin = require("./config/firebase");
 const db = admin.firestore();
 
+const allowedOrigins = ['http://localhost:5173', 'https://amjacademy.in'];
+
 dotenv.config();
 const app = express();
-app.use(express.json());
 app.use(cors({
-  origin: "https://amjacademy.in",
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type"],
+  origin: function(origin, callback){
+    // allow requests with no origin (like Postman)
+    if(!origin) return callback(null, true);
+    if(allowedOrigins.indexOf(origin) === -1){
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  }
 }));
-
+app.use(express.json());
 const PORT = process.env.PORT || 5000;
 
 
@@ -154,7 +161,7 @@ app.post("/verify-otp", async (req, res) => {
 
 app.post("/save-user-details", async (req, res) => {
   try {
-    const { phone, email, name, age, experience, instrument, address, parentName, parentPhone } = req.body;
+    const { phone, email, name, age, experience, instrument, address, parentName, PhoneNumber } = req.body;
 
     // You can make phone OR email required based on your flow
     if (!name || !age || !instrument || !experience) {
@@ -170,7 +177,7 @@ app.post("/save-user-details", async (req, res) => {
   instrument,
   address: address || "",
   parentName: parentName || "",
-  parentPhone: parentPhone || "",
+  PhoneNumber: PhoneNumber || "",
   createdAt: new Date(),
   expireAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), 
 });
@@ -325,6 +332,7 @@ app.post("/complete-registration", async (req, res) => {
         <ul>
           <li><strong>Name:</strong> ${userData.name}</li>
           <li><strong>Email:</strong> ${userData.email}</li>
+          <li><strong>Phone:</strong> ${userData.PhoneNumber}</li>
           <li><strong>Slot Date:</strong> ${selectedDate}</li>
           <li><strong>Slot Time:</strong> ${selectedTime}</li>
         </ul>

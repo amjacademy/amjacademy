@@ -10,6 +10,7 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
     phone: "",
     email: "",
+    mobile:"",
     otp: ["", "", "", "", "", ""],
     name: "",
     age: "",
