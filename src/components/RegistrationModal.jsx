@@ -886,7 +886,7 @@ const handleSubmit = async () => {
                 </div>
 
                 <div className="input-group">
-                  <label>Parent/Guardian Name (if under 18)</label>
+                  <label>Parent/Guardian Name</label>
                   <input
                     type="text"
                     name="parentName"

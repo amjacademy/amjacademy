@@ -40,7 +40,7 @@ const Services = () => {
             <div className="service-icon">
               <div className="icon-wrapper">🎹</div>
             </div>
-            <h3>LiPiano and Keyboard Lessons</h3>
+            <h3>Live Piano and Keyboard Classes</h3>
             <p>1:1 professional teachings and Group teaching to enhance your skill level in music goal</p>
             <div className="service-features">
               <div className="feature">✨ Personalized Learning</div>
