@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+/server/config/firebaseServiceKey.json
+/server/.env 
+/src/assets/server1.js 
+/src/assets/1.txt
