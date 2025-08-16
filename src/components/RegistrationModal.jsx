@@ -1086,7 +1086,7 @@ const handleSubmit = async () => {
                   </div>
                   <div className="review-item">
                     <span className="label">Phone:</span>
-                    <span className="value">{countryCode} {formData.PhoneNumber}</span>
+<span className="value">{countryCode} {formData.PhoneNumber || ''}</span>
                   </div>
                   {formData.parentName && (
                     <div className="review-item">
