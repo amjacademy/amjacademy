@@ -913,12 +913,25 @@ const handleSubmit = async () => {
                     <input
                       type="tel"
                       name="PhoneNumber"
-                      placeholder="Phone number"
+                      placeholder="+916380765665"
                       value={formData.PhoneNumber}
-                      onChange={handleInputChange}
-                      maxLength="22"
-                      pattern="[0-9]*"
+                      onChange={(e) => {
+                        let value = e.target.value;
+
+                        // Always ensure it starts with '+'
+                        if (!value.startsWith("+")) {
+                          value = "+" + value.replace(/^\+/, ""); 
+                        }
+
+                        // Allow only digits after +
+                        value = "+" + value.substring(1).replace(/[^0-9]/g, "");
+
+                        setFormData({ ...formData, PhoneNumber: value });
+                      }}
+                      maxLength="15"   // reasonable limit for international numbers
                       inputMode="numeric"
+                      pattern="^\+[0-9]*$"  // ensures + followed by digits only
+                      required
                     />
                   </div>
                 </div>
