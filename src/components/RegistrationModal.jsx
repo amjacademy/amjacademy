@@ -898,13 +898,29 @@ const handleSubmit = async () => {
                 </div>
                 <div className="input-group">
                   <label>Phone Number</label>
-                  <input
-                    type="tel"
-                    name="PhoneNumber"
-                    placeholder="Phone number"
-                    value={formData.PhoneNumber}
-                    onChange={handleInputChange}
-                  />
+                  <div className="phone-input">
+                    <select 
+                      className="country-code" 
+                      value={countryCode} 
+                      onChange={handleCountryCodeChange}
+                    >
+                      {countryCodes.map((country, index) => (
+                        <option key={index} value={country.code}>
+                          {country.name} ({country.code})
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="tel"
+                      name="PhoneNumber"
+                      placeholder="Phone number"
+                      value={formData.PhoneNumber}
+                      onChange={handleInputChange}
+                      maxLength="10"
+                      pattern="[0-9]*"
+                      inputMode="numeric"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1070,7 +1086,7 @@ const handleSubmit = async () => {
                   </div>
                   <div className="review-item">
                     <span className="label">Phone:</span>
-                    <span className="value">{formData.PhoneNumber}</span>
+                    <span className="value">{countryCode} {formData.PhoneNumber}</span>
                   </div>
                   {formData.parentName && (
                     <div className="review-item">

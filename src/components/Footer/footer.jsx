@@ -55,7 +55,7 @@ const Footer = () => {
             <h4>Contact Info</h4>
             <div className="footer-contact">
               <p>📧 amjacademy196015@gmail.com</p>
-              <p>📱 +91-91717 19881</p>
+              <p>📱 +91-82209 6343683</p>
               <a>📍 No. 02, 2nd cross street, KothandaRamar Nagar,
                      Perungudi, Ch - 96
               </a>

@@ -68,12 +68,12 @@ const Services = () => {
           {/* Recorded Classes */}
           <div
             className="service-card clickable"
-            onClick={() => handleModuleClick("recorded")}
+            onClick={() => handleModuleClick1("recorded")}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
-                handleModuleClick("recorded")
+                handleModuleClick1("recorded")
               }
             }}
           >
