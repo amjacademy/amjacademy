@@ -677,10 +677,10 @@ const handleSubmit = async () => {
               </p>
 
               <div className="registration-options">
-                <div className="option-card" onClick={() => handleRegistrationTypeSelect("whatsapp")}>
-                  <div className="option-icon">📱</div>
+                <div className="option-card1" onClick={() => handleRegistrationTypeSelect1("whatsapp")}>
+                  <div className="option-icon1">📱</div>
                   <h3>WhatsApp Number</h3>
-                  <p>Quick registration with WhatsApp verification</p>
+                  <p>Quick registration with WhatsApp verification is not applicable</p>
                 </div>
 
                 <div className="option-card" onClick={() => handleRegistrationTypeSelect("email")}>
