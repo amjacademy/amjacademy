@@ -897,9 +897,9 @@ const handleSubmit = async () => {
                   />
                 </div>
                 <div className="input-group">
-                  <label>Phone Number</label>
+                  <label>Enter Phone Number with country code</label>
                   <div className="phone-input">
-                    <select 
+                    {/* <select 
                       className="country-code" 
                       value={countryCode} 
                       onChange={handleCountryCodeChange}
@@ -909,14 +909,14 @@ const handleSubmit = async () => {
                           {country.name} ({country.code})
                         </option>
                       ))}
-                    </select>
+                    </select> */}
                     <input
                       type="tel"
                       name="PhoneNumber"
                       placeholder="Phone number"
                       value={formData.PhoneNumber}
                       onChange={handleInputChange}
-                      maxLength="12"
+                      maxLength="22"
                       pattern="[0-9]*"
                       inputMode="numeric"
                     />
