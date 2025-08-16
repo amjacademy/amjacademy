@@ -916,7 +916,7 @@ const handleSubmit = async () => {
                       placeholder="Phone number"
                       value={formData.PhoneNumber}
                       onChange={handleInputChange}
-                      maxLength="10"
+                      maxLength="12"
                       pattern="[0-9]*"
                       inputMode="numeric"
                     />

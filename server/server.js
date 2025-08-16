@@ -332,7 +332,7 @@ app.post("/complete-registration", async (req, res) => {
         <ul>
           <li><strong>Name:</strong> ${userData.name}</li>
           <li><strong>Email:</strong> ${userData.email}</li>
-          <li><strong>Phone:</strong> ${userData.PhoneNumber}</li>
+          <li><strong>Phone:</strong> (${userData.countryCode} ${userData.PhoneNumber})</li>
           <li><strong>Slot Date:</strong> ${selectedDate}</li>
           <li><strong>Slot Time:</strong> ${selectedTime}</li>
         </ul>

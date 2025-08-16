@@ -54,16 +54,16 @@ const Services = () => {
           <div className="service-card">
             <div className="service-icon">
               <div className="icon-wrapper">🎵</div>
-            </div>
-            <h3>Music Theory & Composition</h3>
-            <p>Comprehensive music theory education and composition guidance.</p>
-            <div className="service-features">
-              <div className="feature">🎼 Harmony & Analysis</div>
-              <div className="feature">✍️ Composition Skills</div>
-              <div className="feature">📚 Theory Mastery</div>
-            </div>
-            <div className="coming-soon">Coming Soon</div>
-          </div>
+           </div>
+              <h3>Coding Classes</h3>
+              <p>Learn programming from basics to advanced with hands-on projects.</p>
+              <div className="service-features">
+                <div className="feature">💻 Programming Fundamentals</div>
+                <div className="feature">🌐 Web Development</div>
+                <div className="feature">🤖 AI & Data Science Basics</div>
+              </div>
+              <div className="coming-soon">Coming Soon</div>
+           </div>
 
           {/* Recorded Classes */}
           <div
@@ -80,7 +80,7 @@ const Services = () => {
             <div className="service-icon">
               <div className="icon-wrapper">💻</div>
             </div>
-            <h3>Recorded Classes</h3>
+            <h3>Recorded Piano and Keyboard Classes</h3>
             <p>Build confidence and stage presence for recitals and competitions.</p>
             <div className="service-features">
               <div className="feature">🎯 Beginner to Advance</div>
