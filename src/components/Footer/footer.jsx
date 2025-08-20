@@ -35,6 +35,8 @@ const Footer = () => {
               {/* <li><a href="#experience">Experience</a></li> */}
               <li><a href="#testimonials">Accolades</a></li>
               <li><a href="#contact">Contact</a></li>
+              <li><a href="#">Teacher Login</a></li>
+              <li><a href="#">Student Login</a></li>
             </ul>
           </div>
 
