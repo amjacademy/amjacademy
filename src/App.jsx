@@ -13,6 +13,8 @@ import Footer from './components/Footer/footer';
 import PianoLessons from './components/PianoLessons';
 import RecordedClasses from './components/RecordedClasses';
 import RegistrationEnhanced from './components/RegistrationModal';
+import LoginForm from './components/Login/Login';
+import Dashboard from './components/dashboard';
 import './App.css';
 
 // Home Page Component
@@ -77,6 +79,27 @@ function RegistrationPage() {
   );
 }
 
+// Login Page Component
+function LoginPage() {
+  return (
+    <>
+      <Header />
+      <LoginForm />
+      <Footer />
+    </>
+  );
+}
+
+// Dashboard Page Component
+function DashboardPage() {
+  return (
+    <>
+      <Dashboard />
+      <Footer />
+    </>
+  );
+}
+
 function App() {
   return (
     <Router>
@@ -85,6 +108,8 @@ function App() {
         <Route path="/piano-lessons" element={<PianoLessonsPage />} />
         <Route path="/recorded-classes" element={<RecordedClassesPage />} />
         <Route path="/registration" element={<RegistrationPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
       </Routes>
     </Router>
   );
