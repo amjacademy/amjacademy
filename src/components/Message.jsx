@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import "./message.css"
+import "./Message.css"
 
 const Message = () => {
   const [selectedContact, setSelectedContact] = useState("anto-maria")
