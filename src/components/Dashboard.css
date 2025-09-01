@@ -9,7 +9,7 @@ body {
   line-height: 1.6;
   /* Updated to vibrant rainbow gradient background for kids */
   background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 25%, #fecfef 50%, #a8edea 75%, #fed6e3 100%);
-  /* min-height: 100vh; */
+  min-height: 100vh;
 }
 
 .dashboard-container {
@@ -23,8 +23,8 @@ body {
   /* Changed to vibrant purple-pink gradient header */
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 12px 24px 12px 32px;
   width: 100%;
+  padding: 12px 24px 24px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -156,7 +156,7 @@ body {
   background: white;
   border-right: 1px solid #e0e0e0;
   padding: 0;
-  position: sticky;
+  position: fixed;
   left: 0;
   top: 73px;
   height: calc(100vh - 73px);
@@ -223,7 +223,7 @@ body {
 /* Main Content */
 .main-content {
   flex: 1;
-  /* margin-left: 20px; */
+  margin-left: 280px;
   padding: 24px;
   max-width: calc(100vw - 280px);
   /* Light colorful background */

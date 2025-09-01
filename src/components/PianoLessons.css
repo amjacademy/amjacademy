@@ -2,7 +2,7 @@
 .piano-lessons-container {
   min-height: 100vh;
   background: white;
-  position: relative;
+  /* position: relative; */
   overflow-x: hidden;
   padding-top: 80px; /* Account for fixed header */
 }

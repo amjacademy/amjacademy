@@ -1,70 +1,133 @@
-"use client"
++"use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import "./Dashboard.css"
 import Footer from './Footer/footer';
+import Profile from './Profile';
+import Message from './Message';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard")
   const [userType] = useState("student") // This would come from auth context
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [assignmentsOpen, setAssignmentsOpen] = useState(false)
+  const [upcomingClasses, setUpcomingClasses] = useState([])
+  const [completedClasses, setCompletedClasses] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [selectedCourse, setSelectedCourse] = useState(null)
 
-  const upcomingClasses = [
+  // Fetch courses from API
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/courses')
+        const data = await response.json()
+        
+        if (data.success) {
+          // Separate upcoming and completed courses
+          const upcoming = data.courses.filter(course => course.status === 'upcoming')
+          const completed = data.courses.filter(course => course.status === 'completed')
+          
+          setUpcomingClasses(upcoming)
+          setCompletedClasses(completed)
+        } else {
+          setError('Failed to fetch courses')
+        }
+      } catch (err) {
+        setError('Error fetching courses: ' + err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCourses()
+  }, [])
+
+  // Fallback to static data if API fails
+  const staticUpcomingClasses = [
     {
       id: 1,
-      title: "Piano Basics",
-      instructor: "Ms. Sarah",
-      time: "Today at 2:00 PM",
-      duration: "45 min",
+      name: "Piano Basics",
+      title: "Introduction to Piano",
       level: "Beginner",
-      image: "/placeholder.svg?height=120&width=200",
+      duration: "45 min",
+      ratings: 4.8,
+      instructor: {
+        name: "Ms. Sarah Johnson",
+        avatar: "images/instructors/sarah.jpg",
+        experience: "5+ years"
+      },
+      time: "Today at 2:00 PM",
+      image: "images/amj-logo.png?height=120&width=200",
       status: "upcoming",
     },
     {
       id: 2,
-      title: "Guitar Fundamentals",
-      instructor: "Mr. John",
-      time: "Tomorrow at 10:00 AM",
-      duration: "60 min",
+      name: "Guitar Fundamentals",
+      title: "Basic Guitar Techniques",
       level: "Intermediate",
-      image: "/placeholder.svg?height=120&width=200",
+      duration: "60 min",
+      ratings: 4.6,
+      instructor: {
+        name: "Mr. John Smith",
+        avatar: "images/instructors/john.jpg",
+        experience: "8+ years"
+      },
+      time: "Tomorrow at 10:00 AM",
+      image: "images/amj-logo.png?height=120&width=200",
       status: "upcoming",
     },
     {
       id: 3,
-      title: "Music Theory",
-      instructor: "Dr. Emily",
-      time: "Thu at 4:00 PM",
-      duration: "30 min",
+      name: "Music Theory",
+      title: "Advanced Music Theory",
       level: "Advanced",
-      image: "/placeholder.svg?height=120&width=200",
+      duration: "30 min",
+      ratings: 4.9,
+      instructor: {
+        name: "Dr. Emily Davis",
+        avatar: "images/instructors/emily.jpg",
+        experience: "10+ years"
+      },
+      time: "Thu at 4:00 PM",
+      image: "images/amj-logo.png?height=120&width=200",
       status: "upcoming",
     },
   ]
 
-  const completedClasses = [
+  const staticCompletedClasses = [
     {
       id: 4,
-      title: "Rhythm Basics",
-      instructor: "Ms. Lisa",
-      time: "Yesterday at 3:00 PM",
-      duration: "45 min",
+      name: "Rhythm Basics",
+      title: "Understanding Rhythm",
       level: "Beginner",
-      image: "/placeholder.svg?height=120&width=200",
+      duration: "45 min",
+      ratings: 5.0,
+      instructor: {
+        name: "Ms. Lisa Anderson",
+        avatar: "images/instructors/lisa.jpg",
+        experience: "6+ years"
+      },
+      time: "Yesterday at 3:00 PM",
+      image: "images/amj-logo.png?height=120&width=200",
       status: "completed",
-      rating: 5,
     },
     {
       id: 5,
-      title: "Vocal Warm-ups",
-      instructor: "Mr. David",
-      time: "Mon at 11:00 AM",
-      duration: "30 min",
+      name: "Vocal Warm-ups",
+      title: "Vocal Training Basics",
       level: "Beginner",
-      image: "/placeholder.svg?height=120&width=200",
+      duration: "30 min",
+      ratings: 4.7,
+      instructor: {
+        name: "Mr. David Wilson",
+        avatar: "images/instructors/david.jpg",
+        experience: "7+ years"
+      },
+      time: "Mon at 11:00 AM",
+      image: "images/amj-logo.png?height=120&width=200",
       status: "completed",
-      rating: 4,
     },
   ]
 
@@ -174,88 +237,192 @@ const Dashboard = () => {
           {/* Main Content */}
           <main className="main-content">
             <div className="content-header">
-              <h1>DASHBOARD</h1>
+              <h1>{activeTab.toUpperCase()}</h1>
             </div>
 
-            {/* Announcement */}
-            <div className="announcement">
-              <div className="announcement-icon">📢</div>
-              <div className="announcement-content">
-                <p>
-                  <strong>Announcement:</strong> On account of Ganesh Chaturthi, Amj Academy will not be conducting classes
-                  on between 3 AM IST on Wednesday, 27 Aug 2025 and 2 AM IST on Thursday, 28 Aug 2025. Classes will resume
-                  normally from 3 AM IST on Thursday, 28 Aug 2025.
-                </p>
-              </div>
-              <button className="announcement-close">×</button>
-            </div>
-
-            {/* Upcoming Classes */}
-            <section className="classes-section">
-              <div className="section-header">
-                <h2>UPCOMING CLASSES</h2>
-              </div>
-              <div className="classes-list">
-                {upcomingClasses.map((classItem) => (
-                  <div key={classItem.id} className="class-card-horizontal">
-                    <div className="class-image">
-                      <img
-                        src={classItem.image || "/placeholder.svg?height=120&width=200&query=keyboard lesson"}
-                        alt={classItem.title}
-                      />
-                    </div>
-                    <div className="class-info">
-                      <div className="class-time">{classItem.time}</div>
-                      <div className="class-badges">
-                        <span className="badge individual">Individual Batch</span>
-                        <span className="badge keyboard">Keyboard</span>
-                        <span className="badge not-started">Not Started</span>
-                      </div>
-                      <div className="class-details">
-                        <p>Curriculum Stamp: N/A</p>
-                        <p>Topic: Basic scales and chords</p>
-                      </div>
-                    </div>
-                    <div className="class-actions">
-                      <button className="start-class-btn">START CLASS</button>
-                    </div>
+            {activeTab === "dashboard" && (
+              <>
+                {/* Announcement */}
+                <div className="announcement">
+                  <div className="announcement-icon">📢</div>
+                  <div className="announcement-content">
+                    <p>
+                      <strong>Announcement:</strong> On account of Ganesh Chaturthi, Amj Academy will not be conducting classes
+                      on between 3 AM IST on Wednesday, 27 Aug 2025 and 2 AM IST on Thursday, 28 Aug 2025. Classes will resume
+                      normally from 3 AM IST on Thursday, 28 Aug 2025.
+                    </p>
                   </div>
-                ))}
-              </div>
-            </section>
+                  <button className="announcement-close">×</button>
+                </div>
 
-            {/* Completed Classes */}
-            <section className="classes-section">
-              <div className="section-header">
-                <h2>COMPLETED CLASSES</h2>
-              </div>
-              <div className="classes-list">
-                {completedClasses.map((classItem) => (
-                  <div key={classItem.id} className="class-card-horizontal completed">
-                    <div className="class-image">
-                      <img
-                        src={classItem.image || "/placeholder.svg?height=120&width=200&query=keyboard lesson"}
-                        alt={classItem.title}
-                      />
-                    </div>
-                    <div className="class-info">
-                      <div className="class-time">{classItem.time}</div>
-                      <div className="class-badges">
-                        <span className="badge completed-badge">Completed</span>
-                      </div>
-                      <div className="class-title">View Teacher Post-Demo Insight</div>
-                      <div className="class-subject">Keyboard</div>
-                    </div>
-                    <div className="class-actions">
-                      <button className="view-btn">View</button>
-                    </div>
+                {/* Upcoming Classes */}
+                <section className="classes-section">
+                  <div className="section-header">
+                    <h2>UPCOMING CLASSES</h2>
                   </div>
-                ))}
+                  {loading && <div className="loading">Loading courses...</div>}
+                  {error && <div className="error">{error}</div>}
+                  <div className="classes-list">
+                    {(upcomingClasses.length > 0 ? upcomingClasses : staticUpcomingClasses).map((classItem) => (
+                      <div key={classItem.id} className="class-card-horizontal">
+                        <div className="class-image">
+                          <img
+                            src={classItem.image || "/placeholder.svg?height=120&width=200&query=keyboard lesson"}
+                            alt={classItem.name || classItem.title}
+                          />
+                        </div>
+                        <div className="class-info">
+                          <div className="class-header">
+                            <h3 className="class-name">{classItem.name || classItem.title}</h3>
+                            <p className="class-title">{classItem.title}</p>
+                          </div>
+                          
+                          <div className="class-meta">
+                            <div className="instructor-info">
+                              <div className="instructor-avatar">
+                                <img 
+                                  src={classItem.instructor?.avatar || "/placeholder.svg?height=40&width=40&query=instructor"} 
+                                  alt={classItem.instructor?.name || classItem.instructor} 
+                                />
+                              </div>
+                              <div className="instructor-details">
+                                <span className="instructor-name">{classItem.instructor?.name || classItem.instructor}</span>
+                                {classItem.instructor?.experience && (
+                                  <span className="instructor-experience">{classItem.instructor.experience}</span>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <div className="class-badges">
+                              <span className={`badge level-badge ${classItem.level?.toLowerCase()}`}>
+                                {classItem.level}
+                              </span>
+                              <span className="badge duration-badge">
+                                {classItem.duration}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="class-ratings">
+                            <div className="stars">
+                              {[...Array(5)].map((_, i) => (
+                                <span key={i} className={`star ${i < Math.floor(classItem.ratings || 0) ? 'filled' : ''}`}>
+                                  ★
+                                </span>
+                              ))}
+                            </div>
+                            <span className="rating-value">{classItem.ratings || 0}</span>
+                          </div>
+
+                          <div className="class-time">{classItem.time}</div>
+                          
+                          <div className="class-details">
+                            <p><strong>Level:</strong> {classItem.level}</p>
+                            <p><strong>Duration:</strong> {classItem.duration}</p>
+                            <p><strong>Instructor:</strong> {classItem.instructor?.name || classItem.instructor}</p>
+                          </div>
+                        </div>
+                        <div className="class-actions">
+                          <button className="start-class-btn">START CLASS</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* Completed Classes */}
+                <section className="classes-section">
+                  <div className="section-header">
+                    <h2>COMPLETED CLASSES</h2>
+                  </div>
+                  <div className="classes-list">
+                    {(completedClasses.length > 0 ? completedClasses : staticCompletedClasses).map((classItem) => (
+                      <div key={classItem.id} className="class-card-horizontal completed">
+                        <div className="class-image">
+                          <img
+                            src={classItem.image || "/placeholder.svg?height=120&width=200&query=keyboard lesson"}
+                            alt={classItem.name || classItem.title}
+                          />
+                        </div>
+                        <div className="class-info">
+                          <div className="class-header">
+                            <h3 className="class-name">{classItem.name || classItem.title}</h3>
+                            <p className="class-title">{classItem.title}</p>
+                          </div>
+                          
+                          <div className="class-meta">
+                            <div className="instructor-info">
+                              <div className="instructor-avatar">
+                                <img 
+                                  src={classItem.instructor?.avatar || "/placeholder.svg?height=40&width=40&query=instructor"} 
+                                  alt={classItem.instructor?.name || classItem.instructor} 
+                                />
+                              </div>
+                              <div className="instructor-details">
+                                <span className="instructor-name">{classItem.instructor?.name || classItem.instructor}</span>
+                                {classItem.instructor?.experience && (
+                                  <span className="instructor-experience">{classItem.instructor.experience}</span>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <div className="class-badges">
+                              <span className={`badge level-badge ${classItem.level?.toLowerCase()}`}>
+                                {classItem.level}
+                              </span>
+                              <span className="badge duration-badge">
+                                {classItem.duration}
+                              </span>
+                              <span className="badge completed-badge">
+                                COMPLETED
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="class-ratings">
+                            <div className="stars">
+                              {[...Array(5)].map((_, i) => (
+                                <span key={i} className={`star ${i < Math.floor(classItem.ratings || 0) ? 'filled' : ''}`}>
+                                  ★
+                                </span>
+                              ))}
+                            </div>
+                            <span className="rating-value">{classItem.ratings || 0}</span>
+                          </div>
+
+                          <div className="class-time">{classItem.time}</div>
+                          
+                          <div className="class-details">
+                            <p><strong>Level:</strong> {classItem.level}</p>
+                            <p><strong>Duration:</strong> {classItem.duration}</p>
+                            <p><strong>Instructor:</strong> {classItem.instructor?.name || classItem.instructor}</p>
+                          </div>
+                        </div>
+                        <div className="class-actions">
+                          <button className="view-btn">REVIEW CLASS</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* View More Section */}
+                <div className="view-more">
+                  <button className="view-more-btn">VIEW ALL CLASSES</button>
+                </div>
+              </>
+            )}
+
+            {activeTab === "profile" && <Profile />}
+            {activeTab === "message" && <Message />}
+
+            {/* Placeholder for other tabs */}
+            {!["dashboard", "profile", "message"].includes(activeTab) && (
+              <div className="placeholder-content">
+                <h2>{activeTab.toUpperCase()} CONTENT</h2>
+                <p>This section is under development. Content for {activeTab} will be available soon.</p>
               </div>
-              <div className="view-more">
-                <button className="view-more-btn">VIEW MORE</button>
-              </div>
-            </section>
+            )}
           </main>
         </div>
 

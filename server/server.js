@@ -365,6 +365,35 @@ app.get("/get-slots/:date", async (req, res) => {
   }
 });
 
+// Course API endpoints
+app.get("/api/courses", async (req, res) => {
+  try {
+    const snapshot = await db.collection("courses").get();
+    const courses = [];
+    snapshot.forEach(doc => {
+      courses.push({ id: doc.id, ...doc.data() });
+    });
+    res.json({ success: true, courses });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching courses" });
+  }
+});
+
+app.get("/api/courses/:id", async (req, res) => {
+  try {
+    const courseId = req.params.id;
+    const doc = await db.collection("courses").doc(courseId).get();
+    
+    if (!doc.exists) {
+      return res.status(404).json({ success: false, message: "Course not found" });
+    }
+    
+    res.json({ success: true, course: { id: doc.id, ...doc.data() } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching course details" });
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
