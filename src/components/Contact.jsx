@@ -26,6 +26,7 @@ const Contact = () => {
     const formPayload = new FormData(event.target)
     // Web3Forms Access Key
     formPayload.append("access_key", "3e6b2f3b-1593-4f63-9aee-22c8f109cfdd")
+    formPayload.append("email", "amjacademy196015@gmail.com.com")
 
     const response = await fetch("https://api.web3forms.com/submit", {
       method: "POST",
