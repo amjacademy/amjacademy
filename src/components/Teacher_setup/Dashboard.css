@@ -23,8 +23,8 @@ body {
   /* Changed to vibrant purple-pink gradient header */
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+  padding: 16px 30px;
   width: 100%;
-  padding: 12px 24px 24px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -148,6 +148,7 @@ body {
   display: flex;
   flex: 1;
   position: relative;
+  min-height: calc(100vh - 73px); /* Account for header height */
 }
 
 /* Sidebar Styles */
@@ -224,7 +225,7 @@ body {
 .main-content {
   flex: 1;
   margin-left: 280px;
-  padding: 24px;
+  padding: 24px 24px 100px 24px; /* Added bottom padding for footer space */
   max-width: calc(100vw - 280px);
   /* Light colorful background */
   background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
@@ -579,12 +580,21 @@ body {
   z-index: 80;
 }
 
+/* Footer Styles */
+.dashboard-container > footer {
+  margin-left: 280px; /* Align footer with main content, after sidebar */
+  width: calc(100% - 280px); /* Adjust width to account for sidebar */
+  background: #2c3e50;
+  border-top: 1px solid #e0e0e0;
+  z-index: 10;
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .main-content {
     margin-left: 0;
     max-width: 100vw;
-    padding: 24px;
+    padding: 24px 24px 100px 24px; /* Keep bottom padding on mobile */
   }
 
   .sidebar {
@@ -611,6 +621,12 @@ body {
   .stats-grid {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 16px;
+  }
+
+  /* Reset footer positioning on mobile */
+  .dashboard-container > footer {
+    margin-left: 0;
+    width: 100%;
   }
 }
 

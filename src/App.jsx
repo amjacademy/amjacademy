@@ -14,7 +14,7 @@ import PianoLessons from './components/PianoLessons';
 import RecordedClasses from './components/RecordedClasses';
 import RegistrationEnhanced from './components/RegistrationModal';
 import LoginForm from './components/Login/Login';
-import Dashboard from './components/dashboard';
+import Dashboard from './components/Teacher_setup/dashboard';
 import './App.css';
 
 // Home Page Component
@@ -95,7 +95,7 @@ function DashboardPage() {
   return (
     <>
       <Dashboard />
-      <Footer />
+      {/* <Footer /> */}
     </>
   );
 }

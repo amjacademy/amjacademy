@@ -25,12 +25,15 @@ const Contact = () => {
     setResult("Sending...")
     const formPayload = new FormData(event.target)
     // Web3Forms Access Key
-    formPayload.append("access_key", "3e6b2f3b-1593-4f63-9aee-22c8f109cfdd")
-    formPayload.append("email", "amjacademy196015@gmail.com")
+    // formPayload.append("access_key", "3e6b2f3b-1593-4f63-9aee-22c8f109cfdd")
+    // formPayload.append("email", "amjacademy196015@gmail.com.com")
 
-    const response = await fetch("https://api.web3forms.com/submit", {
-      method: "POST",
-      body: formPayload,
+      const response = await fetch("https://formspree.io/f/mdklygpn", {
+       method: "POST",
+       body: formPayload,
+       headers: {
+         Accept: "application/json",
+       },
     })
 
     const data = await response.json()
@@ -159,3 +162,5 @@ const Contact = () => {
 }
 
 export default Contact
+
+
