@@ -3,7 +3,7 @@
 import { useState } from "react"
 import "./Dashboard.css"
 import Profile from "./Profile.jsx"
-import Message from "./message.jsx"
+import Message from "./Message.jsx"
 import Footer from "../Footer/footer.jsx"
 import ClassReport from "./class-report.jsx"
 import MyAssignments from "./my-assignments.jsx"
