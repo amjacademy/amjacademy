@@ -12,6 +12,7 @@ const LoginForm = () => {
     password: "",
   })
   const [errors, setErrors] = useState({})
+  const [showComingSoon, setShowComingSoon] = useState(false)
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -57,10 +58,19 @@ const LoginForm = () => {
     e.preventDefault()
     if (validateForm()) {
       console.log("Login attempt:", { ...formData, userType })
-      // Handle login logic here
-      // For now, redirect to dashboard after successful validation
-      navigate('/dashboard')
+
+      if (userType === "teacher") {
+        // Handle teacher login - redirect to dashboard
+        navigate('/dashboard')
+      } else if (userType === "student") {
+        // Handle student login - show coming soon message
+        setShowComingSoon(true)
+      }
     }
+  }
+
+  const handleCloseComingSoon = () => {
+    setShowComingSoon(false)
   }
 
   return (
@@ -151,6 +161,19 @@ const LoginForm = () => {
           </p>
         </div>
       </div>
+
+      {/* Coming Soon Modal for Students */}
+      {showComingSoon && (
+        <div className="coming-soon-modal">
+          <div className="coming-soon-content">
+            <h2>Coming Soon!</h2>
+            <p>The student module is currently under development and will be available soon.</p>
+            <button onClick={handleCloseComingSoon} className="close-btn">
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

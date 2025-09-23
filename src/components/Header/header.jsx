@@ -48,6 +48,7 @@ const Header = () => {
             <a href="#testimonials" onClick={() => scrollToSection('testimonials')}>Accolades</a>
             <a href="#faq" onClick={() => scrollToSection('faq')}>FAQ</a>
             <a href="#contact" onClick={() => scrollToSection('contact')}>Contact</a>
+            <a href="/login" onClick={() => setIsMobileMenuOpen(false)}><button className='Loginbtn'>Login</button></a>
           </nav>
 
           <button 

@@ -12,6 +12,17 @@
   padding: 15px 0;
 }
 
+.Loginbtn {
+  background: linear-gradient(135deg, #3498db, #2ecc71);
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
 .header.scrolled {
   background: rgba(255, 255, 255, 0.98);
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);

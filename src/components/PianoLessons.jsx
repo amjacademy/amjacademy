@@ -425,7 +425,7 @@ export default function PianoLessonsLanding() {
             </p>
             <p>
               • For any queries, please contact us with{" "}
-              <span className="contact-number">+91 9171719881</span>
+              <span className="contact-number">+91-82209 43683</span>
             </p>
           </div>
         </div>
