@@ -14,7 +14,8 @@ import PianoLessons from './components/PianoLessons';
 import RecordedClasses from './components/RecordedClasses';
 import RegistrationEnhanced from './components/RegistrationModal';
 import LoginForm from './components/Login/Login';
-import Dashboard from './components/Teacher_setup/dashboard';
+import TeacherDashboard from './components/Teacher_setup/dashboard';
+import StudentDashboard from './components/Student_setup/Dashboard';
 import './App.css';
 
 // Home Page Component
@@ -92,9 +93,11 @@ function LoginPage() {
 
 // Dashboard Page Component
 function DashboardPage() {
+  const userType = localStorage.getItem('userType') || 'teacher'; // default to teacher if not set
+
   return (
     <>
-      <Dashboard />
+      {userType === 'student' ? <StudentDashboard /> : <TeacherDashboard />}
       {/* <Footer /> */}
     </>
   );

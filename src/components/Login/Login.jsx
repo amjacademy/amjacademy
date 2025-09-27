@@ -91,16 +91,12 @@ const LoginForm = () => {
     if (validateForm()) {
       console.log("Login attempt:", { ...formData, userType })
 
-      // Store username in localStorage
+      // Store username and userType in localStorage
       localStorage.setItem('username', formData.username)
+      localStorage.setItem('userType', userType)
 
-      if (userType === "teacher") {
-        // Handle teacher login - redirect to dashboard
-        navigate('/dashboard')
-      } else if (userType === "student") {
-        // Handle student login - show coming soon message
-        setShowComingSoon(true)
-      }
+      // Redirect to dashboard for both student and teacher
+      navigate('/dashboard')
     }
   }
 
