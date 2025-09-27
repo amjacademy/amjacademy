@@ -1,12 +1,35 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import "./Message.css"
+// import"./Dashboard.css"
 
 const Message = () => {
-  const [selectedContact, setSelectedContact] = useState("anto-maria")
+  const [selectedContact, setSelectedContact] = useState("")
   const [messageText, setMessageText] = useState("")
-  const [searchText, setSearchText] = useState("")
+  const [currentUser, setCurrentUser] = useState("")
+  const [isScreenshotAttempt, setIsScreenshotAttempt] = useState(false)
+
+  // Get username from localStorage on component mount
+  useEffect(() => {
+    const username = localStorage.getItem('username') || 'Teacher'
+    setCurrentUser(username)
+    // Set default selected contact to first student
+    if (!selectedContact) {
+      setSelectedContact("sia-tai")
+    }
+  }, [selectedContact])
+
+  // Detect screenshot attempt
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.keyCode === 44) { // Print Screen key
+        setIsScreenshotAttempt(true)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   const contacts = [
     {
@@ -64,7 +87,7 @@ const Message = () => {
   const messages = [
     {
       id: 1,
-      sender: "anto-maria",
+      sender: currentUser || "Teacher",
       text: "Hello! How are you doing with your keyboard practice?",
       time: "10:30 AM",
       isOwn: false,
@@ -78,14 +101,12 @@ const Message = () => {
     },
     {
       id: 3,
-      sender: "anto-maria",
+      sender: currentUser || "Teacher",
       text: "That's wonderful to hear! Keep up the good work.",
       time: "10:35 AM",
       isOwn: false,
     },
   ]
-
-  const filteredContacts = contacts.filter((contact) => contact.name.toLowerCase().includes(searchText.toLowerCase()))
 
   const handleSendMessage = () => {
     if (messageText.trim()) {
@@ -104,26 +125,38 @@ const Message = () => {
 
   return (
     <div className="message-container">
-      <div className="message-header">
-        <h1>Message</h1>
+
+      <div className="content-header2">
+        <h1>MESSAGE</h1>
+        <div className="user-info">
+          <span>Logged in as: {currentUser}</span>
+        </div>
       </div>
 
       <div className="message-content">
         <div className="message-layout">
           {/* Contacts List */}
           <div className="contacts-panel">
+            <div className="contacts-header">
+              <h3>Teacher: {currentUser}</h3>
+            </div>
             <div className="search-container">
-              <input
-                type="text"
-                placeholder="Search"
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
+              <select
+                value={selectedContact}
+                onChange={(e) => setSelectedContact(e.target.value)}
                 className="search-input"
-              />
+              >
+                <option value="">Select a student to message</option>
+                {contacts.map((contact) => (
+                  <option key={contact.id} value={contact.id}>
+                    {contact.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="contacts-list">
-              {filteredContacts.map((contact) => (
+              {contacts.map((contact) => (
                 <div
                   key={contact.id}
                   className={`contact-item ${selectedContact === contact.id ? "active" : ""}`}
@@ -134,10 +167,10 @@ const Message = () => {
                     {contact.online && <div className="online-indicator"></div>}
                   </div>
                   <div className="contact-info">
-                    <div className="contact-name">{contact.name}</div>
-                    <div className="contact-last-message">{contact.lastMessage}</div>
+                    <div className="contact-name">{isScreenshotAttempt ? '███' : contact.name}</div>
+                    <div className="contact-last-message">{isScreenshotAttempt ? '███' : contact.lastMessage}</div>
                   </div>
-                  {contact.time && <div className="contact-time">{contact.time}</div>}
+                  {contact.time && <div className="contact-time">{isScreenshotAttempt ? '███' : contact.time}</div>}
                 </div>
               ))}
             </div>
@@ -149,19 +182,19 @@ const Message = () => {
               <div className="chat-contact-info">
                 <img
                   src={currentContact.avatar || "/placeholder.svg"}
-                  alt={currentContact.name}
+                  alt={currentUser}
                   className="chat-avatar"
                 />
-                <span className="chat-contact-name">{currentContact.name}</span>
+                <span className="chat-contact-name">{isScreenshotAttempt ? '███' : currentUser}</span>
               </div>
             </div>
 
-            <div className="chat-messages">
+            <div className="chat-messages" onContextMenu={(e) => e.preventDefault()}>
               {messages.map((message) => (
                 <div key={message.id} className={`message ${message.isOwn ? "own" : "other"}`}>
-                  <div className="message-content">
-                    <div className="message-text">{message.text}</div>
-                    <div className="message-time">{message.time}</div>
+                  <div className="message-content" onContextMenu={(e) => e.preventDefault()} style={isScreenshotAttempt ? {backgroundColor: 'black'} : {}}>
+                    <div className="message-text">{isScreenshotAttempt ? '███' : message.text}</div>
+                    <div className="message-time">{isScreenshotAttempt ? '███' : message.time}</div>
                   </div>
                 </div>
               ))}

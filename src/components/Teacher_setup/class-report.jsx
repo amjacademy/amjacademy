@@ -112,10 +112,11 @@ const ClassReport = () => {
 
   return (
     <div className="class-report-container">
-      <div className="class-report-header">
-        <h1>CLASSES</h1>
-      </div>
 
+      <div className="content-header3">
+        <h1>CLASS REPORT</h1>
+      </div>
+      
       <div className="class-report-filters">
         <div className="date-filter">
           <input type="text" value={dateRange} onChange={(e) => setDateRange(e.target.value)} className="date-input" />

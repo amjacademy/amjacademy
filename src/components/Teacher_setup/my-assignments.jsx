@@ -1,10 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import "./my-assignments.css"
 
-const MyAssignments = () => {
-  const [activeSection, setActiveSection] = useState("shared")
+const MyAssignments = ({ initialSection = "shared" }) => {
+  const [activeSection, setActiveSection] = useState(initialSection)
+
+  useEffect(() => {
+    setActiveSection(initialSection)
+  }, [initialSection])
+
   const [activeTab, setActiveTab] = useState("videos")
   const [searchKeyword, setSearchKeyword] = useState("")
   const [searchDate, setSearchDate] = useState("")

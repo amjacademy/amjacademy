@@ -1,0 +1,246 @@
+/* Class Cancellation Report - themed with Dashboard.css gradients and cards */
+
+/* Controls */
+.cc-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 6px 18px rgba(102, 126, 234, 0.15);
+}
+
+.cc-left {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.cc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cc-field label {
+  font-size: 12px;
+  color: #4a5568;
+}
+
+.cc-field input[type="date"],
+.cc-field input[type="text"],
+.cc-field select {
+  height: 36px;
+  min-width: 160px;
+  padding: 6px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  outline: none;
+  background: #fff;
+}
+
+.cc-field.cc-grow {
+  flex: 1 1 240px;
+  min-width: 240px;
+}
+
+.cc-search {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  border: none;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(79, 172, 254, 0.35);
+}
+
+.cc-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-left: auto;
+}
+
+.cc-total {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ffecd2, #fcb69f);
+  color: #2d3748;
+  font-size: 12px;
+  box-shadow: 0 4px 12px rgba(252, 182, 159, 0.35);
+}
+
+.cc-download {
+  background: linear-gradient(135deg, #34d399, #10b981);
+  color: white;
+  border: none;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+}
+.cc-download:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+/* Table */
+.cc-table-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.cc-table-scroll {
+  width: 100%;
+  overflow: auto;
+}
+
+.cc-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+  color: #2d3748;
+}
+
+.cc-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: linear-gradient(135deg, #a8edea, #fed6e3);
+  color: #2d3748;
+  text-align: left;
+  padding: 12px 14px;
+  font-weight: 700;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.cc-table tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.cc-table tbody tr:nth-child(even) td {
+  background: #fffdfc;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-weight: 600;
+}
+
+.cc-course {
+  min-width: 240px;
+}
+
+/* Status styles */
+.cc-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.cc-badge.deleted {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.cc-badge.rescheduled {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.cc-reason {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+.cc-reason.warn {
+  color: #b91c1c;
+  background: #ffe4e6;
+}
+.cc-reason.info {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+.cc-reason.muted {
+  color: #92400e;
+  background: #ffedd5;
+}
+
+/* Action button */
+.cc-right-col {
+  text-align: right;
+}
+.cc-problem-btn {
+  background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.35);
+}
+.cc-problem-btn:hover {
+  background: linear-gradient(135deg, #6c5ce7, #5f3dc4);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .cc-table {
+    font-size: 13px;
+  }
+  .cc-field input[type="date"],
+  .cc-field input[type="text"],
+  .cc-field select {
+    min-width: 140px;
+  }
+}
+
+@media (max-width: 768px) {
+  .cc-controls {
+    align-items: stretch;
+  }
+  .cc-left,
+  .cc-right {
+    width: 100%;
+  }
+  .cc-right {
+    justify-content: space-between;
+  }
+  .cc-table-scroll {
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .cc-field input[type="date"],
+  .cc-field input[type="text"],
+  .cc-field select {
+    min-width: 120px;
+  }
+  .cc-problem-btn {
+    padding: 8px 10px;
+  }
+}

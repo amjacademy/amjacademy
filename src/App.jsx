@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header/header';
 import Hero from './components/Hero';
@@ -101,17 +101,35 @@ function DashboardPage() {
 }
 
 function App() {
+  const [isScreenshotAttempt, setIsScreenshotAttempt] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Detect Print Screen key or combinations
+      if (e.key === 'PrintScreen' || e.keyCode === 44 || (e.altKey && e.key === 'PrintScreen')) {
+        e.preventDefault();
+        setIsScreenshotAttempt(true);
+        document.body.classList.add('screenshot-blocked');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/piano-lessons" element={<PianoLessonsPage />} />
-        <Route path="/recorded-classes" element={<RecordedClassesPage />} />
-        <Route path="/registration" element={<RegistrationPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-      </Routes>
-    </Router>
+    <div className={isScreenshotAttempt ? 'screenshot-blocked' : ''}>
+      <Router>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/piano-lessons" element={<PianoLessonsPage />} />
+          <Route path="/recorded-classes" element={<RecordedClassesPage />} />
+          <Route path="/registration" element={<RegistrationPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+        </Routes>
+      </Router>
+    </div>
   );
 }
 

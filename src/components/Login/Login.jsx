@@ -29,6 +29,35 @@ const LoginForm = () => {
     }
   }
 
+  // Helper functions for password validation
+  const hasMinimumLength = (password) => password.length >= 8
+  const hasSpecialChar = (password) => /[!@#$%^&*(),.?":{}|<>]/.test(password)
+  const hasUppercase = (password) => /[A-Z]/.test(password)
+  const hasLowercase = (password) => /[a-z]/.test(password)
+  const hasNumber = (password) => /\d/.test(password)
+
+  const validatePassword = (password) => {
+    const errors = []
+
+    if (!hasMinimumLength(password)) {
+      errors.push("at least 8 characters")
+    }
+    if (!hasSpecialChar(password)) {
+      errors.push("one special character")
+    }
+    if (!hasUppercase(password)) {
+      errors.push("one uppercase letter")
+    }
+    if (!hasLowercase(password)) {
+      errors.push("one lowercase letter")
+    }
+    if (!hasNumber(password)) {
+      errors.push("one number")
+    }
+
+    return errors
+  }
+
   const validateForm = () => {
     const newErrors = {}
 
@@ -44,8 +73,11 @@ const LoginForm = () => {
 
     if (!formData.password) {
       newErrors.password = "Password is required"
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters"
+    } else {
+      const passwordErrors = validatePassword(formData.password)
+      if (passwordErrors.length > 0) {
+        newErrors.password = `Password must contain ${passwordErrors.join(", ")}`
+      }
     }
 
     setErrors(newErrors)
@@ -58,6 +90,9 @@ const LoginForm = () => {
     e.preventDefault()
     if (validateForm()) {
       console.log("Login attempt:", { ...formData, userType })
+
+      // Store username in localStorage
+      localStorage.setItem('username', formData.username)
 
       if (userType === "teacher") {
         // Handle teacher login - redirect to dashboard
