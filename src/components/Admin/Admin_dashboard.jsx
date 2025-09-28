@@ -33,9 +33,23 @@ const EmptyState = ({ title, subtitle }) => (
   </div>
 )
 
-function IdTools({ value, onChange }) {
+function IdTools({ value, onChange, students, teachers }) {
   const genId = () => {
-    const id = `${Date.now().toString().slice(-6)}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
+    // Get all existing IDs
+    const allIds = [...students, ...teachers].map(item => item.id)
+    // Extract numbers from AMJXXXXX format
+    const numbers = allIds
+      .filter(id => id.startsWith('AMJ'))
+      .map(id => parseInt(id.slice(3), 10))
+      .filter(num => !isNaN(num))
+    
+    // Find the next available number
+    let nextNum = 1
+    while (numbers.includes(nextNum)) {
+      nextNum++
+    }
+    
+    const id = `AMJ${nextNum.toString().padStart(5, '0')}`
     onChange(id)
   }
   return (
@@ -176,7 +190,7 @@ function EnrollmentModule({ students, setStudents, teachers, setTeachers }) {
       <form className="form-grid" onSubmit={onSubmit}>
         <div className="field">
           <label className="label">ID Creation</label>
-          <IdTools value={id} onChange={setId} />
+          <IdTools value={id} onChange={setId} students={students} teachers={teachers} />
         </div>
         <div className="field">
           <label className="label">Name</label>
