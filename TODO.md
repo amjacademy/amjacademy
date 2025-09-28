@@ -1,4 +1,8 @@
-- [x] Add AdminPage component in App.jsx that renders only AdminLogin (no Header/Footer)
-- [x] Add route for /AdminLogin in the Routes
-- [x] Add login logic to redirect to /admin-dashboard on successful login
-- [x] Add route for /admin-dashboard rendering Admin_Dashboard component
+- [x] Add new state variables in Login.jsx: showOtpModal, otp, showPassword, otpVerified
+- [x] Add verify button after email field in Login.jsx
+- [x] Add OTP modal component in Login.jsx
+- [x] Add handleOtpSubmit function in Login.jsx
+- [x] Conditionally render password field in Login.jsx
+- [x] Update validateForm to require password only if showPassword in Login.jsx
+- [x] Add CSS for OTP modal in Login.css
+- [x] Modify OTP input to 6 separate digit fields with continuous entry

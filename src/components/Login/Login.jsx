@@ -13,6 +13,10 @@ const LoginForm = () => {
   })
   const [errors, setErrors] = useState({})
   const [showComingSoon, setShowComingSoon] = useState(false)
+  const [showOtpModal, setShowOtpModal] = useState(false)
+  const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""])
+  const [showPassword, setShowPassword] = useState(false)
+  const [otpVerified, setOtpVerified] = useState(false)
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -58,31 +62,7 @@ const LoginForm = () => {
     return errors
   }
 
-  const validateForm = () => {
-    const newErrors = {}
 
-    if (!formData.username.trim()) {
-      newErrors.username = "Username is required"
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required"
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email"
-    }
-
-    if (!formData.password) {
-      newErrors.password = "Password is required"
-    } else {
-      const passwordErrors = validatePassword(formData.password)
-      if (passwordErrors.length > 0) {
-        newErrors.password = `Password must contain ${passwordErrors.join(", ")}`
-      }
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
 
   const navigate = useNavigate()
 
@@ -102,6 +82,67 @@ const LoginForm = () => {
 
   const handleCloseComingSoon = () => {
     setShowComingSoon(false)
+  }
+
+  const handleVerifyClick = () => {
+    setShowOtpModal(true)
+  }
+
+  const handleOtpDigitChange = (index, value) => {
+    if (value.length > 1) return // Only allow single digit
+    const newDigits = [...otpDigits]
+    newDigits[index] = value
+    setOtpDigits(newDigits)
+
+    // Auto-focus to next input
+    if (value && index < 5) {
+      const nextInput = document.getElementById(`otp-${index + 1}`)
+      if (nextInput) nextInput.focus()
+    }
+  }
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
+      const prevInput = document.getElementById(`otp-${index - 1}`)
+      if (prevInput) prevInput.focus()
+    }
+  }
+
+  const handleOtpSubmit = (e) => {
+    e.preventDefault()
+    if (otpDigits.every(digit => digit.trim())) {
+      setOtpVerified(true)
+      setShowOtpModal(false)
+      setShowPassword(true)
+    }
+  }
+
+  const validateForm = () => {
+    const newErrors = {}
+
+    if (!formData.username.trim()) {
+      newErrors.username = "Username is required"
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required"
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email"
+    }
+
+    if (showPassword) {
+      if (!formData.password) {
+        newErrors.password = "Password is required"
+      } else {
+        const passwordErrors = validatePassword(formData.password)
+        if (passwordErrors.length > 0) {
+          newErrors.password = `Password must contain ${passwordErrors.join(", ")}`
+        }
+      }
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
   }
 
   return (
@@ -160,23 +201,28 @@ const LoginForm = () => {
               placeholder="Enter your email"
             />
             {errors.email && <span className="error-message">{errors.email}</span>}
+            <button type="button" className="verify-btn" onClick={handleVerifyClick}>
+              Verify
+            </button>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="password" className="form-label">
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              className={`form-input ${errors.password ? "error" : ""}`}
-              placeholder="Enter your password"
-            />
-            {errors.password && <span className="error-message">{errors.password}</span>}
-          </div>
+          {showPassword && (
+            <div className="form-group">
+              <label htmlFor="password" className="form-label">
+                Password
+              </label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                className={`form-input ${errors.password ? "error" : ""}`}
+                placeholder="Enter your password"
+              />
+              {errors.password && <span className="error-message">{errors.password}</span>}
+            </div>
+          )}
 
           <button type="submit" className="login-btn">
             Sign In as {userType === "student" ? "Student" : "Teacher"}
@@ -202,6 +248,42 @@ const LoginForm = () => {
             <button onClick={handleCloseComingSoon} className="close-btn">
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* OTP Modal */}
+      {showOtpModal && (
+        <div className="otp-modal">
+          <div className="otp-content">
+            <h2>Enter OTP</h2>
+            <p>Enter the OTP sent to your email</p>
+            <form onSubmit={handleOtpSubmit}>
+              <div className="otp-inputs">
+                {otpDigits.map((digit, index) => (
+                  <input
+                    key={index}
+                    id={`otp-${index}`}
+                    type="text"
+                    value={digit}
+                    onChange={(e) => handleOtpDigitChange(index, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                    className="otp-digit-input"
+                    maxLength={1}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                  />
+                ))}
+              </div>
+              <div className="otp-buttons">
+                <button type="button" onClick={() => setShowOtpModal(false)} className="cancel-btn">
+                  Cancel
+                </button>
+                <button type="submit" className="verify-otp-btn" disabled={!otpDigits.every(digit => digit.trim())}>
+                  Verify OTP
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
