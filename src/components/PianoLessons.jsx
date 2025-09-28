@@ -6,6 +6,7 @@ import "./PianoLessons.css"
 
 export default function PianoLessonsLanding() {
   const [selectedLevel, setSelectedLevel] = useState("Beginner")
+  const [selectedTab, setSelectedTab] = useState("overview")
   const [selectedPlan, setSelectedPlan] = useState("Companion")
   const navigate = useNavigate()
 
@@ -277,9 +278,9 @@ export default function PianoLessonsLanding() {
 
           <div className="tab-buttons">
             <button
-              className={`tab-button ${selectedLevel === "OVERVIEW" ? "active" : ""}`}
+              className={`tab-button ${selectedTab === "overview" ? "active" : ""}`}
               onClick={() => {
-                setSelectedLevel("OVERVIEW");
+                setSelectedTab("overview");
                 document.querySelector('.pricing-section')?.scrollIntoView({ 
                   behavior: 'smooth',
                   block: 'start'
@@ -289,13 +290,10 @@ export default function PianoLessonsLanding() {
               OVERVIEW
             </button>
             <button
-              className={`tab-button ${selectedLevel === "CURRICULUM" ? "active" : ""}`}
+              className={`tab-button ${selectedTab === "curriculum" ? "active" : ""}`}
               onClick={() => {
-                setSelectedLevel("CURRICULUM");
-                document.getElementById('course-details')?.scrollIntoView({ 
-                  behavior: 'smooth',
-                  block: 'start'
-                });
+                setSelectedTab("curriculum");
+                window.open('/assets/Lesson%20Plan%20for%20First%20Year%20.pdf', '_blank');
               }}
             >
               CURRICULUM

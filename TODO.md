@@ -1,6 +1,4 @@
-# TODO: Add "Share with me" to My Assignments Dropdown
-
-## Tasks
-- [x] Add "Share with me" sub-item to menuItems in dashboard.jsx
-- [x] Add render case for "assignments-shared" in renderContent
-- [ ] Test navigation to ensure "Share with me" redirects to shared assignments section
+- [x] Add AdminPage component in App.jsx that renders only AdminLogin (no Header/Footer)
+- [x] Add route for /AdminLogin in the Routes
+- [x] Add login logic to redirect to /admin-dashboard on successful login
+- [x] Add route for /admin-dashboard rendering Admin_Dashboard component

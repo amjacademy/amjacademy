@@ -16,6 +16,8 @@ import RegistrationEnhanced from './components/RegistrationModal';
 import LoginForm from './components/Login/Login';
 import TeacherDashboard from './components/Teacher_setup/dashboard';
 import StudentDashboard from './components/Student_setup/Dashboard';
+import AdminLogin from './components/Admin/Admin_login';
+import Admin_Dashboard from './components/Admin/Admin_dashboard';
 import './App.css';
 
 // Home Page Component
@@ -46,6 +48,7 @@ function PianoLessonsPage() {
     </>
   );
 }
+
 
 // Recorded Classes Page Component
 function RecordedClassesPage() {
@@ -103,6 +106,11 @@ function DashboardPage() {
   );
 }
 
+// Admin Page Component
+function AdminPage() {
+  return <AdminLogin />;
+}
+
 function App() {
   const [isScreenshotAttempt, setIsScreenshotAttempt] = useState(false);
 
@@ -130,6 +138,8 @@ function App() {
           <Route path="/registration" element={<RegistrationPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/AdminLogin" element={<AdminPage />} />
+          <Route path="/admin-dashboard" element={<Admin_Dashboard />} />
         </Routes>
       </Router>
     </div>
