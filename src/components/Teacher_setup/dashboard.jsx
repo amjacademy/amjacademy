@@ -9,11 +9,10 @@ import ClassReport from "./class-report.jsx"
 import MyAssignments from "./my-assignments.jsx"
 import PunctualityReport from "./punctuality-report.jsx"
 import ClassCancellationReport from "./class-cancellation-report.jsx"
-  
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard")
-  const [userType] = useState("student") // This would come from auth context
+  const [userType] = useState("teacher") // This would come from auth context
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [assignmentsOpen, setAssignmentsOpen] = useState(false)
   const [showAnnouncement, setShowAnnouncement] = useState(true)
@@ -46,50 +45,28 @@ const Dashboard = () => {
     localStorage.setItem('announcementClosed', 'true')
   }
 
-  const upcomingClasses = [
-    {
-      id: 1,
-      title: "Piano Basics",
-      students: ["John Doe"],
-      time: "Today at 2:00 PM",
-      duration: "45 min",
-      ageOfStudent: 12,
-      batch: "Individual Batch",
-      level: "Beginner",
-      contractId: "AMJ00001",
-      plan: "Basic Plan",
-      image: "images/amj-logo.png?height=120&width=200",
-      status: "upcoming",
-    },
-    {
-      id: 2,
-      title: "Guitar Fundamentals",
-      students: ["Jane Smith", "Bob Wilson", "Alice Brown"],
-      time: "Tomorrow at 10:00 AM",
-      duration: "45 min",
-      ageOfStudent: 15,
-      batch: "Group Batch",
-      level: "Intermediate",
-      contractId: "AMJ00002",
-      plan: "Advanced Plan",
-      image: "images/amj-logo.png?height=120&width=200",
-      status: "upcoming",
-    },
-    {
-      id: 3,
-      title: "Music Theory",
-      students: ["Alex Johnson"],
-      time: "Thu at 4:00 PM",
-      duration: "45 min",
-      ageOfStudent: 10,
-      batch: "Individual Batch",
-      level: "Advanced",
-      contractId: "AMJ00003",
-      plan: "Premium Plan",
-      image: "images/amj-logo.png?height=120&width=200",
-      status: "upcoming",
-    },
-  ]
+  const [teacherId, setTeacherId] = useState(() => {
+    let id = localStorage.getItem('teacher_id')
+    if (!id) {
+      const adminTeachers = JSON.parse(localStorage.getItem('admin_teachers') || '[]')
+      if (adminTeachers.length > 0) {
+        id = adminTeachers[0].id
+        localStorage.setItem('teacher_id', id)
+        localStorage.setItem('username', adminTeachers[0].name || 'Teacher')
+        localStorage.setItem('userType', 'teacher')
+      } else {
+        id = 'AMJT00001'
+      }
+    }
+    return id
+  })
+
+  const [upcomingClasses, setUpcomingClasses] = useState([])
+
+  useEffect(() => {
+    const classes = JSON.parse(localStorage.getItem(`teacher_upcoming_classes_${teacherId}`) || '[]')
+    setUpcomingClasses(classes)
+  }, [teacherId])
 
   const completedClasses = [
     {

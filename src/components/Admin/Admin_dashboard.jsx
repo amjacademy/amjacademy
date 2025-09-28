@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import "./Admin_dashboard.css"
+import Footer from "../Footer/footer.jsx"
 
 function useLocalStorage(key, initialValue) {
   const [state, setState] = useState(() => {
@@ -33,23 +34,25 @@ const EmptyState = ({ title, subtitle }) => (
   </div>
 )
 
-function IdTools({ value, onChange, students, teachers }) {
+function IdTools({ value, onChange, students, teachers, role }) {
   const genId = () => {
-    // Get all existing IDs
-    const allIds = [...students, ...teachers].map(item => item.id)
-    // Extract numbers from AMJXXXXX format
-    const numbers = allIds
-      .filter(id => id.startsWith('AMJ'))
-      .map(id => parseInt(id.slice(3), 10))
+    // Determine prefix based on role
+    const prefix = role === "Student" ? "AMJS" : "AMJT"
+    // Get all existing IDs for the current role
+    const roleIds = (role === "Student" ? students : teachers).map(item => item.id)
+    // Extract numbers from the format (AMJSXXXXX or AMJTXXXXX)
+    const numbers = roleIds
+      .filter(id => id.startsWith(prefix))
+      .map(id => parseInt(id.slice(4), 10))
       .filter(num => !isNaN(num))
-    
+
     // Find the next available number
     let nextNum = 1
     while (numbers.includes(nextNum)) {
       nextNum++
     }
-    
-    const id = `AMJ${nextNum.toString().padStart(5, '0')}`
+
+    const id = `${prefix}${nextNum.toString().padStart(5, '0')}`
     onChange(id)
   }
   return (
@@ -190,7 +193,7 @@ function EnrollmentModule({ students, setStudents, teachers, setTeachers }) {
       <form className="form-grid" onSubmit={onSubmit}>
         <div className="field">
           <label className="label">ID Creation</label>
-          <IdTools value={id} onChange={setId} students={students} teachers={teachers} />
+          <IdTools value={id} onChange={setId} students={students} teachers={teachers} role={role} />
         </div>
         <div className="field">
           <label className="label">Name</label>
@@ -427,49 +430,99 @@ function AnnouncementsModule({ announcements, setAnnouncements }) {
 }
 
 function ClassArrangementModule({ students, teachers, schedules, setSchedules }) {
-  const [role, setRole] = useState("Student")
-  const [personId, setPersonId] = useState("")
+  const [studentId, setStudentId] = useState("")
+  const [teacherId, setTeacherId] = useState("")
   const [date, setDate] = useState("")
   const [time, setTime] = useState("")
   const [link, setLink] = useState("")
   const [error, setError] = useState("")
 
-  const people = role === "Student" ? students : teachers
-
-  useEffect(() => {
-    // reset selection when role changes
-    setPersonId("")
-  }, [role])
-
   const onSubmit = (e) => {
     e.preventDefault()
     setError("")
-    if (!personId || !date || !time || !link) {
-      setError("Please fill Person, Date, Time and Link.")
+    if (!studentId || !teacherId || !date || !time || !link) {
+      setError("Please fill Student, Teacher, Date, Time and Link.")
       return
     }
     const sched = {
       id: `${Date.now()}`,
-      role,
-      personId,
+      studentId,
+      teacherId,
       when: `${date} ${time}`,
       link,
       createdAt: new Date().toISOString(),
     }
     setSchedules([sched, ...schedules])
-    setPersonId("")
+
+    // Add to student's upcoming classes
+    const studentClasses = JSON.parse(localStorage.getItem(`student_upcoming_classes_${studentId}`) || '[]')
+    const student = students.find(s => s.id === studentId)
+    const teacher = teachers.find(t => t.id === teacherId)
+    const studentClass = {
+      id: sched.id,
+      title: "Piano Lesson", // Default title, can be customized
+      teachers: [teacher?.name || teacherId],
+      time: `${date} at ${time}`,
+      duration: "45 min", // Default duration
+      batch: "Individual Batch", // Default batch
+      level: "Beginner", // Default level
+      contractId: studentId,
+      plan: "Basic Plan", // Default plan
+      image: "images/amj-logo.png",
+      status: "upcoming",
+    }
+    studentClasses.push(studentClass)
+    localStorage.setItem(`student_upcoming_classes_${studentId}`, JSON.stringify(studentClasses))
+
+    // Add to teacher's upcoming classes
+    const teacherClasses = JSON.parse(localStorage.getItem(`teacher_upcoming_classes_${teacherId}`) || '[]')
+    const teacherClass = {
+      id: sched.id,
+      title: "Piano Lesson", // Default title, can be customized
+      students: [student?.name || studentId],
+      time: `${date} at ${time}`,
+      duration: "45 min", // Default duration
+      ageOfStudent: student?.age || 0,
+      batch: "Individual Batch", // Default batch
+      level: "Beginner", // Default level
+      contractId: studentId,
+      plan: "Basic Plan", // Default plan
+      image: "images/amj-logo.png",
+      status: "upcoming",
+    }
+    teacherClasses.push(teacherClass)
+    localStorage.setItem(`teacher_upcoming_classes_${teacherId}`, JSON.stringify(teacherClasses))
+
+    setStudentId("")
+    setTeacherId("")
     setDate("")
     setTime("")
     setLink("")
   }
 
   const onDelete = (id) => {
+    const sched = schedules.find(s => s.id === id)
+    if (sched) {
+      // Remove from student's classes
+      const studentClasses = JSON.parse(localStorage.getItem(`student_upcoming_classes_${sched.studentId}`) || '[]')
+      const filteredStudentClasses = studentClasses.filter(c => c.id !== id)
+      localStorage.setItem(`student_upcoming_classes_${sched.studentId}`, JSON.stringify(filteredStudentClasses))
+
+      // Remove from teacher's classes
+      const teacherClasses = JSON.parse(localStorage.getItem(`teacher_upcoming_classes_${sched.teacherId}`) || '[]')
+      const filteredTeacherClasses = teacherClasses.filter(c => c.id !== id)
+      localStorage.setItem(`teacher_upcoming_classes_${sched.teacherId}`, JSON.stringify(filteredTeacherClasses))
+    }
     setSchedules(schedules.filter((x) => x.id !== id))
   }
 
-  const lookupName = (id) => {
-    const src = role === "Student" ? students : teachers
-    const found = src.find((x) => x.id === id)
+  const lookupStudentName = (id) => {
+    const found = students.find((x) => x.id === id)
+    return found?.name || id
+  }
+
+  const lookupTeacherName = (id) => {
+    const found = teachers.find((x) => x.id === id)
     return found?.name || id
   }
 
@@ -478,49 +531,43 @@ function ClassArrangementModule({ students, teachers, schedules, setSchedules })
       <header className="section-header">
         <div className="section-title">
           <h3>Class Arrangement</h3>
-          <span className="badge">{role}</span>
-        </div>
-        <div className="role-switch">
-          <label className={`switch ${role === "Student" ? "switch--active" : ""}`}>
-            <input
-              type="radio"
-              name="arr-role"
-              checked={role === "Student"}
-              onChange={() => setRole("Student")}
-              aria-label="Student schedule"
-            />
-            Student
-          </label>
-          <label className={`switch ${role === "Teacher" ? "switch--active" : ""}`}>
-            <input
-              type="radio"
-              name="arr-role"
-              checked={role === "Teacher"}
-              onChange={() => setRole("Teacher")}
-              aria-label="Teacher schedule"
-            />
-            Teacher
-          </label>
         </div>
       </header>
 
       <form className="form-grid" onSubmit={onSubmit}>
         <div className="field">
-          <label className="label">Select {role}</label>
+          <label className="label">Select Student</label>
           <select
             className="input"
-            value={personId}
-            onChange={(e) => setPersonId(e.target.value)}
-            aria-label={`Select ${role}`}
+            value={studentId}
+            onChange={(e) => setStudentId(e.target.value)}
+            aria-label="Select Student"
           >
-            <option value="">-- Choose --</option>
-            {people.map((p) => (
+            <option value="">-- Choose Student --</option>
+            {students.map((p) => (
               <option value={p.id} key={p.id}>
                 {p.name} ({p.id})
               </option>
             ))}
           </select>
-          {people.length === 0 ? <small className="hint">No {role.toLowerCase()}s enrolled yet.</small> : null}
+          {students.length === 0 ? <small className="hint">No students enrolled yet.</small> : null}
+        </div>
+        <div className="field">
+          <label className="label">Select Teacher</label>
+          <select
+            className="input"
+            value={teacherId}
+            onChange={(e) => setTeacherId(e.target.value)}
+            aria-label="Select Teacher"
+          >
+            <option value="">-- Choose Teacher --</option>
+            {teachers.map((p) => (
+              <option value={p.id} key={p.id}>
+                {p.name} ({p.id})
+              </option>
+            ))}
+          </select>
+          {teachers.length === 0 ? <small className="hint">No teachers enrolled yet.</small> : null}
         </div>
         <div className="field">
           <label className="label">Date</label>
@@ -571,8 +618,8 @@ function ClassArrangementModule({ students, teachers, schedules, setSchedules })
           <table className="table">
             <thead>
               <tr>
-                <th>Role</th>
-                <th>Person</th>
+                <th>Student</th>
+                <th>Teacher</th>
                 <th>When</th>
                 <th>Link</th>
                 <th className="col-actions">Actions</th>
@@ -581,10 +628,8 @@ function ClassArrangementModule({ students, teachers, schedules, setSchedules })
             <tbody>
               {schedules.map((s) => (
                 <tr key={s.id}>
-                  <td>{s.role}</td>
-                  <td>
-                    {(s.role === "Student" ? students : teachers).find((p) => p.id === s.personId)?.name || s.personId}
-                  </td>
+                  <td>{lookupStudentName(s.studentId)}</td>
+                  <td>{lookupTeacherName(s.teacherId)}</td>
                   <td>{s.when}</td>
                   <td className="truncate">
                     <a href={s.link} target="_blank" rel="noreferrer" className="link">
@@ -615,7 +660,34 @@ export default function Admin_Dashboard() {
   // Schedules
   const [schedules, setSchedules] = useLocalStorage("admin_schedules", [])
 
-  const [active, setActive] = useState("Enrollment")
+  const [activeTab, setActiveTab] = useState("dashboard")
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
+
+  // Get username from localStorage
+  const username = localStorage.getItem('admin_username') || 'Admin'
+
+  // Get first and last letter of username
+  const getInitials = (name) => {
+    const trimmedName = name.trim()
+    if (trimmedName.length === 0) return 'A'
+    const firstLetter = trimmedName[0].toUpperCase()
+    const lastLetter = trimmedName[trimmedName.length - 1].toUpperCase()
+    return firstLetter + lastLetter
+  }
+
+  const initials = getInitials(username)
+
+  const menuItems = [
+    { id: "dashboard", label: "Dashboard", icon: "🏠" },
+    { id: "enrollment", label: "User Enrollment", icon: "👥" },
+    { id: "announcements", label: "Announcements", icon: "📢" },
+    { id: "class-arrangement", label: "Class Arrangement", icon: "📅" },
+  ]
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen)
+  }
 
   // Derived counts
   const counts = {
@@ -625,63 +697,158 @@ export default function Admin_Dashboard() {
     schedules: schedules.length,
   }
 
-  return (
-    <main className="admin-wrap">
-      <header className="admin-header">
-        <h2 className="title text-balance">Admin Dashboard</h2>
-        <div className="stats">
-          <div className="stat">
-            <span className="stat-num">{counts.students}</span>
-            <span className="stat-label">Students</span>
-          </div>
-          <div className="stat">
-            <span className="stat-num">{counts.teachers}</span>
-            <span className="stat-label">Teachers</span>
-          </div>
-          <div className="stat">
-            <span className="stat-num">{counts.announcements}</span>
-            <span className="stat-label">Announcements</span>
-          </div>
-          <div className="stat">
-            <span className="stat-num">{counts.schedules}</span>
-            <span className="stat-label">Schedules</span>
-          </div>
-        </div>
-      </header>
-
-      <nav className="tabs" aria-label="Admin sections">
-        <TabButton active={active === "Enrollment"} onClick={() => setActive("Enrollment")}>
-          User Enrollment
-        </TabButton>
-        <TabButton active={active === "Announcements"} onClick={() => setActive("Announcements")}>
-          Announcements
-        </TabButton>
-        <TabButton active={active === "Class"} onClick={() => setActive("Class")}>
-          Class Arrangement
-        </TabButton>
-      </nav>
-
-      <div className="sections">
-        {active === "Enrollment" && (
+  const renderContent = () => {
+    switch (activeTab) {
+      case "enrollment":
+        return (
           <EnrollmentModule
             students={students}
             setStudents={setStudents}
             teachers={teachers}
             setTeachers={setTeachers}
           />
-        )}
-        {active === "Announcements" && (
+        )
+      case "announcements":
+        return (
           <AnnouncementsModule announcements={announcements} setAnnouncements={setAnnouncements} />
-        )}
-        {active === "Class" && (
+        )
+      case "class-arrangement":
+        return (
           <ClassArrangementModule
             students={students}
             teachers={teachers}
             schedules={schedules}
             setSchedules={setSchedules}
           />
-        )}
+        )
+      case "dashboard":
+      default:
+        return (
+          <>
+            <div className="content-header1">
+              <h1>DASHBOARD</h1>
+            </div>
+            <div className="stats-overview">
+              <div className="stat">
+                <span className="stat-num">{counts.students}</span>
+                <span className="stat-label">Students</span>
+              </div>
+              <div className="stat">
+                <span className="stat-num">{counts.teachers}</span>
+                <span className="stat-label">Teachers</span>
+              </div>
+              <div className="stat">
+                <span className="stat-num">{counts.announcements}</span>
+                <span className="stat-label">Announcements</span>
+              </div>
+              <div className="stat">
+                <span className="stat-num">{counts.schedules}</span>
+                <span className="stat-label">Schedules</span>
+              </div>
+            </div>
+          </>
+        )
+    }
+  }
+
+  return (
+    <div className="dashboard-container">
+      {/* Header */}
+      <header className="dashboard-header">
+        <div className="header-left">
+          <button className="menu-toggle" onClick={toggleSidebar}>
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+          <div className="logo">
+            <img src="images/amj-logo.png" alt="AMJ Academy Logo" className="logo-image" />
+            <span className="logo-text">AMJ Academy</span>
+          </div>
+        </div>
+        <div className="header-center">
+          <nav className="header-nav">
+            <a href="#" className="nav-link active" onClick={() => setActiveTab("dashboard")}>
+              DASHBOARD
+            </a>
+          </nav>
+        </div>
+        <div className="header-right">
+          <div className="user-info">
+            <div className="user-avatar">
+              <span>{initials}</span>
+            </div>
+            <span className="user-name">{username}</span>
+          </div>
+          <button className="help-btn">NEED HELP?</button>
+        </div>
+      </header>
+
+      <div className="dashboard-layout">
+        {/* Sidebar */}
+        <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
+          <nav className="sidebar-nav">
+            <div className="menu-items">
+              {menuItems.map((item) => (
+                <div key={item.id} className="nav-item-container">
+                  <button
+                    className={`nav-item ${activeTab === item.id ? "active" : ""}`}
+                    onClick={() => {
+                      setActiveTab(item.id)
+                      setSidebarOpen(false)
+                    }}
+                  >
+                    <span className="nav-icon">{item.icon}</span>
+                    <span className="nav-label">{item.label}</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="logout-section">
+              <div className="menu-separator"></div>
+              <div className="nav-item-container">
+                <button
+                  className="nav-item logout-item"
+                  onClick={() => setShowLogoutModal(true)}
+                >
+                  <span className="nav-icon">🚪</span>
+                  <span className="nav-label">Logout</span>
+                </button>
+              </div>
+            </div>
+          </nav>
+        </aside>
+
+        {/* Main Content */}
+        <main className="main-content">{renderContent()}</main>
       </div>
-    </main>
+
+      {/* Sidebar Overlay */}
+      {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>}
+
+      {/* Footer */}
+      <Footer />
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="logout-modal-overlay">
+          <div className="logout-modal">
+            <h3>Confirm Logout</h3>
+            <p>Are you sure you want to logout?</p>
+            <div className="modal-buttons">
+              <button className="btn-cancel" onClick={() => setShowLogoutModal(false)}>
+                Cancel
+              </button>
+              <button className="btn-confirm" onClick={() => {
+                localStorage.removeItem('admin_username');
+                window.location.href = '/admin-login';
+              }}>
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }

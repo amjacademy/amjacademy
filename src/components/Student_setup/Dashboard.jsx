@@ -43,47 +43,28 @@ const Dashboard = () => {
     localStorage.setItem('announcementClosed', 'true')
   }
 
-  const upcomingClasses = [
-    {
-      id: 1,
-      title: "Piano Basics",
-      teachers: ["Ms. Lisa"],
-      time: "Today at 2:00 PM",
-      duration: "45 min",
-      batch: "Individual Batch",
-      level: "Beginner",
-      contractId: "AMJ00001",
-      plan: "Basic Plan",
-      image: "images/amj-logo.png?height=120&width=200",
-      status: "upcoming",
-    },
-    {
-      id: 2,
-      title: "Guitar Fundamentals",
-      teachers: ["Mr. David"],
-      time: "Tomorrow at 10:00 AM",
-      duration: "45 min",
-      batch: "Group Batch",
-      level: "Intermediate",
-      contractId: "AMJ00002",
-      plan: "Advanced Plan",
-      image: "images/amj-logo.png?height=120&width=200",
-      status: "upcoming",
-    },
-    {
-      id: 3,
-      title: "Music Theory",
-      teachers: ["Ms. Sarah"],
-      time: "Thu at 4:00 PM",
-      duration: "45 min",
-      batch: "Individual Batch",
-      level: "Advanced",
-      contractId: "AMJ00003",
-      plan: "Premium Plan",
-      image: "images/amj-logo.png?height=120&width=200",
-      status: "upcoming",
-    },
-  ]
+  const [studentId, setStudentId] = useState(() => {
+    let id = localStorage.getItem('student_id')
+    if (!id) {
+      const adminStudents = JSON.parse(localStorage.getItem('admin_students') || '[]')
+      if (adminStudents.length > 0) {
+        id = adminStudents[0].id
+        localStorage.setItem('student_id', id)
+        localStorage.setItem('username', adminStudents[0].name || 'Student')
+        localStorage.setItem('userType', 'student')
+      } else {
+        id = 'AMJS00001'
+      }
+    }
+    return id
+  })
+
+  const [upcomingClasses, setUpcomingClasses] = useState([])
+
+  useEffect(() => {
+    const classes = JSON.parse(localStorage.getItem(`student_upcoming_classes_${studentId}`) || '[]')
+    setUpcomingClasses(classes)
+  }, [studentId])
 
   const completedClasses = [
     {
