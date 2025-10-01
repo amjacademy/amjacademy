@@ -136,7 +136,7 @@ export default function Class_arrangement({ students, teachers, schedules, setSc
           {students.length === 0 ? <small className="hint">No students enrolled yet.</small> : null}
         </div>
         <div className="field">
-          <label className="label">Select Teacher</label>
+          <label className="label">Select Teachers</label>
           <select
             className="input"
             value={teacherId}
