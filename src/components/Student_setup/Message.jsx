@@ -1,14 +1,12 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import "./Message.css"
-// import"./Dashboard.css"
 
 const Message = () => {
   const [selectedContact, setSelectedContact] = useState("")
   const [messageText, setMessageText] = useState("")
   const [currentUser, setCurrentUser] = useState("")
   const [isScreenshotAttempt, setIsScreenshotAttempt] = useState(false)
+  const [announcements, setAnnouncements] = useState([])
 
   // Get username from localStorage on component mount
   useEffect(() => {
@@ -19,6 +17,13 @@ const Message = () => {
       setSelectedContact("ms-lisa")
     }
   }, [selectedContact])
+
+  // Load announcements from localStorage and filter for Students or All
+  useEffect(() => {
+    const storedAnnouncements = JSON.parse(localStorage.getItem('announcements') || '[]')
+    const filtered = storedAnnouncements.filter(a => a.receiver === "Students" || a.receiver === "All")
+    setAnnouncements(filtered)
+  }, [])
 
   // Detect screenshot attempt
   useEffect(() => {

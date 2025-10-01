@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import "./Profile.css"
 
 const Profile = () => {
@@ -12,19 +12,37 @@ const Profile = () => {
   const videoInputRef = useRef(null)
   const photoInputRef = useRef(null)
 
-  const userProfile = {
-    name: "Anto Maria Joshua B",
+  // Load user data from localStorage
+  const [userProfile, setUserProfile] = useState({
+    name: "Teacher",
+    email: "",
+    username: "",
     avatar: "images/Profile_pic.jpg?height=200&width=200",
-    totalStudents: 132,
-    previousStudents: 142,
-    totalClasses: 24,
+    totalStudents: 0,
+    previousStudents: 0,
+    totalClasses: 0,
     reviews: "NA",
-    rating: 4.5,
-    totalRatings: 27,
-    subjects: ["Keyboard"],
+    rating: 0,
+    totalRatings: 0,
+    subjects: [],
     videos: [],
     photos: [],
-  }
+  })
+
+  useEffect(() => {
+    const storedProfile = localStorage.getItem('profile_teacher')
+    if (storedProfile) {
+      const profileData = JSON.parse(storedProfile)
+      setUserProfile(prev => ({
+        ...prev,
+        name: profileData.name || prev.name,
+        email: profileData.email || "",
+        username: profileData.username || "",
+        avatar: profileData.image || prev.avatar,
+        subjects: [profileData.profession || "Piano"],
+      }))
+    }
+  }, [])
 
   const handleProfileImageChange = (e) => {
     const file = e.target.files[0]
@@ -68,6 +86,16 @@ const Profile = () => {
             </div>
             <div className="profile-details">
               <h2 className="profile-name">{userProfile.name}</h2>
+              <div className="profile-contact">
+                <div className="contact-item">
+                  <span className="contact-label">Email:</span>
+                  <span className="contact-value">{userProfile.email || "Not provided"}</span>
+                </div>
+                <div className="contact-item">
+                  <span className="contact-label">Username:</span>
+                  <span className="contact-value">{userProfile.username || "Not provided"}</span>
+                </div>
+              </div>
               <div className="profile-stats">
                 <div className="stat-item">
                   <span className="stat-label">Total students:</span>

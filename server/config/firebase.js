@@ -10,20 +10,7 @@ if (!admin.apps.length) {
   });
 }
 
-const db = admin.firestore();
+// Firestore instance
+const db = admin.firestore(); // ✅ This works with correct import
 
-// Example: Add document with createdAt field for TTL
-async function addDocumentWithTTL() {
-  const docRef = db.collection("yourCollection").doc(); // auto-generated ID
-
-  await docRef.set({
-    name: "Sample Data",
-    createdAt: admin.firestore.FieldValue.serverTimestamp() // important for TTL
-  });
-
-  console.log(`Document created with ID: ${docRef.id}`);
-}
-
-addDocumentWithTTL().catch(console.error);
-
-module.exports = admin;
+module.exports = { admin, db };

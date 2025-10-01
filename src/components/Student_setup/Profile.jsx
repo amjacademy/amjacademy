@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import "./Profile.css"
 
 const Profile = () => {
@@ -12,16 +12,34 @@ const Profile = () => {
   const videoInputRef = useRef(null)
   const photoInputRef = useRef(null)
 
-  const userProfile = {
-    name: "John Doe",
+  // Load user data from localStorage
+  const [userProfile, setUserProfile] = useState({
+    name: "Student",
+    email: "",
+    username: "",
     avatar: "images/Profile_pic.jpg?height=200&width=200",
-    totalClassesAttended: 24,
-    progress: "85%",
-    achievements: 5,
-    enrolledSubjects: ["Keyboard", "Piano Basics"],
+    totalClassesAttended: 0,
+    progress: "0%",
+    achievements: 0,
+    enrolledSubjects: [],
     videos: [],
     photos: [],
-  }
+  })
+
+  useEffect(() => {
+    const storedProfile = localStorage.getItem('profile_student')
+    if (storedProfile) {
+      const profileData = JSON.parse(storedProfile)
+      setUserProfile(prev => ({
+        ...prev,
+        name: profileData.name || prev.name,
+        email: profileData.email || "",
+        username: profileData.username || "",
+        avatar: profileData.image || prev.avatar,
+        enrolledSubjects: [profileData.profession || "Piano"],
+      }))
+    }
+  }, [])
 
   const handleProfileImageChange = (e) => {
     const file = e.target.files[0]
@@ -65,6 +83,16 @@ const Profile = () => {
             </div>
             <div className="profile-details">
               <h2 className="profile-name">{userProfile.name}</h2>
+              <div className="profile-contact">
+                <div className="contact-item">
+                  <span className="contact-label">Email:</span>
+                  <span className="contact-value">{userProfile.email || "Not provided"}</span>
+                </div>
+                <div className="contact-item">
+                  <span className="contact-label">Username:</span>
+                  <span className="contact-value">{userProfile.username || "Not provided"}</span>
+                </div>
+              </div>
               <div className="profile-stats">
                 <div className="stat-item">
                   <span className="stat-label">Total classes attended:</span>

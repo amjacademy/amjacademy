@@ -158,7 +158,10 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
       number++
     }
 
-    setUsername(baseName + number.toString())
+    // Format number with leading zeros to 4 digits
+    const formattedNumber = number.toString().padStart(4, '0')
+
+    setUsername(baseName + formattedNumber)
   }
 
   useEffect(() => {
@@ -367,29 +370,29 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
             </div>
             <div className="field">
               <label className="label">Basic Plan</label>
-              <select
-                className="input"
-                value={plan}
-                onChange={(e) => setPlan(e.target.value)}
-                aria-label="Basic Plan"
-              >
-                <option value="Beginner">Beginner</option>
-                <option value="Intermediate">Intermediate</option>
-                <option value="Advance">Advance</option>
-              </select>
+            <select
+              className="input"
+              value={plan}
+              onChange={(e) => setPlan(e.target.value)}
+              aria-label="Basic Plan"
+            >
+              <option value="3 month">3 month</option>
+              <option value="6 month">6 month</option>
+              <option value="9 month">9 month</option>
+            </select>
             </div>
             <div className="field">
               <label className="label">Level</label>
-              <select
-                className="input"
-                value={level}
-                onChange={(e) => setLevel(e.target.value)}
-                aria-label="Level"
-              >
-                {Array.from({length: 7}, (_, i) => i + 1).map(l => (
-                  <option key={l} value={l.toString()}>{l}</option>
-                ))}
-              </select>
+            <select
+              className="input"
+              value={level}
+              onChange={(e) => setLevel(e.target.value)}
+              aria-label="Level"
+            >
+              <option value="Beginner">Beginner</option>
+              <option value="Intermediate">Intermediate</option>
+              <option value="Advance">Advance</option>
+            </select>
             </div>
           </>
         ) : (

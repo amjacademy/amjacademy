@@ -72,6 +72,34 @@ body {
   color: #222;
 }
 
+.profile-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.contact-item {
+  background: #fff;
+  padding: 8px 12px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #444;
+}
+
+.contact-label {
+  font-size: 0.85rem;
+  color: #666;
+  display: block;
+}
+
+.contact-value {
+  font-size: 1rem;
+  color: #ff6b81;
+}
+
 .profile-stats {
   display: flex;
   flex-direction: column;

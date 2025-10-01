@@ -21,13 +21,30 @@ const Dashboard = () => {
 
   useEffect(() => {
     const announcementClosed = localStorage.getItem('announcementClosed')
+    console.log("announcementClosed flag:", announcementClosed)
     if (announcementClosed === 'true') {
       setShowAnnouncement(false)
     }
+    // Load announcements from localStorage and filter for Teachers or All
+    const storedAnnouncements = JSON.parse(localStorage.getItem('announcements') || '[]')
+    console.log("Stored announcements:", storedAnnouncements)
+    const filtered = storedAnnouncements.filter(a => a.receiver === "Teachers" || a.receiver === "All")
+    console.log("Filtered announcements for Teachers:", filtered)
+    setAnnouncements(filtered)
   }, [])
+
 
   // Get username from localStorage
   const username = localStorage.getItem('username') || 'User'
+
+  const defaultAnnouncement = {
+    id: 1,
+    title: "Ganesh Chaturthi Holiday",
+    message: "On account of Ganesh Chaturthi, AMJ Academy will not be conducting classes between 3 AM IST on Wednesday, 27 Aug 2025 and 2 AM IST on Thursday, 28 Aug 2025. Classes will resume normally from 3 AM IST on Thursday, 28 Aug 2025.",
+    duration: "03:00",
+    receiver: "All"
+  }
+  const [announcements, setAnnouncements] = useState([defaultAnnouncement])
 
   // Get first and last letter of username
   const getInitials = (name) => {
@@ -155,16 +172,13 @@ const Dashboard = () => {
               <h1>DASHBOARD</h1>
             </div>
 
-            {/* Announcement */}
-            {showAnnouncement && (
-              <div className="announcement">
+
+            {/* Announcements */}
+            {showAnnouncement && announcements.length > 0 && (
+              <div className="announcement announcement-upcoming">
                 <div className="announcement-icon">📢</div>
                 <div className="announcement-content">
-                  <p>
-                    <strong>Announcement:</strong> On account of Ganesh Chaturthi, AMJ Academy will not be conducting
-                    classes on between 3 AM IST on Wednesday, 27 Aug 2025 and 2 AM IST on Thursday, 28 Aug 2025. Classes
-                    will resume normally from 3 AM IST on Thursday, 28 Aug 2025.
-                  </p>
+                  <strong>Announcement:</strong> {announcements[0].message}
                 </div>
                 <button className="announcement-close" onClick={handleCloseAnnouncement}>×</button>
               </div>

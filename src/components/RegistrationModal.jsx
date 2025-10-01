@@ -2,12 +2,14 @@
 
 import { useState, useRef, useEffect } from "react"
 import "./RegistrationModal.css"
+import { v4 as uuidv4 } from "uuid";
 
 const RegistrationEnhanced = ({ isOpen, onClose }) => {
   const [currentStep, setCurrentStep] = useState(1)
   const [registrationType, setRegistrationType] = useState("") // "whatsapp" or "email"
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
+    id: uuidv4(),
     phone: "",
     email: "",
     mobile:"",
@@ -23,7 +25,6 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
     selectedTime: "",
     location: "AMJ Academy Main Center",
   })
-
   // OTP input refs
   const otpRefs = useRef([])
 
@@ -65,6 +66,21 @@ useEffect(() => {
       .catch(err => console.error("Error fetching slots", err));
   }
 }, [formData.selectedDate]);
+useEffect(() => {
+  // Only start timer if a slot is selected
+  if (formData.selectedDate && formData.selectedTime) {
+    const timer = setTimeout(() => {
+      setFormData(prev => ({
+        ...prev,
+        selectedDate: "",
+        selectedTime: ""
+      }));
+      alert("Your selected slot has expired. Please select again.");
+    }, 10 * 60 * 1000); // 10 minutes
+
+    return () => clearTimeout(timer); // clear timer if selection changes or modal closes
+  }
+}, [formData.selectedDate, formData.selectedTime]);
 
   // Time slots
   const timeSlots = [
@@ -467,7 +483,7 @@ useEffect(() => {
     ? formData.phone.trim() // keep + for international format
     : formData.email.trim();
 
-      const res = await fetch("https://amjacademy.onrender.com/send-otp", {
+      const res = await fetch("http://localhost:5000/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ method, value }),
@@ -497,7 +513,7 @@ useEffect(() => {
 
       const otpValue = formData.otp.join("")
 
-      const res = await fetch("https://amjacademy.onrender.com/verify-otp", {
+      const res = await fetch("http://localhost:5000/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ value, otp: otpValue }),
@@ -518,66 +534,61 @@ useEffect(() => {
     }
   }
 
-const handleSaveDetails = async () => {
-  try {
-    setLoading(true);
-    const res = await fetch("https://amjacademy.onrender.com/save-user-details", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        phone: formData.phone,
-        email: formData.email,
-        name: formData.name,
-        age: formData.age,
-        experience: formData.experience,
-        instrument: formData.instrument,
-        address: formData.address,
-        parentName: formData.parentName,
-        PhoneNumber: formData.PhoneNumber
-      })
-    });
+const handleSaveDetails = () => {
+  // No backend call, just keep data in frontend
+  setLoading(true);
 
-    const data = await res.json();
-    setLoading(false);
+  // If you need an ID, you can generate a temporary one
+  const tempId = Date.now(); // simple temporary ID
 
-   if (data.success) {
-  setFormData(prev => ({ ...prev, id: data.id })); // use prev to preserve all other values
-  alert("Details saved successfully!");
-  handleNextStep();
-  //setCurrentStep(5);  Go to slot selection
- 
-} else {
-  alert(data.message || "Failed to save details");
-}
+  setFormData(prev => ({
+    ...prev,
+    id: tempId, // optional temporary ID
+  }));
 
-  } catch (err) {
-    setLoading(false);
-    alert("Error saving details");
-  }
+  setLoading(false);
+  alert("Details saved locally!");
+  handleNextStep(); // move to next step
 };
+
 
 const handleSubmit = async () => {
   try {
     setLoading(true);
-    const res = await fetch(`https://amjacademy.onrender.com/complete-registration`, {
+
+    const res = await fetch("http://localhost:5000/complete-registration", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-       id: formData.id,
-    name: formData.name,
-    email: formData.email,
-    PhoneNumber: formData.PhoneNumber,
-    selectedDate: formData.selectedDate,
-    selectedTime: formData.selectedTime,
-    registrationData: formData 
+        ...formData, // send all fields in one shot
+        createdAt: new Date().toISOString()
       })
     });
+
     const data = await res.json();
     setLoading(false);
 
     if (data.success) {
       alert("Registration completed successfully!");
       onClose();
+      // optionally reset form
+      setFormData({
+        id: "",
+        phone: "",
+        email: "",
+        mobile: "",
+        otp: ["", "", "", "", "", ""],
+        name: "",
+        age: "",
+        experience: "",
+        instrument: "",
+        address: "",
+        parentName: "",
+        PhoneNumber: "",
+        selectedDate: "",
+        selectedTime: "",
+        location: "AMJ Academy Main Center",
+      });
     } else {
       alert(data.message || "Failed to complete registration");
     }
@@ -586,6 +597,7 @@ const handleSubmit = async () => {
     alert("Error completing registration");
   }
 };
+
 
   // Reset state when modal opens
   useEffect(() => {
@@ -1029,18 +1041,21 @@ const handleSubmit = async () => {
 
   setLoading(true);
   try {
-    const res = await fetch("https://amjacademy.onrender.com/update-slot", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: formData.id,
-           name: formData.name, 
-        selectedDate: formData.selectedDate,
-        selectedTime: formData.selectedTime
-      })
-    });
+   const res = await fetch("http://localhost:5000/update-slot", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    id: formData.id || crypto.randomUUID(), // if not already set
+    name: formData.name,
+    selectedDate: formData.selectedDate,
+    selectedTime: formData.selectedTime,
+    location: formData.location,
+  })
+});
     const data = await res.json();
-    if (data.success) {
+
+if (data.success) {
+  setFormData(prev => ({ ...prev, id: data.id })); // store id for later
       handleNextStep();
       //setCurrentStep(6); // move to review
     } else {

@@ -1,8 +1,6 @@
-- [x] Add new state variables in Login.jsx: showOtpModal, otp, showPassword, otpVerified
-- [x] Add verify button after email field in Login.jsx
-- [x] Add OTP modal component in Login.jsx
-- [x] Add handleOtpSubmit function in Login.jsx
-- [x] Conditionally render password field in Login.jsx
-- [x] Update validateForm to require password only if showPassword in Login.jsx
-- [x] Add CSS for OTP modal in Login.css
-- [x] Modify OTP input to 6 separate digit fields with continuous entry
+- [x] Add day state and select field in Class_arrangement.jsx
+- [x] Update schedule object to include day
+- [x] Update table display in Class_arrangement.jsx
+- [x] Update student and teacher localStorage to include day in time
+- [x] Update teacher dashboard to display day in time
+- [x] Update student dashboard to display day in time

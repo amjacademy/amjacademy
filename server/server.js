@@ -2,370 +2,53 @@ const fs = require("fs");
 const path = require("path");
 const express = require("express");
 const dotenv = require("dotenv");
-const nodemailer = require("nodemailer");
+dotenv.config();
 const axios = require("axios");
 const cors = require("cors");
-const admin = require("./config/firebase");
-const db = admin.firestore();
+const { admin, db } = require("./config/firebase");
+const jwt = require("jsonwebtoken");
+const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
+const multer = require("multer");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const cloudinary = require("./config/cloudinaryConfig"); // the file we just created
+const router = express.Router();
+const memoryStorage = multer.memoryStorage(); // keep files in memory
+const upload = multer({ memoryStorage });
+const { parser } = require("./config/cloudinaryConfig");
+const transporter = require("./config/nodemailer"); 
+
+const seedDefaultUsers = require("./utils/seedDefaultusers");
 
 const allowedOrigins = ['http://localhost:5173', 'https://amjacademy.in'];
 
 dotenv.config();
 const app = express();
+// Replace your current CORS middleware with:
 app.use(cors({
   origin: function(origin, callback){
-    // allow requests with no origin (like Postman)
-    if(!origin) return callback(null, true);
+    if(!origin) return callback(null, true); // allow Postman or server-side calls
     if(allowedOrigins.indexOf(origin) === -1){
       const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
       return callback(new Error(msg), false);
     }
     return callback(null, true);
-  }
+  },
+  credentials: true, // ✅ Important: allow cookies
 }));
+
 app.use(express.json());
 const PORT = process.env.PORT || 5000;
 
-
-
-// Nodemailer transporter
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
-// OTP generator
-function generateOTP() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
-// WhatsApp OTP sender
-async function sendWhatsAppOTP(number, otp) {
-  await axios.post(`https://graph.facebook.com/v20.0/${process.env.META_PHONE_NUMBER_ID}/messages`, {
-    messaging_product: "whatsapp",
-    to: number,
-    type: "template",
-    template: {
-      name: process.env.META_TEMPLATE_NAME,
-      language: { code: "en_US" },
-      components: [{ type: "body", parameters: [{ type: "text", text: otp }] }],
-    },
-  }, {
-    headers: {
-      Authorization: `Bearer ${process.env.META_WHATSAPP_TOKEN}`,
-      "Content-Type": "application/json",
-    },
-  });
-}
-
-async function releaseExpiredSlots() {
-  const now = new Date();
-  const snapshot = await db.collection("slots").where("status", "==", "blocked").get();
-  for (const doc of snapshot.docs) {
-    const data = doc.data();
-    if (data.expiresAt && data.expiresAt.toDate() < now) {
-      await doc.ref.update({
-        status: "open",
-        blockedBy: null,
-        blockedAt: null,
-        selectedDate: null,
-        selectedTime: null,
-        expiresAt: null
-      });
-    }
-  }
-}
 // Routes
 app.get("/", (req, res) => {
   res.send("Hello From Express with OTP system (WhatsApp + Email)");
 });
 
-app.post("/send-otp", async (req, res) => {
-  try {
-    const { method, value } = req.body;
-    if (!method || !value) {
-      return res.status(400).json({ success: false, message: "Method and value are required" });
-    }
+app.use("/api/otp", require("./routes/otpRoutes"));
 
-    const otp = generateOTP();
+app.use("/api/slot", require("./routes/slotbookingRoutes"));
 
-    // Store OTP in Firestore instead of memory
-    await db.collection("otp_verifications").doc(value).set({
-      otp,
-      method,
-      createdAt: new Date(),
-      expireAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days later
-    });
-
-    if (method === "whatsapp") {
-      await sendWhatsAppOTP(value, otp);
-      return res.json({ success: true, message: "OTP sent via WhatsApp" });
-    }
-
-    if (method === "email") {
-      let template = fs.readFileSync(path.join(__dirname, "files", "otp.html"), "utf8");
-      template = template.replace("{{OTP}}", otp);
-
-      await transporter.sendMail({
-        from: `"AMJ Academy" <${process.env.EMAIL_USER}>`,
-        to: value,
-        subject: "Verify your email address",
-        html: template,
-      });
-
-      console.log(`✅ Email OTP sent to ${value}`);
-      return res.json({ success: true, message: "OTP sent via Email" });
-    }
-
-    res.status(400).json({ success: false, message: "Invalid method" });
-  } catch (error) {
-    console.error("❌ OTP send error:", error.message);
-    res.status(500).json({ success: false, message: "Failed to send OTP" });
-  }
-});
-
-
-app.post("/verify-otp", async (req, res) => {
-  try {
-    const { value, otp } = req.body;
-
-    const otpDoc = await db.collection("otp_verifications").doc(value).get();
-    if (!otpDoc.exists) {
-      return res.status(400).json({ success: false, message: "OTP not found" });
-    }
-
-    const otpData = otpDoc.data();
-
-    // ✅ Check if OTP expired (5 minutes)
-    const now = new Date();
-    if ((now - otpData.createdAt.toDate()) > 5 * 60 * 1000) {
-      await db.collection("otp_verifications").doc(value).delete();
-      return res.status(400).json({ success: false, message: "OTP expired" });
-    }
-
-    if (otpData.otp === otp) {
-      await db.collection("otp_verifications").doc(value).delete();
-      return res.json({ success: true, message: "OTP verified" });
-    } else {
-      return res.status(400).json({ success: false, message: "Invalid OTP" });
-    }
-  } catch (err) {
-    console.error("Error verifying OTP:", err);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-});
-
-
-app.post("/save-user-details", async (req, res) => {
-  try {
-    const { phone, email, name, age, experience, instrument, address, parentName, PhoneNumber } = req.body;
-
-    // You can make phone OR email required based on your flow
-    if (!name || !age || !instrument || !experience) {
-      return res.status(400).json({ success: false, message: "Missing required fields" });
-    }
-
-    const docRef = await db.collection("registrations").add({
-  phone: phone || null,
-  email: email || null,
-  name,
-  age,
-  experience,
-  instrument,
-  address: address || "",
-  parentName: parentName || "",
-  PhoneNumber: PhoneNumber || "",
-  createdAt: new Date(),
-  expireAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), 
-});
-await docRef.update({ id: docRef.id });
-
-    // Save to Firestore
-    console.log("User details saved with ID:", docRef.id);
-
-    res.status(200).json({ success: true, message: "User details saved", id: docRef.id });
-  } catch (err) {
-    console.error("Error saving user details:", err);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-});
-
-
-
-app.post("/update-slot", async (req, res) => {
-  try {
-    const { id, name, selectedDate, selectedTime, location } = req.body; // add name here
-    if (!id || !name || !selectedDate || !selectedTime) {
-      return res.status(400).json({ success: false, message: "Missing required fields" });
-    }
-
-    // Release any previous blocked slot by this user
-    const prevSlots = await db.collection("slots")
-      .where("blockedBy", "==", id)
-      .where("status", "==", "blocked")
-      .get();
-
-    for (const doc of prevSlots.docs) {
-      await doc.ref.update({
-        status: "open",
-        blockedBy: null,
-        blockedAt: null,
-        selectedDate: null,
-        selectedTime: null,
-        userName: null,
-        expiresAt: null
-      });
-    }
-
-    const slotRef = db.collection("slots").doc(`${selectedDate}_${selectedTime}`);
-    const slotDoc = await slotRef.get();
-    if (slotDoc.exists && slotDoc.data().status !== "open") {
-      return res.status(400).json({ success: false, message: "Slot already taken" });
-    }
-
-    await slotRef.set({
-      status: "blocked",
-      blockedBy: id,
-      blockedAt: new Date(),
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000), // slot lock expiration (5 mins)
-      expireAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // document lifetime (7 days)
-      location: location || "AMJ Academy Main Center",
-      selectedDate,
-      selectedTime,
-      userName: name, // store user's name
-      timeSlotLabel: `${selectedTime}`, // store readable timeslot
-    });
-
-    res.json({ success: true, message: "Slot blocked successfully" });
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-});
-
-
-app.post("/release-slot", async (req, res) => {
-  const { id, selectedDate, selectedTime } = req.body;
-  const slotId = `${selectedDate}_${selectedTime}`;
-  try {
-    const ref = db.collection("slots").doc(slotId);
-    const snap = await ref.get();
-    if (snap.exists) {
-      const s = snap.data();
-      if (s.status === "blocked" && s.blockedBy === id) { // FIXED: check blockedBy
-        await ref.update({
-          status: "open",
-          blockedBy: null,
-          blockedAt: null,
-          selectedDate: null,
-          selectedTime: null
-        });
-      }
-    }
-    res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ success: false, message: "Could not release slot" });
-  }
-});
-
-
-
-app.post("/complete-registration", async (req, res) => {
-  try {
-    const { id, selectedDate, selectedTime } = req.body;
-
-    const slotRef = db.collection("slots").doc(`${selectedDate}_${selectedTime}`);
-    const slotDoc = await slotRef.get();
-
-    if (!slotDoc.exists || slotDoc.data().status !== "blocked" || slotDoc.data().blockedBy !== id) {
-      return res.status(400).json({ success: false, message: "Slot is not reserved by you" });
-    }
-
-    // Fetch user data from registrations collection
-    const userQuery = await db.collection("registrations").where("id", "==", id).limit(1).get();
-    if (userQuery.empty) {
-      return res.status(404).json({ success: false, message: "User registration data not found" });
-    }
-    const userData = userQuery.docs[0].data();
-
-    // Mark slot as booked
-    await slotRef.update({
-      status: "booked",
-      bookedBy: id,
-      bookedAt: new Date(),
-      blockedBy: null,
-      blockedAt: null,
-      selectedDate,
-      selectedTime,
-      userName: slotDoc.data().userName || userData.name || null,
-      timeSlotLabel: slotDoc.data().timeSlotLabel || `${selectedTime}`,
-    });
-
-    // Send confirmation email to the user
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: userData.email,
-      subject: "Registration Confirmation",
-      html: `
-        <h2>Registration Confirmed</h2>
-        <p>Hello <strong>${userData.name}</strong>,</p>
-        <p>Your registration is confirmed.</p>
-        <ul>
-          <li><strong>Confirmation Date:</strong> ${new Date().toLocaleString()}</li>
-          <li><strong>Slot Date:</strong> ${selectedDate}</li>
-          <li><strong>Slot Time:</strong> ${selectedTime}</li>
-          <li><strong>Owner Contact:</strong> ${process.env.OWNER_PHONE}</li>
-        </ul>
-        <p>Thank you!</p>
-      `
-    });
-
-    // Send notification email to admin
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: process.env.ADMIN_EMAIL,
-      subject: "New Registration",
-      html: `
-        <h2>New Registration</h2>
-        <ul>
-          <li><strong>Name:</strong> ${userData.name}</li>
-          <li><strong>Email:</strong> ${userData.email}</li>
-          <li><strong>Phone:</strong>  ${userData.PhoneNumber}</li>
-          <li><strong>Slot Date:</strong> ${selectedDate}</li>
-          <li><strong>Slot Time:</strong> ${selectedTime}</li>
-        </ul>
-        <h3>Full Registration Data</h3>
-        <pre>${JSON.stringify(userData, null, 2)}</pre>
-      `
-    });
-
-    res.json({ success: true, message: "Registration completed and emails sent" });
-
-  } catch (err) {
-    console.error("Error completing registration:", err);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-});
-
-
-
-app.get("/get-slots/:date", async (req, res) => {
-  try {
-    await releaseExpiredSlots();
-    const snapshot = await db.collection("slots")
-      .where("selectedDate", "==", req.params.date)
-      .get();
-    const slots = [];
-    snapshot.forEach(doc => slots.push({ id: doc.id, ...doc.data() }));
-    res.json({ success: true, slots });
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Error fetching slots" });
-  }
-});
-
-// Course API endpoints
+/* // Course API endpoints
 app.get("/api/courses", async (req, res) => {
   try {
     const snapshot = await db.collection("courses").get();
@@ -393,8 +76,384 @@ app.get("/api/courses/:id", async (req, res) => {
     res.status(500).json({ success: false, message: "Error fetching course details" });
   }
 });
+ */
+ app.post("/api/login", async (req, res) => {
+  try {
+    console.log("Backend login request body:", req.body);
+    const { email, password, userType } = req.body;
+
+    if (!email || !password || !userType) {
+      return res.status(400).json({ success: false, message: "Email, password and userType are required" });
+    }
+
+    // Query the single 'users' collection with role filter
+  const normalizedRole = userType.toLowerCase();
+
+const snapshot = await db.collection("users")
+  .where("email", "==", email)
+  .where("role", "==", normalizedRole)
+  .limit(1)
+  .get();
+    if (snapshot.empty) {
+      return res.status(404).json({ success: false, message: `${userType} not found` });
+    }
+
+    const userDoc = snapshot.docs[0];
+    const userData = userDoc.data();
+
+    // Password check (plaintext for now)
+    if (userData.password !== password) {
+      return res.status(401).json({ success: false, message: "Invalid password" });
+    }
+
+    // Generate JWT
+    const token = jwt.sign(
+      { uid: userDoc.id, role: userType },
+      JWT_SECRET,
+      { expiresIn: "7d" } // 7 days for persistent login
+    );
+
+    // Set HTTP-only cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // HTTPS only in prod
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    // Respond with user data (token also included optionally)
+    res.json({
+      success: true,
+      token, // optional, cookie is enough
+      role: userType,
+      username: userData.username,
+      email: userData.email,
+      
+      // return correct ID based on role
+      studentId: userData.role === "student" ? userData.studentId : null,
+      teacherId: userData.role === "teacher" ? userData.teacherId : null,
+    });
+
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// Upload single profile image (improved debug + response)
+app.post("/upload/profile", parser.single("file"), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file uploaded" });
+    }
+
+    // `req.file.path` should contain the Cloudinary secure URL
+    const url = req.file.path; 
+    const public_id = req.file.filename || req.file.public_id || null;
+
+    if (!url) {
+      throw new Error("Cloudinary upload did not return a URL");
+    }
+
+    console.log("Uploaded file URL:", url);
+
+    return res.json({
+      success: true,
+      url,
+      public_id,
+    });
+  } catch (err) {
+    console.error("Upload failed:", err);
+    res.status(500).json({ success: false, message: err.message || "Upload failed" });
+  }
+});
+
+app.post("/upload/multiple", parser.array("files", 10), async (req, res) => {
+  const { email } = req.body;
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ success: false, message: "No files uploaded" });
+    }
+
+    const filesData = req.files
+      .map(file => {
+        const url = file.path || file.secure_url || null;
+        if (!url) return null;
+        return {
+          url,
+          name: file.originalname || file.filename || url.split("/").pop(),
+          public_id: file.filename || file.public_id || null,
+          type: file.mimetype?.startsWith("video/") ? "video" : "photo",
+          uploadedAt: new Date(),
+        };
+      })
+      .filter(Boolean);
+
+    if (filesData.length === 0) {
+      return res.status(500).json({ success: false, message: "All uploads failed" });
+    }
+
+    if (email) {
+      const snapshot = await db.collection("users").where("email", "==", email).limit(1).get();
+      if (!snapshot.empty) {
+        const userDoc = snapshot.docs[0];
+        await userDoc.ref.update({
+          media: admin.firestore.FieldValue.arrayUnion(...filesData),
+          updatedAt: new Date(),
+        });
+        const updated = await userDoc.ref.get();
+        return res.json({ success: true, files: filesData, user: { id: updated.id, ...updated.data() } });
+      } else {
+        const newUserRef = db.collection("users").doc();
+        await newUserRef.set({
+          email,
+          media: filesData,
+          createdAt: new Date(),
+        });
+        const created = await newUserRef.get();
+        return res.json({ success: true, files: filesData, user: { id: created.id, ...created.data() } });
+      }
+    }
+
+    return res.json({ success: true, files: filesData });
+  } catch (err) {
+    console.error("❌ Multiple upload failed:", err);
+    return res.status(500).json({ success: false, message: err.message || "Upload failed" });
+  }
+});
+
+app.post("/api/profile/update-avatar-by-email", async (req, res) => {
+  try {
+    const { email, avatarUrl } = req.body;
+    if (!email || !avatarUrl) return res.status(400).json({ success: false, message: "email and avatarUrl required" });
+
+    const snapshot = await db.collection("users").where("email", "==", email).limit(1).get();
+    if (snapshot.empty) return res.status(404).json({ success: false, message: "User not found" });
+
+    const userDoc = snapshot.docs[0];
+    await userDoc.ref.update({ avatar: avatarUrl, updatedAt: new Date() });
+
+    // Read back updated doc
+    const updated = await userDoc.ref.get();
+    res.json({ success: true, message: "Avatar updated", user: { id: updated.id, ...updated.data() } });
+  } catch (err) {
+    console.error("Update avatar by email error:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// GET user by email - accept encoded email safely
+app.get("/api/user-by-email/:email", async (req, res) => {
+  try {
+    const emailParam = decodeURIComponent(req.params.email); // handle encoded @, + etc
+    const snapshot = await db.collection("users").where("email", "==", emailParam).limit(1).get();
+    if (snapshot.empty) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    const userDoc = snapshot.docs[0];
+    res.json({ success: true, user: { id: userDoc.id, ...userDoc.data() } });
+  } catch (err) {
+    console.error("Get user by email error:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+app.get("/api/user-media/:email", async (req, res) => {
+  try {
+    const emailParam = decodeURIComponent(req.params.email);
+
+    // Query user by email
+    const snapshot = await db.collection("users").where("email", "==", emailParam).limit(1).get();
+    if (snapshot.empty) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const userDoc = snapshot.docs[0];
+    const userData = userDoc.data();
+
+    return res.json({ success: true, user: { id: userDoc.id, ...userData } });
+  } catch (err) {
+    console.error("❌ Fetch media failed:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// GET user by doc id
+app.get("/api/user/:id", async (req, res) => {
+  try {
+    const doc = await db.collection("users").doc(req.params.id).get();
+    if (!doc.exists) return res.status(404).json({ success: false, message: "User not found" });
+    res.json({ success: true, user: { id: doc.id, ...doc.data() } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+app.post("/api/classes", async (req, res) => {
+  try {
+    const {
+      studentId,
+      teacherId,
+      title = "Piano Lesson",
+      batch = "Individual Batch",
+      level = "Beginner",
+      plan = "Basic Plan",
+      duration = "45 min",
+      link,
+      when, // ISO string: e.g., "2025-09-28T14:00:00Z"
+    } = req.body;
+
+    if (!studentId || !teacherId || !when) {
+      return res.status(400).json({ success: false, message: "Missing required fields" });
+    }
+
+    const newClass = {
+      studentId,
+      teacherId,
+      title,
+      batch,
+      level,
+      plan,
+      duration,
+      link,
+      status: "upcoming",
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      when,
+    };
+
+    const classRef = await db.collection("classes").add(newClass);
+
+    return res.json({ success: true, id: classRef.id, class: newClass });
+  } catch (err) {
+    console.error("Create class failed:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+app.get("/api/classes", async (req, res) => {
+  try {
+    const snapshot = await db.collection("classes")
+      .orderBy("when")
+      .get();
+
+    const classes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.json({ success: true, classes });
+  } catch (err) {
+    console.error("Fetch all classes failed:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+app.get("/api/classes/student/:studentId", async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    const snapshot = await db.collection("classes")
+      .where("studentId", "==", studentId)
+      .where("status", "==", "upcoming")
+      .orderBy("when")
+      .get();
+
+    const classes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    res.json({ success: true, classes });
+  } catch (err) {
+    console.error("Fetch student classes failed:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+app.get("/api/classes/teacher/:teacherId", async (req, res) => {
+  try {
+    const { teacherId } = req.params;
+
+    const snapshot = await db.collection("classes")
+      .where("teacherId", "==", teacherId)
+      .where("status", "==", "upcoming")
+      .orderBy("when")
+      .get();
+
+    const classes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    res.json({ success: true, classes });
+  } catch (err) {
+    console.error("Fetch teacher classes failed:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+app.patch("/api/classes/:classId", async (req, res) => {
+  try {
+    const { classId } = req.params;
+    const updates = req.body;
+
+    await db.collection("classes").doc(classId).update({
+      ...updates,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    const updatedClass = await db.collection("classes").doc(classId).get();
+
+    res.json({ success: true, class: { id: updatedClass.id, ...updatedClass.data() } });
+  } catch (err) {
+    console.error("Update class failed:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+app.delete("/api/classes/:classId", async (req, res) => {
+  try {
+    const { classId } = req.params;
+    await db.collection("classes").doc(classId).delete();
+    res.json({ success: true, message: "Class deleted successfully" });
+  } catch (err) {
+    console.error("Delete class failed:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// Get all students
+app.get("/api/students", async (req, res) => {
+  try {
+    const snapshot = await db.collection("users").where("role", "==", "student").get();
+    const students = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        name: data.username, // use username as display name
+        ...data
+      };
+    });
+    res.json({ success: true, students });
+  } catch (err) {
+    console.error("Fetch students failed:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// Get all teachers
+app.get("/api/teachers", async (req, res) => {
+  try {
+    const snapshot = await db.collection("users").where("role", "==", "teacher").get();
+    const teachers = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        name: data.username, // use username as display name
+        ...data
+      };
+    });
+    res.json({ success: true, teachers });
+  } catch (err) {
+    console.error("Fetch teachers failed:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
 
 
-app.listen(PORT, () => {
+
+app.listen(PORT,async () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
+  await seedDefaultUsers()
 });
