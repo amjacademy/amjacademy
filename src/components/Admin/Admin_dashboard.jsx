@@ -49,7 +49,7 @@ export default function Admin_Dashboard() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/admin/check-auth", {
+        const res = await axios.get("https://amjacademy-mjyr.onrender.com/api/admin/check-auth", {
           withCredentials: true // important to send cookies
         });
 
@@ -131,7 +131,7 @@ export default function Admin_Dashboard() {
 const handleLogout = async () => {
   try {
     // call backend logout to clear cookie
-    await fetch("http://localhost:5000/api/admin/logout", {
+    await fetch("https://amjacademy-mjyr.onrender.com/api/admin/logout", {
       method: "POST",
       credentials: "include", // important for cookies
     });

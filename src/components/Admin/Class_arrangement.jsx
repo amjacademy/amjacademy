@@ -31,7 +31,7 @@ export default function Class_arrangement({  schedules, setSchedules }) {
 useEffect(() => {
   const fetchSchedules = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/arrangements/getdetails"); 
+      const res = await axios.get("https://amjacademy-mjyr.onrender.com/api/arrangements/getdetails"); 
       setSchedules(res.data);  // assume backend sends [{...}, {...}]
     } catch (err) {
       console.error("Error fetching schedules:", err);
@@ -44,7 +44,7 @@ useEffect(() => {
 useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const { data } = await axios.get("http://localhost:5000/api/arrangements/fetchusers");
+        const { data } = await axios.get("https://amjacademy-mjyr.onrender.com/api/arrangements/fetchusers");
         console.log(data);
         setStudents(data.students);
         setTeachers(data.teachers);
@@ -122,7 +122,7 @@ const conflict = schedules.some((s) => {
 
   try {
     const res = await axios.post(
-      "http://localhost:5000/api/arrangements/create",
+      "https://amjacademy-mjyr.onrender.com/api/arrangements/create",
       newSchedule
     );
     setSchedules([...schedules, res.data]);
@@ -136,7 +136,7 @@ const conflict = schedules.some((s) => {
 
   const onDelete = async (id) => {
   try {
-    await axios.delete(`http://localhost:5000/api/arrangements/delete/${id}`);
+    await axios.delete(`https://amjacademy-mjyr.onrender.com/api/arrangements/delete/${id}`);
     setSchedules(schedules.filter(s => s.id !== id));
   } catch (err) {
     console.error("Error deleting schedule:", err);

@@ -11,7 +11,7 @@ export default function Dashboard() {
  useEffect(() => {
   const fetchCounts = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/counts");
+      const res = await fetch("https://amjacademy-mjyr.onrender.com/api/counts");
       const data = await res.json();
       setCounts(data);
     } catch (err) {

@@ -14,7 +14,7 @@ export default function Announcements() {
   // Fetch announcements from backend
   const fetchAnnouncements = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/announcements/receive/${receiver}`, {
+      const res = await fetch(`https://amjacademy-mjyr.onrender.com/api/announcements/receive/${receiver}`, {
         method: "GET",
         credentials: "include",
       });
@@ -41,7 +41,7 @@ useEffect(() => { fetchAnnouncements(); }, [receiver]);
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/announcements/send", {
+      const res = await fetch("https://amjacademy-mjyr.onrender.com/api/announcements/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ receiver, title, message, duration }),
@@ -72,7 +72,7 @@ fetchAnnouncements();
 
   const onDelete = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/announcements/remove/${id}`, {
+      const res = await fetch(`https://amjacademy-mjyr.onrender.com/api/announcements/remove/${id}`, {
         method: "DELETE",
         credentials: "include",
       });

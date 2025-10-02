@@ -9,7 +9,7 @@ export default function ProtectedRoute({ children }) {
   useEffect(() => {
     const verify = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/admin/check-auth", {
+        const res = await fetch("https://amjacademy-mjyr.onrender.com/api/admin/check-auth", {
           credentials: "include", // send cookie
         });
         const data = await res.json();

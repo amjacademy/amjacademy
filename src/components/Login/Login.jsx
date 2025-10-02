@@ -5,11 +5,13 @@ import { useNavigate } from "react-router-dom"
 import "./Login.css"
 
 const LoginForm = () => {
-  const [userType, setUserType] = useState("student")
+  const API_BASE = "https://amjacademy-mjyr.onrender.com/api/users"; 
+  const [userType, setUserType] = useState("Student")
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
+    role: userType,
   })
   const [errors, setErrors] = useState({})
   const [showComingSoon, setShowComingSoon] = useState(false)
@@ -66,28 +68,62 @@ const LoginForm = () => {
 
   const navigate = useNavigate()
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    if (validateForm()) {
-      console.log("Login attempt:", { ...formData, userType })
-
-      // Store username and userType in localStorage
-      localStorage.setItem('username', formData.username)
-      localStorage.setItem('userType', userType)
-
-      // Redirect to dashboard for both student and teacher
-      navigate('/dashboard')
-    }
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!otpVerified) {
+    alert("Please verify OTP first");
+    return;
   }
+  if (!validateForm()) return;
+
+  try {
+    formData.role = userType; // Ensure role is set
+    const res = await fetch(`${API_BASE}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...formData }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      localStorage.setItem("username", formData.username);
+      localStorage.setItem("userType", formData.role);
+      navigate("/dashboard");
+    } else {
+      alert(data.message);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Server error");
+  }
+};
 
   const handleCloseComingSoon = () => {
     setShowComingSoon(false)
   }
 
-  const handleVerifyClick = () => {
-    setShowOtpModal(true)
+const handleVerifyClick = async () => {
+   formData.role = userType;
+  if (!formData.username || !formData.email || !formData.role) {
+    alert("Username, Email, and Role are required for verification");
+    return;
   }
-
+  try {
+    const res = await fetch(`${API_BASE}/sendotp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: formData.username, email: formData.email, role: formData.role }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      setShowOtpModal(true);
+    } else {
+      alert(data.message);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Server error");
+  }
+};
   const handleOtpDigitChange = (index, value) => {
     if (value.length > 1) return // Only allow single digit
     const newDigits = [...otpDigits]
@@ -108,14 +144,29 @@ const LoginForm = () => {
     }
   }
 
-  const handleOtpSubmit = (e) => {
-    e.preventDefault()
-    if (otpDigits.every(digit => digit.trim())) {
-      setOtpVerified(true)
-      setShowOtpModal(false)
-      setShowPassword(true)
+  // OTP submit
+const handleOtpSubmit = async (e) => {
+  e.preventDefault();
+  const otp = otpDigits.join("");
+  try {
+    const res = await fetch(`${API_BASE}/verifyotp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: formData.email, otp }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      setOtpVerified(true);
+      setShowPassword(true);
+      setShowOtpModal(false);
+    } else {
+      alert(data.message);
     }
+  } catch (err) {
+    console.error(err);
+    alert("Server error");
   }
+};
 
   const validateForm = () => {
     const newErrors = {}
@@ -156,15 +207,15 @@ const LoginForm = () => {
         <div className="user-type-selector">
           <button
             type="button"
-            className={`user-type-btn ${userType === "student" ? "active" : ""}`}
-            onClick={() => setUserType("student")}
+            className={`user-type-btn ${userType === "Student" ? "active" : ""}`}
+            onClick={() => setUserType("Student")}
           >
             Student
           </button>
           <button
             type="button"
-            className={`user-type-btn ${userType === "teacher" ? "active" : ""}`}
-            onClick={() => setUserType("teacher")}
+            className={`user-type-btn ${userType === "Teacher" ? "active" : ""}`}
+            onClick={() => setUserType("Teacher")}
           >
             Teacher
           </button>
@@ -225,7 +276,7 @@ const LoginForm = () => {
           )}
 
           <button type="submit" className="login-btn">
-            Sign In as {userType === "student" ? "Student" : "Teacher"}
+            Sign In as {userType === "Student" ? "Student" : "Teacher"}
           </button>
         </form>
 

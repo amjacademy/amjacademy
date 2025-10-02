@@ -97,11 +97,11 @@ function LoginPage() {
 
 // Dashboard Page Component
 function DashboardPage() {
-  const userType = localStorage.getItem('userType') || 'teacher'; // default to teacher if not set
+  const userType = localStorage.getItem('userType') || 'Teacher'; // default to Teacher if not set
 
   return (
     <>
-      {userType === 'student' ? <StudentDashboard /> : <TeacherDashboard />}
+      {userType === 'Student' ? <StudentDashboard /> : <TeacherDashboard />}
       {/* <Footer /> */}
     </>
   );

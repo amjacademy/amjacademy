@@ -53,7 +53,7 @@ useEffect(() => {
     if (!formData.selectedDate) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/slot/get-slots/${formData.selectedDate}`);
+      const res = await fetch(`https://amjacademy-mjyr.onrender.com/api/slot/get-slots/${formData.selectedDate}`);
 
       // check if server returned 200 OK
       if (!res.ok) {
@@ -487,7 +487,7 @@ const sendOtp = async () => {
     ? formData.phone.trim() // keep + for international format
     : formData.email.trim();
 
-      const res = await fetch("http://localhost:5000/api/otp/send", {
+      const res = await fetch("https://amjacademy-mjyr.onrender.com/api/otp/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ method, value }),
@@ -517,7 +517,7 @@ const verifyOtp = async () => {
 
       const otpValue = formData.otp.join("")
 
-      const res = await fetch("http://localhost:5000/api/otp/verify", {
+      const res = await fetch("https://amjacademy-mjyr.onrender.com/api/otp/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ value, otp: otpValue }),
@@ -564,7 +564,7 @@ const handleSubmit = async () => {
 
   setLoading(true);
   try {
-    const res = await fetch("http://localhost:5000/api/slot/finalize", {
+    const res = await fetch("https://amjacademy-mjyr.onrender.com/api/slot/finalize", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -1036,7 +1036,7 @@ const handleSubmit = async () => {
 
   setLoading(true);
   try {
-   const res = await fetch("http://localhost:5000/api/slot/update", {
+   const res = await fetch("https://amjacademy-mjyr.onrender.com/api/slot/update", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
