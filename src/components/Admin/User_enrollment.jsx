@@ -1,9 +1,31 @@
 import { useEffect, useMemo, useState } from "react"
 import "./User_enrollment.css"
 
-function IdTools({ value, onChange, students, teachers, role }) {
+function IdTools({ value, onChange, students, teachers, role, setStudents, setTeachers  }) {
   const [disabled, setDisabled] = useState(false)
   const [timer, setTimer] = useState(0)
+ 
+const fetchEnrollments = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/enrollments/getall", {
+        method: "GET",
+        credentials: "include"
+      });
+      const data = await res.json();
+      const studentsList = data.filter(item => item.role === "Student");
+      const teachersList = data.filter(item => item.role === "Teacher");
+      setStudents(studentsList);
+      setTeachers(teachersList);
+    } catch (err) {
+      console.error("Error fetching enrollments:", err);
+    }
+  };
+useEffect(() => {
+  fetchEnrollments();
+}, []);
+
+
+
 
   const genId = () => {
     if (disabled) return
@@ -58,18 +80,42 @@ function IdTools({ value, onChange, students, teachers, role }) {
 }
 
 function ImagePicker({ value, onChange, label }) {
-  const [preview, setPreview] = useState(value || "")
-  useEffect(() => setPreview(value || ""), [value])
+   const [preview, setPreview] = useState(value || "");
+  const [loading, setLoading] = useState(false);
 
-  const onFile = (file) => {
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      onChange(String(e.target?.result || ""))
-      setPreview(String(e.target?.result || ""))
+  useEffect(() => setPreview(value || ""), [value]);
+
+  const onFile = async (file) => {
+    if (!file) return;
+
+    // Show local preview while uploading
+    const reader = new FileReader();
+    reader.onload = (e) => setPreview(e.target.result);
+    reader.readAsDataURL(file);
+
+    // Upload to server -> Cloudinary
+    setLoading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("http://localhost:5000/api/upload", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (data.url) {
+        setPreview(data.url); // Cloudinary URL preview
+        onChange(data.url);   // Update parent state with Cloudinary URL
+      }
+    } catch (err) {
+      console.error("Upload failed:", err);
+      alert("Image upload failed. Try again!");
+    } finally {
+      setLoading(false);
     }
-    reader.readAsDataURL(file)
-  }
+  };
 
   return (
     <div className="field">
@@ -81,9 +127,14 @@ function ImagePicker({ value, onChange, label }) {
           accept="image/*"
           onChange={(e) => onFile(e.target.files?.[0] || null)}
           aria-label="Profile image upload"
+          disabled={loading}
         />
-        {preview ? (
-          <img src={preview || "/placeholder.svg"} alt="Profile preview" className="avatar-preview" />
+        {loading ? (
+          <div className="avatar-placeholder" aria-hidden="true">
+            Uploading...
+          </div>
+        ) : preview ? (
+          <img src={preview} alt="Profile preview" className="avatar-preview" />
         ) : (
           <div className="avatar-placeholder" aria-hidden="true">
             No image
@@ -91,8 +142,9 @@ function ImagePicker({ value, onChange, label }) {
         )}
       </div>
     </div>
-  )
+  );
 }
+
 
 function EmptyState({ title, subtitle }) {
   return (
@@ -121,6 +173,21 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
   const [query, setQuery] = useState("")
   const [error, setError] = useState("")
 
+const fetchEnrollments = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/enrollments/getall", {
+        method: "GET",
+        credentials: "include"
+      });
+      const data = await res.json();
+      const studentsList = data.filter(item => item.role === "Student");
+      const teachersList = data.filter(item => item.role === "Teacher");
+      setStudents(studentsList);
+      setTeachers(teachersList);
+    } catch (err) {
+      console.error("Error fetching enrollments:", err);
+    }
+  };
   const generatePassword = () => {
     if (!username) {
       alert("Generate username first")
@@ -183,46 +250,97 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
     )
   }, [list, query])
 
-  const onSubmit = (e) => {
-    e.preventDefault()
-    setError("")
-    if (!id || !name || !age || !phone || !email || !password || !username || !batchType || !plan || !level) {
-      setError("Please fill all required fields.")
-      return
-    }
-    const exists = list.some((x) => x.id === id)
-    if (exists) {
-      setError("ID already exists in this module.")
-      return
-    }
-    const newEntry = { id, name, age, profession, phone, email, image, password, username }
-    if (role === "Student") {
-      newEntry.batchType = batchType
-      newEntry.plan = plan
-      newEntry.level = level
-    } else {
-      newEntry.experienceLevel = experienceLevel
-    }
-    setList([newEntry, ...list])
-    localStorage.setItem(`profile_${role.toLowerCase()}`, JSON.stringify(newEntry))
-    setId("")
-    setName("")
-    setAge("")
-    setProfession("")
-    setPhone("")
-    setEmail("")
-    setImage("")
-    setPassword("")
-    setUsername("")
-    setBatchType("individual")
-    setPlan("Beginner")
-    setLevel("1")
-    setExperienceLevel("")
+ const onSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
+
+  // Validation
+  if (!id || !name || !age || !phone || !email || !password || !username || (!batchType && role === "Student") || (!plan && role === "Student") || (!level && role === "Student") || (role === "Teacher" && !experienceLevel)) {
+    setError("Please fill all required fields.");
+    return;
   }
 
-  const onDelete = (rid) => {
-    setList(list.filter((x) => x.id !== rid))
+  const exists = list.some((x) => x.id === id);
+  if (exists) {
+    setError("ID already exists in this module.");
+    return;
   }
+
+  // Create new entry
+  const newEntry = {
+    id,
+    role,
+    name,
+    age,
+    profession,
+    phone,
+    email,
+    image,
+    password,
+    username,
+    batchtype: role === "Student" ? batchType : null,
+    plan: role === "Student" ? plan : null,
+    level: role === "Student" ? level : null,
+    experiencelevel: role === "Teacher" ? experienceLevel : null
+  };
+
+  try {
+  const response = await fetch("http://localhost:5000/api/enrollments/addusers", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(newEntry),
+    credentials: "include"
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    setError(data.error || "Something went wrong");
+    return;
+  }
+
+  // Directly update the list
+  setList(prevList => [data, ...prevList]);
+
+  // Reset form
+  setId(""); setName(""); setAge(""); setProfession(""); setPhone(""); 
+  setEmail(""); setImage(""); setPassword(""); setUsername(""); 
+  setBatchType("individual"); setPlan("Beginner"); setLevel("1"); 
+  setExperienceLevel("");
+
+} catch (error) {
+  console.error(error);
+  setError("Failed to enroll. Try again.");
+}
+
+};
+
+const onDelete = async (id) => {
+  try {
+    const response = await fetch(`http://localhost:5000/api/enrollments/delete/${id}`, {
+      method: "DELETE",
+      credentials: "include"
+    });
+
+    if (!response.ok) {
+      const errData = await response.json();
+      console.error("Delete failed:", errData.error);
+      return;
+    }
+
+    // Update state
+    if (role === "Student") {
+      setStudents(students.filter(s => s.id !== id));
+    } else if (role === "Teacher") {
+      setTeachers(teachers.filter(t => t.id !== id));
+    }
+
+    setList(list.filter((x) => x.id !== id));
+
+  } catch (err) {
+    console.error("Error deleting:", err);
+  }
+};
+
 
   return (
     <section className="card card--pad">
@@ -258,7 +376,15 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
       <form className="form-grid" onSubmit={onSubmit}>
         <div className="field">
           <label className="label">ID Creation</label>
-          <IdTools value={id} onChange={setId} students={students} teachers={teachers} role={role} />
+<IdTools
+  value={id}
+  onChange={setId}
+  students={students}
+  teachers={teachers}
+  role={role}
+  setStudents={setStudents}
+  setTeachers={setTeachers}
+/>
         </div>
         <div className="field">
           <label className="label">Name</label>
@@ -451,28 +577,29 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
               </tr>
             </thead>
             <tbody>
-              {filtered.map((row) => (
-                <tr key={row.id}>
-                  <td>
-                    {row.image ? (
-                      <img src={row.image || "/placeholder.svg"} alt={`${row.name} avatar`} className="avatar-sm" />
-                    ) : (
-                      <div className="avatar-sm avatar-sm--placeholder" aria-hidden="true" />
-                    )}
-                  </td>
-                  <td>{row.id}</td>
-                  <td>{row.name}</td>
-                  <td>{row.age}</td>
-                  <td>{row.profession || "—"}</td>
-                  <td>{row.phone}</td>
-                  <td className="col-actions">
-                    <button className="btn btn-danger" onClick={() => onDelete(row.id)}>
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+  {filtered.map((row, index) => (
+    <tr key={row.id || `${row.name}-${index}`}>
+      <td>
+        {row.image ? (
+          <img src={row.image || "/placeholder.svg"} alt={`${row.name} avatar`} className="avatar-sm" />
+        ) : (
+          <div className="avatar-sm avatar-sm--placeholder" aria-hidden="true" />
+        )}
+      </td>
+      <td>{row.id}</td>
+      <td>{row.name}</td>
+      <td>{row.age}</td>
+      <td>{row.profession || "—"}</td>
+      <td>{row.phone}</td>
+      <td className="col-actions">
+        <button className="btn btn-danger" onClick={() => onDelete(row.id)}>
+          Delete
+        </button>
+      </td>
+    </tr>
+  ))}
+</tbody>
+
           </table>
         )}
       </div>

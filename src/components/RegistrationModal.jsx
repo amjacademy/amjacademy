@@ -10,9 +10,7 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     id: uuidv4(),
-    phone: "",
     email: "",
-    mobile:"",
     otp: ["", "", "", "", "", ""],
     name: "",
     age: "",
@@ -51,21 +49,35 @@ const RegistrationEnhanced = ({ isOpen, onClose }) => {
 
   // Fetch slot availability whenever date changes
 useEffect(() => {
-  if (formData.selectedDate) {
-    fetch(`https://amjacademy.onrender.com/get-slots/${formData.selectedDate}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          const statusMap = {};
-          data.slots.forEach(slot => {
-            statusMap[slot.selectedTime] = slot.status;
-          });
-          setSlotStatus(statusMap);
-        }
-      })
-      .catch(err => console.error("Error fetching slots", err));
-  }
+  const fetchSlots = async () => {
+    if (!formData.selectedDate) return;
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/slot/get-slots/${formData.selectedDate}`);
+
+      // check if server returned 200 OK
+      if (!res.ok) {
+        console.error(`Server error: ${res.status} ${res.statusText}`);
+        return;
+      }
+
+      const data = await res.json();
+
+      if (data.success) {
+        const statusMap = {};
+        data.slots.forEach(slot => {
+          statusMap[slot.selectedTime] = slot.status;
+        });
+        setSlotStatus(statusMap);
+      }
+    } catch (err) {
+      console.error("Error fetching slots:", err);
+    }
+  };
+
+  fetchSlots();
 }, [formData.selectedDate]);
+
 useEffect(() => {
   // Only start timer if a slot is selected
   if (formData.selectedDate && formData.selectedTime) {
@@ -294,19 +306,11 @@ useEffect(() => {
   const [errors, setErrors] = useState({})
   
   // Validation functions
-  const validatePhone = (phone) => {
-    const phoneRegex = /^[0-9]{10}$/
-    return phoneRegex.test(phone)
-  }
+  
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     return emailRegex.test(email)
-  }
-
-  const validateAge = (age) => {
-    const ageRegex = /^\d+$/
-    return ageRegex.test(age) && parseInt(age) >= 4 && parseInt(age) <= 100
   }
 
   const handleCountryCodeChange = (e) => {
@@ -371,26 +375,26 @@ useEffect(() => {
   }
 
   // Check if OTP is complete (6 digits)
-  const isOtpComplete = () => {
+const isOtpComplete = () => {
     return formData.otp.every(digit => digit !== '') && formData.otp.length === 6
   }
 
   // Check if phone number is valid (10 digits)
-  const isPhoneValid = () => {
+const isPhoneValid = () => {
     return formData.phone.length === 10 && /^[0-9]+$/.test(formData.phone)
   }
 
   // Check if email is valid
-  const isEmailValid = () => {
+const isEmailValid = () => {
     return validateEmail(formData.email)
   }
 
-  const handleRegistrationTypeSelect = (type) => {
+const handleRegistrationTypeSelect = (type) => {
     setRegistrationType(type)
     setCurrentStep(2)
   }
 
-  const handleNextStep = () => {
+const handleNextStep = () => {
     // Validate current step before proceeding
     let currentErrors = {}
     let isValid = true
@@ -461,20 +465,20 @@ useEffect(() => {
         setCurrentStep(5); // Move directly to review step after personal details
       } else if (currentStep === 5) {
         setCurrentStep(6); // Move to review step after scheduling
-       } //else if (currentStep === 6) {
-      //   handleSubmit(); // Submit the form on final step
-      // }
+       } else if (currentStep === 6) {
+         handleSubmit(); // Submit the form on final step
+       }
     }
   }
 
-  const handlePrevStep = () => {
+const handlePrevStep = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1)
       setErrors({})
     }
   }
 
-    const sendOtp = async () => {
+const sendOtp = async () => {
     try {
       setLoading(true)
       const method = registrationType
@@ -483,7 +487,7 @@ useEffect(() => {
     ? formData.phone.trim() // keep + for international format
     : formData.email.trim();
 
-      const res = await fetch("http://localhost:5000/send-otp", {
+      const res = await fetch("http://localhost:5000/api/otp/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ method, value }),
@@ -503,7 +507,7 @@ useEffect(() => {
     }
   }
 
-  const verifyOtp = async () => {
+const verifyOtp = async () => {
     try {
       setLoading(true)
       const value =
@@ -513,7 +517,7 @@ useEffect(() => {
 
       const otpValue = formData.otp.join("")
 
-      const res = await fetch("http://localhost:5000/verify-otp", {
+      const res = await fetch("http://localhost:5000/api/otp/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ value, otp: otpValue }),
@@ -553,15 +557,31 @@ const handleSaveDetails = () => {
 
 
 const handleSubmit = async () => {
-  try {
-    setLoading(true);
+  if (!formData.selectedDate || !formData.selectedTime) {
+    alert("Please select a demo class date and time before submitting.");
+    return;
+  }
 
-    const res = await fetch("http://localhost:5000/complete-registration", {
+  setLoading(true);
+  try {
+    const res = await fetch("http://localhost:5000/api/slot/finalize", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        ...formData, // send all fields in one shot
-        createdAt: new Date().toISOString()
+        id: formData.id, // must match blockedBy from Step 5
+        name: formData.name,
+        contact: registrationType === "whatsapp" ? formData.phone : formData.email,
+        selectedDate: formData.selectedDate,
+        selectedTime: formData.selectedTime,
+        location: formData.location,
+        personalDetails: {
+          age: formData.age,
+          instrument: formData.instrument,
+          experience: formData.experience,
+          parentName: formData.parentName,
+          phoneNumber: formData.PhoneNumber,
+          address: formData.address
+        }
       })
     });
 
@@ -569,34 +589,20 @@ const handleSubmit = async () => {
     setLoading(false);
 
     if (data.success) {
-      alert("Registration completed successfully!");
+      alert("✅ Registration completed successfully!");
       onClose();
-      // optionally reset form
-      setFormData({
-        id: "",
-        phone: "",
-        email: "",
-        mobile: "",
-        otp: ["", "", "", "", "", ""],
-        name: "",
-        age: "",
-        experience: "",
-        instrument: "",
-        address: "",
-        parentName: "",
-        PhoneNumber: "",
-        selectedDate: "",
-        selectedTime: "",
-        location: "AMJ Academy Main Center",
-      });
+      setFormData(prev => ({ ...prev, otp: ["", "", "", "", "", ""] })); // reset only sensitive fields
     } else {
-      alert(data.message || "Failed to complete registration");
+      alert(data.message || "Failed to complete registration. Slot may not be reserved by you.");
     }
+
   } catch (err) {
     setLoading(false);
+    console.error(err);
     alert("Error completing registration");
   }
 };
+
 
 
   // Reset state when modal opens
@@ -750,17 +756,6 @@ const handleSubmit = async () => {
                   {errors.email && <span className="error-message">{errors.email}</span>}
                 </div>
               )}
-
-             {/*  <div className="input-group">
-                <button 
-                  className="primary-btn" 
-                 onClick={sendOtp}
-                  disabled={registrationType === "whatsapp" ? !isPhoneValid() : !isEmailValid() || loading}
-                >
-                  
-                  {loading ? "Sending..." : "GET VERIFICATION CODE"}
-                </button>
-              </div> */}
 
               <div className="button-group">
                 <button className="secondary-btn" onClick={handlePrevStep}>
@@ -1041,7 +1036,7 @@ const handleSubmit = async () => {
 
   setLoading(true);
   try {
-   const res = await fetch("http://localhost:5000/update-slot", {
+   const res = await fetch("http://localhost:5000/api/slot/update", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({

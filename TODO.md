@@ -1,6 +1,4 @@
-- [x] Add day state and select field in Class_arrangement.jsx
-- [x] Update schedule object to include day
-- [x] Update table display in Class_arrangement.jsx
-- [x] Update student and teacher localStorage to include day in time
-- [x] Update teacher dashboard to display day in time
-- [x] Update student dashboard to display day in time
+- [ ] Import PunctualityReport component in src/components/Student_setup/Dashboard.jsx
+- [ ] Add "Punctuality Report" menu item to menuItems array in Dashboard.jsx
+- [ ] Add "PUNCTUALITY REPORT" navigation link in header nav in Dashboard.jsx
+- [ ] Add case for "punctuality-report" in renderContent function in Dashboard.jsx

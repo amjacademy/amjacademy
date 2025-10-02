@@ -18,8 +18,10 @@ const { parser } = require("./config/cloudinaryConfig");
 const transporter = require("./config/nodemailer"); 
 
 const seedDefaultUsers = require("./utils/seedDefaultusers");
-
+const {testSupabaseConnection}=require("./config/supabaseClient");
 const allowedOrigins = ['http://localhost:5173', 'https://amjacademy.in'];
+const uploadRoute = require("./routes/cloudinaryRoutes");
+const arrangementsRoutes = require("./routes/arrangementRoutes");
 
 dotenv.config();
 const app = express();
@@ -35,9 +37,11 @@ app.use(cors({
   },
   credentials: true, // ✅ Important: allow cookies
 }));
-
+const { supabase } = require("./config/supabaseClient");
 app.use(express.json());
 const PORT = process.env.PORT || 5000;
+const cookieParser = require("cookie-parser");
+app.use(cookieParser());
 
 // Routes
 app.get("/", (req, res) => {
@@ -47,6 +51,47 @@ app.get("/", (req, res) => {
 app.use("/api/otp", require("./routes/otpRoutes"));
 
 app.use("/api/slot", require("./routes/slotbookingRoutes"));
+
+app.use("/api/admin", require("./routes/adminRoutes"));
+
+app.use("/api/enrollments", require("./routes/enrollmentRoutes"));
+
+app.use("/api/upload", require("./routes/cloudinaryRoutes"));
+
+app.use("/api/announcements", require("./routes/announcementRoutes"));
+
+app.get("/api/counts", async (req, res) => {
+  try {
+    const { data: enrollments } = await supabase
+      .from("enrollments")
+      .select("role");
+
+    const { data: announcements } = await supabase.from("announcements").select("id");
+    const { data: schedules } = await supabase.from("arrangements").select("id"); 
+
+    const studentsCount = enrollments.filter(e => e.role === "Student").length;
+    const teachersCount = enrollments.filter(e => e.role === "Teacher").length;
+    const schedulesCount = schedules.length;
+    res.json({
+      students: studentsCount,
+      teachers: teachersCount,
+      announcements: announcements.length,
+      schedules: schedulesCount
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch counts" });
+  }
+});
+
+app.use("/api/arrangements",require("./routes/arrangementRoutes"));
+
+app.use("/api/student", require("./routes/studentRoutes"));
+
+
+
+
+
 
 /* // Course API endpoints
 app.get("/api/courses", async (req, res) => {
@@ -77,7 +122,7 @@ app.get("/api/courses/:id", async (req, res) => {
   }
 });
  */
- app.post("/api/login", async (req, res) => {
+/*  app.post("/api/login", async (req, res) => {
   try {
     console.log("Backend login request body:", req.body);
     const { email, password, userType } = req.body;
@@ -138,10 +183,10 @@ const snapshot = await db.collection("users")
     console.error("Login error:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
-});
+}); */
 
 // Upload single profile image (improved debug + response)
-app.post("/upload/profile", parser.single("file"), (req, res) => {
+/* app.post("/upload/profile", parser.single("file"), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: "No file uploaded" });
@@ -166,9 +211,9 @@ app.post("/upload/profile", parser.single("file"), (req, res) => {
     console.error("Upload failed:", err);
     res.status(500).json({ success: false, message: err.message || "Upload failed" });
   }
-});
+}); */
 
-app.post("/upload/multiple", parser.array("files", 10), async (req, res) => {
+/* app.post("/upload/multiple", parser.array("files", 10), async (req, res) => {
   const { email } = req.body;
   try {
     if (!req.files || req.files.length === 0) {
@@ -220,9 +265,9 @@ app.post("/upload/multiple", parser.array("files", 10), async (req, res) => {
     console.error("❌ Multiple upload failed:", err);
     return res.status(500).json({ success: false, message: err.message || "Upload failed" });
   }
-});
+}); */
 
-app.post("/api/profile/update-avatar-by-email", async (req, res) => {
+/* app.post("/api/profile/update-avatar-by-email", async (req, res) => {
   try {
     const { email, avatarUrl } = req.body;
     if (!email || !avatarUrl) return res.status(400).json({ success: false, message: "email and avatarUrl required" });
@@ -240,7 +285,7 @@ app.post("/api/profile/update-avatar-by-email", async (req, res) => {
     console.error("Update avatar by email error:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
-});
+}); */
 
 // GET user by email - accept encoded email safely
 app.get("/api/user-by-email/:email", async (req, res) => {
@@ -455,5 +500,6 @@ app.get("/api/teachers", async (req, res) => {
 
 app.listen(PORT,async () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
-  await seedDefaultUsers()
+  testSupabaseConnection();
+  /* await seedDefaultUsers(); */
 });

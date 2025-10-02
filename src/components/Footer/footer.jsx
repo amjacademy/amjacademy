@@ -6,6 +6,22 @@ import './footer.css';
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      // If element not found, navigate to home page and then scroll
+      window.location.href = '/';
+      setTimeout(() => {
+        const targetElement = document.getElementById(sectionId);
+        if (targetElement) {
+          targetElement.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
+  };
+
   return (
     <footer className="footer">
       <div className="container">
@@ -30,12 +46,12 @@ const Footer = () => {
           <div className="footer-section">
             <h4>Quick Links</h4>
             <ul>
-              <li><a href="#home">Home</a></li>
-              <li><a href="#about">About Me</a></li>
-              <li><a href="#services">Cources</a></li>
+              <li><a href="#home" onClick={(e) => { e.preventDefault(); scrollToSection('home'); }}>Home</a></li>
+              <li><Link to="/about">About Me</Link></li>
+              <li><Link to="/courses">Courses</Link></li>
               {/* <li><a href="#experience">Experience</a></li> */}
-              <li><a href="#testimonials">Accolades</a></li>
-              <li><a href="#contact">Contact</a></li>
+              <li><Link to="/accolades">Accolades</Link></li>
+              <li><Link to="/contact">Contact</Link></li>
               <li><Link to="/login">Login</Link></li>
               {/* <li><Link to="/login">Student Login</Link></li> */}
             </ul>

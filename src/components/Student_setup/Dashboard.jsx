@@ -7,6 +7,7 @@ import Message from "./Message.jsx"
 import Footer from "../Footer/footer.jsx"
 import ClassReport from "./class-report.jsx"
 import MyAssignments from "./my-assignments.jsx"
+import PunctualityReport from "./punctuality-repot.jsx"
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard")
@@ -126,7 +127,7 @@ const Dashboard = () => {
       ],
     },
     // Student-specific items
-    { id: "my-schedule", label: "My Schedule", icon: "📅" },
+    { id: "punctuality-report", label: "Punctuality Report", icon: "⏰" },
     // { id: "session-count", label: "Session Count Report", icon: "📈" },
     // { id: "holidays", label: "Upcoming Holidays", icon: "🏖️" },
     // { id: "demo-insight", label: "Post Demo Insight", icon: "💡" },
@@ -157,13 +158,8 @@ const Dashboard = () => {
         return <MyAssignments initialSection="uploads" />
       case "assignments-assessments":
         return <MyAssignments initialSection="assessments" />
-      case "my-schedule":
-        return (
-          <div>
-            <h2>My Schedule</h2>
-            <p>Student schedule content here.</p>
-          </div>
-        )
+      case "punctuality-report":
+        return <PunctualityReport />
       case "dashboard":
       default:
         return (
@@ -348,10 +344,10 @@ const Dashboard = () => {
             </a>
             <a
               href="#"
-              className={`nav-link ${activeTab === "my-schedule" ? "active" : ""}`}
-              onClick={() => setActiveTab("my-schedule")}
+              className={`nav-link ${activeTab === "punctuality-report" ? "active" : ""}`}
+              onClick={() => setActiveTab("punctuality-report")}
             >
-              MY SCHEDULE
+              PUNCTUALITY REPORT
             </a>
           </nav>
         </div>

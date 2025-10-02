@@ -1,4 +1,4 @@
-const { admin, db } = require("./config/firebase");
+const { admin, db } = require("../config/firebase");
 async function releaseExpiredSlots() {
   const now = new Date();
   const snapshot = await db.collection("slots").where("status", "==", "blocked").get();

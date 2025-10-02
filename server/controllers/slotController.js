@@ -1,6 +1,6 @@
 const { db } = require("../config/firebase");
 const transporter = require("../config/nodemailer"); 
-
+const releaseExpiredSlots = require("../utils/releaseslots");
 // Block or reserve a slot
 exports.updateSlot = async (req, res) => {
   try {
@@ -216,3 +216,16 @@ exports.finalizeSlot = async (req, res) => {
 };
 
 
+exports.getSlotsByDate = async (req, res) => {
+  try {
+      await releaseExpiredSlots();
+      const snapshot = await db.collection("slots")
+        .where("selectedDate", "==", req.params.date)
+        .get();
+      const slots = [];
+      snapshot.forEach(doc => slots.push({ id: doc.id, ...doc.data() }));
+      res.json({ success: true, slots });
+    } catch (err) {
+      res.status(500).json({ success: false, message: "Error fetching slots" });
+    }
+};

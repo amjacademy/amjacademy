@@ -5,10 +5,12 @@ import { useNavigate } from "react-router-dom"
 import "./Admin_login.css"
 
 export default function AdminLogin() {
-  const [formData, setFormData] = useState({ username: "Admin", password: "password" })
+  const [formData, setFormData] = useState({ username: "", password: "" })
   const [errors, setErrors] = useState({ username: "", password: "" })
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+
+  const navigate = useNavigate()
 
   const onChange = (e) => {
     const { name, value } = e.target
@@ -24,25 +26,34 @@ export default function AdminLogin() {
     return !next.username && !next.password
   }
 
-  const navigate = useNavigate()
-
   const onSubmit = async (e) => {
-    e.preventDefault()
-    if (!validate()) return
-    try {
-      setLoading(true)
-      // Simple hardcoded auth for demo - replace with real auth
-      if (formData.username === "Admin" && formData.password === "password") {
-        // Successful login, redirect to admin dashboard
-        localStorage.setItem("isAdminLoggedIn", "true")
-        navigate("/admin-dashboard")
-      } else {
-        setErrors({ username: "", password: "Invalid username or password" })
-      }
-    } finally {
-      setLoading(false)
+  e.preventDefault()
+  if (!validate()) return
+
+  try {
+    setLoading(true)
+
+    const res = await fetch("http://localhost:5000/api/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include", // important: send/receive cookies
+      body: JSON.stringify(formData),
+    })
+
+    const data = await res.json()
+
+    if (res.ok && data.success) {
+      navigate("/admin-dashboard")
+    } else {
+      setErrors({ username: "", password: data.message || "Invalid username or password" })
     }
+  } catch (err) {
+    setErrors({ username: "", password: "Server error, please try again" })
+  } finally {
+    setLoading(false)
   }
+}
+
 
   return (
     <main className="admin-login-container">
@@ -71,11 +82,11 @@ export default function AdminLogin() {
               aria-invalid={!!errors.username}
               aria-describedby={errors.username ? "username-error" : undefined}
             />
-            {errors.username ? (
+            {errors.username && (
               <span id="username-error" className="admin-error-message" role="alert">
                 {errors.username}
               </span>
-            ) : null}
+            )}
           </div>
 
           <div className="admin-form-group">
@@ -104,23 +115,17 @@ export default function AdminLogin() {
                 {showPassword ? "Hide" : "Show"}
               </button>
             </div>
-            {errors.password ? (
+            {errors.password && (
               <span id="password-error" className="admin-error-message" role="alert">
                 {errors.password}
               </span>
-            ) : null}
+            )}
           </div>
 
           <button type="submit" className="admin-login-btn" disabled={loading}>
             {loading ? "Signing in..." : "Sign in to Admin"}
           </button>
         </form>
-
-        <footer className="admin-login-footer" aria-live="polite">
-          <a href="#" className="admin-forgot-password">
-            Forgot password?
-          </a>
-        </footer>
       </section>
     </main>
   )

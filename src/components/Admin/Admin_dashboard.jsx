@@ -7,6 +7,9 @@ import Dashboard from "./Dashboard.jsx"
 import User_enrollment from "./User_enrollment.jsx"
 import Announcements from "./Announcements.jsx"
 import Class_arrangement from "./Class_arrangement.jsx"
+import { HiAnnotation } from "react-icons/hi"
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 function useLocalStorage(key, initialValue) {
   const [state, setState] = useState(() => {
@@ -17,6 +20,7 @@ function useLocalStorage(key, initialValue) {
       return initialValue
     }
   })
+  
   useEffect(() => {
     try {
       window.localStorage.setItem(key, JSON.stringify(state))
@@ -26,6 +30,7 @@ function useLocalStorage(key, initialValue) {
 }
 
 export default function Admin_Dashboard() {
+  const navigate = useNavigate();
   // Enrollment data
   const [students, setStudents] = useLocalStorage("admin_students", [])
   const [teachers, setTeachers] = useLocalStorage("admin_teachers", [])
@@ -41,6 +46,29 @@ export default function Admin_Dashboard() {
   // Get username from localStorage
   const username = localStorage.getItem('admin_username') || 'Admin'
 
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/admin/check-auth", {
+          withCredentials: true // important to send cookies
+        });
+
+        if (!res.data.success) {
+          alert("Session expired. Please login again.");
+          navigate("/AdminLogin");
+        }
+      } catch (err) {
+        alert("Session expired. Please login again.");
+        navigate("/AdminLogin");
+      }
+    };
+
+    checkSession();
+
+    // Optional: periodic check every 1 min
+    const interval = setInterval(checkSession, 60 * 1000);
+    return () => clearInterval(interval);
+  }, [navigate]);
   // Get first and last letter of username
   const getInitials = (name) => {
     const trimmedName = name.trim()
@@ -100,6 +128,23 @@ export default function Admin_Dashboard() {
         return <Dashboard counts={counts} />
     }
   }
+const handleLogout = async () => {
+  try {
+    // call backend logout to clear cookie
+    await fetch("http://localhost:5000/api/admin/logout", {
+      method: "POST",
+      credentials: "include", // important for cookies
+    });
+
+    // clear all localStorage
+    localStorage.clear();
+
+    // redirect to login page
+    window.location.href = "/AdminLogin";
+  } catch (err) {
+    console.error("Logout error:", err);
+  }
+};
 
   return (
     <div className="dashboard-container">
@@ -189,10 +234,7 @@ export default function Admin_Dashboard() {
               <button className="btn-cancel" onClick={() => setShowLogoutModal(false)}>
                 Cancel
               </button>
-              <button className="btn-confirm" onClick={() => {
-                localStorage.removeItem('admin_username');
-                window.location.href = '/admin-login';
-              }}>
+              <button className="btn-confirm" onClick={handleLogout()}>
                 OK
               </button>
             </div>

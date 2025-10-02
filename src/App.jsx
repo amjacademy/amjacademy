@@ -19,7 +19,8 @@ import StudentDashboard from './components/Student_setup/Dashboard';
 import AdminLogin from './components/Admin/Admin_login';
 import Admin_Dashboard from './components/Admin/Admin_dashboard';
 import './App.css';
-
+import { useNavigate } from "react-router-dom";
+import ProtectedRoute from "./components/Admin/ProtectedRoute";
 // Home Page Component
 function HomePage({ onOpenRegistration }) {
   return (
@@ -113,6 +114,32 @@ function AdminPage() {
 
 function App() {
   const [isScreenshotAttempt, setIsScreenshotAttempt] = useState(false);
+  
+
+  /* useEffect(() => {
+    const checkLogin = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/admin/check-auth", {
+          credentials: "include", // important to send cookies
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          navigate("/admin-dashboard"); 
+          setLoading(false);// token valid → redirect
+        } else {
+          navigate("/AdminLogin"); 
+          setLoading(false);// no token → show login
+        }
+      } catch (err) {
+        console.error(err);
+        navigate("/");
+        setLoading(false);
+      } 
+    };
+
+    checkLogin();
+  }, []); */
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -130,7 +157,7 @@ function App() {
 
   return (
     <div className={isScreenshotAttempt ? 'screenshot-blocked' : ''}>
-      <Router>
+      
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/piano-lessons" element={<PianoLessonsPage />} />
@@ -139,9 +166,17 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/AdminLogin" element={<AdminPage />} />
-          <Route path="/admin-dashboard" element={<Admin_Dashboard />} />
+           {/* 🔒 Protected route */}
+          <Route
+            path="/admin-dashboard"
+            element={
+              <ProtectedRoute>
+                <Admin_Dashboard />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
-      </Router>
+     
     </div>
   );
 }
