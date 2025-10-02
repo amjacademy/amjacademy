@@ -10,17 +10,23 @@ export default function ProtectedRoute({ children }) {
     const verify = async () => {
       try {
         const res = await fetch("https://amjacademy-mjyr.onrender.com/api/admin/check-auth", {
-          credentials: "include", // send cookie
+          method: "GET",
+          credentials: "include",
         });
-        const data = await res.json();
 
+        if (!res.ok) {
+          navigate("/AdminLogin");
+          return;
+        }
+
+        const data = await res.json();
         if (data.success) {
           setIsAuth(true);
         } else {
           navigate("/AdminLogin");
         }
       } catch (err) {
-        console.error(err);
+        console.error("Auth check failed:", err);
         navigate("/AdminLogin");
       } finally {
         setLoading(false);

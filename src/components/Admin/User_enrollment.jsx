@@ -4,25 +4,40 @@ import "./User_enrollment.css"
 function IdTools({ value, onChange, students, teachers, role, setStudents, setTeachers  }) {
   const [disabled, setDisabled] = useState(false)
   const [timer, setTimer] = useState(0)
- 
 const fetchEnrollments = async () => {
-    try {
-      const res = await fetch("https://amjacademy-mjyr.onrender.com/api/enrollments/getall", {
-        method: "GET",
-        credentials: "include"
-      });
-      const data = await res.json();
-      const studentsList = data.filter(item => item.role === "Student");
-      const teachersList = data.filter(item => item.role === "Teacher");
-      setStudents(studentsList);
-      setTeachers(teachersList);
-    } catch (err) {
-      console.error("Error fetching enrollments:", err);
+  try {
+    const res = await fetch("https://amjacademy-mjyr.onrender.com/api/enrollments/getall", {
+      method: "GET",
+      credentials: "include"
+    });
+
+    if (!res.ok) {
+      console.error("Failed to fetch enrollments:", res.status);
+      return;
     }
-  };
+
+    const data = await res.json();
+
+    if (!Array.isArray(data)) {
+      console.error("Enrollments data is not an array:", data);
+      return;
+    }
+
+    const studentsList = data.filter(item => item.role === "Student");
+    const teachersList = data.filter(item => item.role === "Teacher");
+
+    setStudents(studentsList);
+    setTeachers(teachersList);
+
+  } catch (err) {
+    console.error("Error fetching enrollments:", err);
+  }
+};
+
 useEffect(() => {
   fetchEnrollments();
 }, []);
+
 
 
 
@@ -316,7 +331,7 @@ const fetchEnrollments = async () => {
 
 const onDelete = async (id) => {
   try {
-    const response = await fetch(`http://localhost:5000/api/enrollments/delete/${id}`, {
+    const response = await fetch(`https://amjacademy-mjyr.onrender.com/api/enrollments/delete/${id}`, {
       method: "DELETE",
       credentials: "include"
     });

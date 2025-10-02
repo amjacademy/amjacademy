@@ -17,13 +17,23 @@ exports.Login = async (req, res) => {
   if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
     const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: "45m" });
 
+    res.clearCookie("adminToken", {
+  path: "/",
+  httpOnly: true,
+  secure: true,
+  sameSite: "None"
+});
     // Set JWT in HttpOnly cookie
-    res.cookie("adminToken", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 600 * 60 * 1000 // 600 minutes
-    });
+  res.cookie("adminToken", token, {
+  httpOnly: true,
+  secure: true,          // required if SameSite=None
+  sameSite: "None",      // allow cross-origin
+  maxAge: 45 * 60 * 1000, // 45 minutes
+  path: "/",             // ensure cookie is available everywhere
+});
+
+
+
 
     return res.json({
       success: true,

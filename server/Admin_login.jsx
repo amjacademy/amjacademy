@@ -45,9 +45,11 @@ export default function AdminLogin() {
     if (res.ok && data.success) {
       navigate("/admin-dashboard")
     } else {
+      console.log("Login failed:", data.message)
       setErrors({ username: "", password: data.message || "Invalid username or password" })
     }
   } catch (err) {
+    console.error("Error during login:", err)
     setErrors({ username: "", password: "Server error, please try again" })
   } finally {
     setLoading(false)

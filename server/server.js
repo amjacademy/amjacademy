@@ -19,24 +19,26 @@ const transporter = require("./config/nodemailer");
 
 const seedDefaultUsers = require("./utils/seedDefaultusers");
 const {testSupabaseConnection}=require("./config/supabaseClient");
-const allowedOrigins = ['http://localhost:5173', 'https://amjacademy.in'];
+
 const uploadRoute = require("./routes/cloudinaryRoutes");
 const arrangementsRoutes = require("./routes/arrangementRoutes");
 
 dotenv.config();
 const app = express();
 // Replace your current CORS middleware with:
+const allowedOrigins = ['http://localhost:5173', 'https://amjacademy.in'];
 app.use(cors({
   origin: function(origin, callback){
-    if(!origin) return callback(null, true); // allow Postman or server-side calls
+    if(!origin) return callback(null, true);
     if(allowedOrigins.indexOf(origin) === -1){
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
+      return callback(new Error('CORS policy blocked this origin.'), false);
     }
     return callback(null, true);
   },
-  credentials: true, // ✅ Important: allow cookies
+  credentials: true
 }));
+
+
 const { supabase } = require("./config/supabaseClient");
 app.use(express.json());
 const PORT = process.env.PORT || 5000;
