@@ -6,7 +6,7 @@ function IdTools({ value, onChange, students, teachers, role, setStudents, setTe
   const [timer, setTimer] = useState(0)
 const fetchEnrollments = async () => {
   try {
-    const res = await fetch("https://amjacademy-mjyr.onrender.com/api/enrollments/getall", {
+    const res = await fetch("https://amjacademy-working.onrender.com/api/enrollments/getall", {
       method: "GET",
       credentials: "include"
     });
@@ -114,7 +114,7 @@ function ImagePicker({ value, onChange, label }) {
     formData.append("file", file);
 
     try {
-      const res = await fetch("https://amjacademy-mjyr.onrender.com/api/upload", {
+      const res = await fetch("https://amjacademy-working.onrender.com/api/upload", {
         method: "POST",
         body: formData,
         credentials: "include",
@@ -190,7 +190,7 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
 
 const fetchEnrollments = async () => {
     try {
-      const res = await fetch("https://amjacademy-mjyr.onrender.com/api/enrollments/getall", {
+      const res = await fetch("https://amjacademy-working.onrender.com/api/enrollments/getall", {
         method: "GET",
         credentials: "include"
       });
@@ -300,7 +300,7 @@ const fetchEnrollments = async () => {
   };
 
   try {
-  const response = await fetch("https://amjacademy-mjyr.onrender.com/api/enrollments/addusers", {
+  const response = await fetch("https://amjacademy-working.onrender.com/api/enrollments/addusers", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(newEntry),
@@ -331,7 +331,7 @@ const fetchEnrollments = async () => {
 
 const onDelete = async (id) => {
   try {
-    const response = await fetch(`https://amjacademy-mjyr.onrender.com/api/enrollments/delete/${id}`, {
+    const response = await fetch(`https://amjacademy-working.onrender.com/api/enrollments/delete/${id}`, {
       method: "DELETE",
       credentials: "include"
     });
