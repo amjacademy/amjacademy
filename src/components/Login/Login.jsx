@@ -5,8 +5,9 @@ import { useNavigate } from "react-router-dom"
 import "./Login.css"
 
 const LoginForm = () => {
-  const API_BASE = "https://amjacademy-mjyr.onrender.com/api/users"; 
-  const [userType, setUserType] = useState("Student")
+  const API_BASE = "https://amjacademy-working.onrender.com/api/users"; 
+  const [userType, setUserType] = useState("Student");
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -108,6 +109,7 @@ const handleVerifyClick = async () => {
     return;
   }
   try {
+    setLoading(true);
     const res = await fetch(`${API_BASE}/sendotp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -120,8 +122,10 @@ const handleVerifyClick = async () => {
       alert(data.message);
     }
   } catch (err) {
-    console.error(err);
+    console.log(err);
     alert("Server error");
+  } finally {
+    setLoading(false);
   }
 };
   const handleOtpDigitChange = (index, value) => {
@@ -252,8 +256,8 @@ const handleOtpSubmit = async (e) => {
               placeholder="Enter your email"
             />
             {errors.email && <span className="error-message">{errors.email}</span>}
-            <button type="button" className="verify-btn" onClick={handleVerifyClick}>
-              Verify
+            <button type="button" className="verify-btn" onClick={handleVerifyClick} disabled={loading}>
+              {loading ? "Verifying..." : "Verify"}
             </button>
           </div>
 

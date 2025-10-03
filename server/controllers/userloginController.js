@@ -2,6 +2,8 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { supabase } = require("../config/supabaseClient");
 const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // JWT Secret
 const JWT_SECRET = process.env.USER_JWT_SECRET || "user_jwt_secret";
@@ -9,22 +11,21 @@ const JWT_SECRET = process.env.USER_JWT_SECRET || "user_jwt_secret";
 // In-memory OTP store: { "email": { otp, expiresAt } }
 const otpStore = {};
 
-// Helper: send email
+// Helper: send email via Resend API
 const sendOtpEmail = async (email, otp) => {
-  const transporter = nodemailer.createTransport({
-    service: "gmail", // adjust if using other SMTP
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
+  try {
+    await resend.emails.send({
+      from: "AMJacademy@amjacademy.in", // Can be your verified domain or email
+      to: email,
+      subject: "Your OTP Code",
+      text: `Your OTP code is: ${otp}. It expires in 5 minutes.`,
+    });
 
-  await transporter.sendMail({
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: "Your OTP Code",
-    text: `Your OTP code is: ${otp}. It expires in 5 minutes.`,
-  });
+    console.log(`✅ OTP sent to ${email}`);
+  } catch (err) {
+    console.error("❌ OTP send error:", err);
+    throw err;
+  }
 };
 
 // Step 1: Verify username + email, generate OTP
@@ -35,13 +36,12 @@ exports.sendOtp = async (req, res) => {
 
   try {
     const { data: user, error } = await supabase
-  .from("enrollments")
-  .select("*")
-  .eq("username", username)
-  .eq("email", email)
-  .eq("role", role)
-  .single(); // single() ensures only one row is returned
-
+      .from("enrollments")
+      .select("*")
+      .eq("username", username)
+      .eq("email", email)
+      .eq("role", role)
+      .single(); // single() ensures only one row is returned
 
     if (error || !user) {
       return res.status(401).json({ success: false, message: "Username or email not found" });

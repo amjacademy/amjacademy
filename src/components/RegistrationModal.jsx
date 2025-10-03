@@ -487,7 +487,7 @@ const sendOtp = async () => {
     ? formData.phone.trim() // keep + for international format
     : formData.email.trim();
 
-      const res = await fetch("https://amjacademy-mjyr.onrender.com/api/otp/send", {
+      const res = await fetch("https://amjacademy-working.onrender.com/api/otp/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ method, value }),

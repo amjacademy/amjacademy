@@ -27,20 +27,25 @@ dotenv.config();
 const app = express();
 // Replace your current CORS middleware with:
 const allowedOrigins = ['http://localhost:5173', 'https://amjacademy.in'];
+
 app.use(cors({
-  origin: function(origin, callback){
-    if(!origin) return callback(null, true);
-    if(allowedOrigins.indexOf(origin) === -1){
-      return callback(new Error('CORS policy blocked this origin.'), false);
+  origin: function (origin, callback) {
+    console.log("CORS request from:", origin);
+    if (!origin) return callback(null, true); // allow non-browser requests (like Postman)
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true); // allow
+    } else {
+      callback(null, false); // deny without throwing error
     }
-    return callback(null, true);
   },
-  credentials: true
+  credentials: true,
 }));
 
+app.use(express.json());
 
 const { supabase } = require("./config/supabaseClient");
-app.use(express.json());
+
 const PORT = process.env.PORT || 5000;
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
