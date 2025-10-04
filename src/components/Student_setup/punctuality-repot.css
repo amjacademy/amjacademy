@@ -1,0 +1,255 @@
+/* Punctuality Report styles themed to Dashboard.css */
+/* Layout */
+.report-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 6px 18px rgba(102, 126, 234, 0.15);
+}
+
+.filters-left {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 12px;
+  color: #4a5568;
+}
+
+.field input[type="date"],
+.field input[type="text"],
+.field select {
+  height: 36px;
+  min-width: 160px;
+  padding: 6px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  outline: none;
+  background: #fff;
+}
+
+.field.grow {
+  flex: 1 1 220px;
+  min-width: 220px;
+}
+
+.search-btn {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  border: none;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(79, 172, 254, 0.35);
+}
+
+.controls-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-left: auto;
+}
+
+.total-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ffecd2, #fcb69f);
+  color: #2d3748;
+  font-size: 12px;
+  box-shadow: 0 4px 12px rgba(252, 182, 159, 0.35);
+}
+
+.download-btn {
+  background: linear-gradient(135deg, #34d399, #10b981);
+  color: white;
+  border: none;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+}
+
+.download-btn:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+/* Table */
+.table-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.table-scroll {
+  width: 100%;
+  overflow: auto;
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+  color: #2d3748;
+}
+
+.report-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: linear-gradient(135deg, #a8edea, #fed6e3);
+  color: #2d3748;
+  text-align: left;
+  padding: 12px 14px;
+  font-weight: 700;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.report-table tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.report-table tbody tr:nth-child(even) td {
+  background: #fffdfc;
+}
+
+.students {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.student-pill {
+  padding: 4px 8px;
+  background: #eef2ff;
+  color: #4f46e5;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Status styles */
+.badge,
+.chip,
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Slot status */
+.badge.on-time {
+  background: #dcfce7;
+  color: #166534;
+}
+.badge.early-out {
+  background: #ffedd5;
+  color: #9a3412;
+}
+.badge.late-in {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.badge.late-out {
+  background: #fecaca;
+  color: #7f1d1d;
+}
+.badge.early-in {
+  background: #e0f2fe;
+  color: #075985;
+}
+
+/* Check-in/out status chips */
+.chip.on-time {
+  background: #e0fce7;
+  color: #137a3a;
+}
+.chip.late-in {
+  background: #ffe4e6;
+  color: #b91c1c;
+}
+.chip.early-in {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+.chip.early-out {
+  background: #ffedd5;
+  color: #9a3412;
+}
+.chip.late-out {
+  background: #fecaca;
+  color: #7f1d1d;
+}
+
+/* Session type pill */
+.pill.regular {
+  background: #e9d5ff;
+  color: #6b21a8;
+}
+.pill.special {
+  background: #fde68a;
+  color: #92400e;
+}
+.pill.demo {
+  background: #bae6fd;
+  color: #075985;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .report-table {
+    font-size: 13px;
+  }
+  .field input[type="date"],
+  .field input[type="text"],
+  .field select {
+    min-width: 140px;
+  }
+}
+
+@media (max-width: 768px) {
+  .report-controls {
+    align-items: stretch;
+  }
+  .filters-left {
+    width: 100%;
+  }
+  .controls-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .table-scroll {
+    overflow-x: auto;
+  }
+}

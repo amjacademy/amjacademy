@@ -38,6 +38,34 @@ router.get("/getdetails", async (req, res) => {
   res.json(data);
 });
 
+// UPDATE arrangement
+router.put("/update/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { batch_type, student1_id, student2_id, teacher_id, day, date, time, link } = req.body;
+
+    const { data, error } = await supabase
+      .from("arrangements")
+      .update({
+        batch_type,
+        student1_id,
+        student2_id: batch_type === "dual" ? student2_id : null,
+        teacher_id,
+        day,
+        date,
+        time,
+        link
+      })
+      .eq("id", id)
+      .select();
+
+    if (error) throw error;
+    res.json(data[0]);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 // DELETE arrangement
 router.delete("/delete/:id", async (req, res) => {
   const { id } = req.params;

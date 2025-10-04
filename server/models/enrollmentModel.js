@@ -28,4 +28,13 @@ async function deleteEnrollment(id) {
   return { data, error };
 }
 
-module.exports = { getEnrollments, createEnrollment, deleteEnrollment };
+async function updateEnrollment(id, updates) {
+  const { data, error } = await supabase
+    .from("enrollments")
+    .update(updates)
+    .eq("id", id)
+    .select();
+  return { data, error };
+}
+
+module.exports = { getEnrollments, createEnrollment, deleteEnrollment, updateEnrollment };

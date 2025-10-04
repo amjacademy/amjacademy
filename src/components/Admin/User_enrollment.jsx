@@ -187,6 +187,7 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
   const [experienceLevel, setExperienceLevel] = useState("")
   const [query, setQuery] = useState("")
   const [error, setError] = useState("")
+  const [editingId, setEditingId] = useState(null)
 
 const fetchEnrollments = async () => {
     try {
@@ -211,6 +212,11 @@ const fetchEnrollments = async () => {
     const maxLength = username.length
     const numberAllocation = Math.floor(Math.random() * 10000).toString().padStart(4, '0')
     let pwd = username + numberAllocation
+    // Add a mandatory special character
+    const specialChars = "!@#$%^&*()_+-=[]{}|;:,.<>?";
+    const special = specialChars[Math.floor(Math.random() * specialChars.length)];
+    const insertPos = Math.floor(Math.random() * (pwd.length + 1));
+    pwd = pwd.slice(0, insertPos) + special + pwd.slice(insertPos);
     while (pwd.length < maxLength) {
       pwd += Math.floor(Math.random() * 10).toString()
     }
@@ -275,58 +281,123 @@ const fetchEnrollments = async () => {
     return;
   }
 
-  const exists = list.some((x) => x.id === id);
-  if (exists) {
-    setError("ID already exists in this module.");
-    return;
+  if (editingId) {
+    // Update existing entry
+    const updateData = {
+      role,
+      name,
+      age,
+      profession,
+      phone,
+      email,
+      image,
+      password,
+      username,
+      batchtype: role === "Student" ? batchType : null,
+      plan: role === "Student" ? plan : null,
+      level: role === "Student" ? level : null,
+      experiencelevel: role === "Teacher" ? experienceLevel : null
+    };
+
+    try {
+      const response = await fetch(`https://amjacademy-working.onrender.com/api/enrollments/update/${editingId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updateData),
+        credentials: "include"
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error || "Something went wrong");
+        return;
+      }
+
+      // Update the list
+      setList(prevList => prevList.map(item => item.id === editingId ? data[0] : item));
+
+      // Reset form
+      resetForm();
+
+    } catch (error) {
+      console.error(error);
+      setError("Failed to update. Try again.");
+    }
+  } else {
+    // Create new entry
+    const exists = list.some((x) => x.id === id);
+    if (exists) {
+      setError("ID already exists in this module.");
+      return;
+    }
+
+    const newEntry = {
+      id,
+      role,
+      name,
+      age,
+      profession,
+      phone,
+      email,
+      image,
+      password,
+      username,
+      batchtype: role === "Student" ? batchType : null,
+      plan: role === "Student" ? plan : null,
+      level: role === "Student" ? level : null,
+      experiencelevel: role === "Teacher" ? experienceLevel : null
+    };
+
+    try {
+      const response = await fetch("https://amjacademy-working.onrender.com/api/enrollments/addusers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newEntry),
+        credentials: "include"
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error || "Something went wrong");
+        return;
+      }
+
+      // Directly update the list
+      setList(prevList => [data, ...prevList]);
+
+      // Reset form
+      resetForm();
+
+    } catch (error) {
+      console.error(error);
+      setError("Failed to enroll. Try again.");
+    }
   }
+};
 
-  // Create new entry
-  const newEntry = {
-    id,
-    role,
-    name,
-    age,
-    profession,
-    phone,
-    email,
-    image,
-    password,
-    username,
-    batchtype: role === "Student" ? batchType : null,
-    plan: role === "Student" ? plan : null,
-    level: role === "Student" ? level : null,
-    experiencelevel: role === "Teacher" ? experienceLevel : null
-  };
+const resetForm = () => {
+  setId(""); setName(""); setAge(""); setProfession(""); setPhone("");
+  setEmail(""); setImage(""); setPassword(""); setUsername("");
+  setBatchType("individual"); setPlan("Beginner"); setLevel("1");
+  setExperienceLevel(""); setEditingId(null);
+};
 
-  try {
-  const response = await fetch("https://amjacademy-working.onrender.com/api/enrollments/addusers", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(newEntry),
-    credentials: "include"
-  });
-
-  const data = await response.json();
-  if (!response.ok) {
-    setError(data.error || "Something went wrong");
-    return;
-  }
-
-  // Directly update the list
-  setList(prevList => [data, ...prevList]);
-
-  // Reset form
-  setId(""); setName(""); setAge(""); setProfession(""); setPhone(""); 
-  setEmail(""); setImage(""); setPassword(""); setUsername(""); 
-  setBatchType("individual"); setPlan("Beginner"); setLevel("1"); 
-  setExperienceLevel("");
-
-} catch (error) {
-  console.error(error);
-  setError("Failed to enroll. Try again.");
-}
-
+const onEdit = (row) => {
+  setEditingId(row.id);
+  setId(row.id);
+  setName(row.name);
+  setAge(row.age);
+  setProfession(row.profession);
+  setPhone(row.phone);
+  setEmail(row.email);
+  setImage(row.image);
+  setPassword(row.password);
+  setUsername(row.username);
+  setBatchType(row.batchtype || "individual");
+  setPlan(row.plan || "Beginner");
+  setLevel(row.level || "1");
+  setExperienceLevel(row.experiencelevel || "");
+  setRole(row.role);
 };
 
 const onDelete = async (id) => {
@@ -552,8 +623,13 @@ const onDelete = async (id) => {
         <ImagePicker value={image} onChange={setImage} label="Profile Image" />
         <div className="field form-actions">
           <button type="submit" className="btn btn-primary">
-            Enroll
+            {editingId ? "Update" : "Enroll"}
           </button>
+          {editingId && (
+            <button type="button" className="btn btn-secondary" onClick={resetForm}>
+              Cancel
+            </button>
+          )}
           {error ? (
             <p className="error" role="alert">
               {error}
@@ -607,6 +683,9 @@ const onDelete = async (id) => {
       <td>{row.profession || "—"}</td>
       <td>{row.phone}</td>
       <td className="col-actions">
+        <button className="btn btn-secondary" onClick={() => onEdit(row)}>
+          Edit
+        </button>
         <button className="btn btn-danger" onClick={() => onDelete(row.id)}>
           Delete
         </button>

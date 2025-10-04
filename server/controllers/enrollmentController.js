@@ -3,6 +3,7 @@ const {
   getEnrollments,
   createEnrollment,
   deleteEnrollment,
+  updateEnrollment,
 } = require("../models/enrollmentModel");
 
 exports.getAll = async (req, res) => {
@@ -78,6 +79,14 @@ exports.create = async (req, res) => {
 exports.remove = async (req, res) => {
   const { id } = req.params;
   const { data, error } = await deleteEnrollment(id);
+  if (error) return res.status(500).json({ error });
+  res.json(data);
+};
+
+exports.update = async (req, res) => {
+  const { id } = req.params;
+  const updates = req.body;
+  const { data, error } = await updateEnrollment(id, updates);
   if (error) return res.status(500).json({ error });
   res.json(data);
 };

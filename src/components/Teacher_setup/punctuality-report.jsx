@@ -10,14 +10,11 @@ function toCsv(rows) {
   const headers = [
     "Class Date & Time",
     "Students",
-    "Slot Status",
     "Check-in Time",
     "Checkout Time",
     "Check-in Status",
     "Checkout Status",
     "Class Duration",
-    "Session Type",
-    "Class Type",
     "Reason",
   ]
   const escape = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`
@@ -26,14 +23,11 @@ function toCsv(rows) {
       [
         r.dateTime,
         r.students.join("; "),
-        r.slotStatus,
         r.checkinTime,
         r.checkoutTime,
         r.checkinStatus,
         r.checkoutStatus,
         r.duration,
-        r.sessionType,
-        r.classType,
         r.reason || "-",
       ]
         .map(escape)
@@ -194,14 +188,11 @@ export default function PunctualityReport() {
               <tr>
                 <th>Class Date &amp; Time</th>
                 <th>Students</th>
-                <th>Slot Status</th>
                 <th>Check-in Time</th>
                 <th>Checkout Time</th>
                 <th>Check-in Status</th>
                 <th>Checkout Status</th>
                 <th>Class Duration</th>
-                <th>Session Type</th>
-                <th>Class Type</th>
                 <th>Reason</th>
               </tr>
             </thead>
@@ -218,9 +209,6 @@ export default function PunctualityReport() {
                       ))}
                     </div>
                   </td>
-                  <td>
-                    <span className={`badge ${r.slotStatus.toLowerCase().replace(/\\s/g, "-")}`}>{r.slotStatus}</span>
-                  </td>
                   <td>{r.checkinTime}</td>
                   <td>{r.checkoutTime}</td>
                   <td>
@@ -234,10 +222,6 @@ export default function PunctualityReport() {
                     </span>
                   </td>
                   <td>{r.duration}</td>
-                  <td>
-                    <span className={`pill ${r.sessionType.toLowerCase()}`}>{r.sessionType}</span>
-                  </td>
-                  <td>{r.classType}</td>
                   <td>{r.reason || "-"}</td>
                 </tr>
               ))}
