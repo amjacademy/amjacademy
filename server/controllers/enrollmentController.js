@@ -1,4 +1,5 @@
-const transporter = require("../config/nodemailer");
+const { Resend } = require("resend");
+const resend = new Resend(process.env.RESEND_API_KEY);
 const {
   getEnrollments,
   createEnrollment,
@@ -30,7 +31,7 @@ exports.create = async (req, res) => {
 
     // 1️⃣ Email to the user
     const userMailOptions = {
-      from: process.env.EMAIL_USER,
+      from: "AMJacademy@amjacademy.in",
       to: email,
       subject: "AMJ Academy Account Created Successfully",
       html: `
@@ -47,7 +48,7 @@ exports.create = async (req, res) => {
 
     // 2️⃣ Email to the admin
     const adminMailOptions = {
-      from: process.env.EMAIL_USER,
+      from: "AMJacademy@amjacademy.in",
       to: process.env.ADMIN_EMAIL, // add ADMIN_EMAIL in your .env
       subject: `New ${role} Account Created`,
       html: `
@@ -63,8 +64,8 @@ exports.create = async (req, res) => {
 
     // Send both emails (can be in parallel)
     await Promise.all([
-      transporter.sendMail(userMailOptions),
-      transporter.sendMail(adminMailOptions),
+      resend.emails.send(userMailOptions),
+      resend.emails.send(adminMailOptions),
     ]);
 
     // Respond
@@ -75,6 +76,7 @@ exports.create = async (req, res) => {
     res.status(500).json({ error: "Failed to create enrollment" });
   }
 };
+
 
 exports.remove = async (req, res) => {
   const { id } = req.params;

@@ -16,7 +16,7 @@ const memoryStorage = multer.memoryStorage(); // keep files in memory
 const upload = multer({ memoryStorage });
 const { parser } = require("./config/cloudinaryConfig");
 const transporter = require("./config/nodemailer"); 
-
+const cookieParser = require("cookie-parser");
 const seedDefaultUsers = require("./utils/seedDefaultusers");
 const {testSupabaseConnection}=require("./config/supabaseClient");
 
@@ -27,7 +27,7 @@ dotenv.config();
 const app = express();
 // Replace your current CORS middleware with:
 const allowedOrigins = ['http://localhost:5173', 'https://amjacademy.in'];
-
+app.use(cookieParser());
 app.use(cors({
   origin: function (origin, callback) {
     console.log("CORS request from:", origin);
@@ -47,8 +47,6 @@ app.use(express.json());
 const { supabase } = require("./config/supabaseClient");
 
 const PORT = process.env.PORT || 5000;
-const cookieParser = require("cookie-parser");
-app.use(cookieParser());
 
 // Routes
 app.get("/", (req, res) => {

@@ -26,8 +26,11 @@ exports.Login = async (req, res) => {
     // Set JWT in HttpOnly cookie
   res.cookie("adminToken", token, {
   httpOnly: true,
-  secure: true,          // required if SameSite=None
-  sameSite: "None",      // allow cross-origin
+  /* secure: true,          // required if SameSite=None
+  sameSite: "None",   */ 
+  secure: process.env.NODE_ENV === "production", // only secure in production
+  sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+   // allow cross-origin
   maxAge: 172800 * 60 * 1000, // 4 months
   path: "/",             // ensure cookie is available everywhere
 });
@@ -47,16 +50,15 @@ exports.Login = async (req, res) => {
 
 // Middleware to protect admin routes
 exports.adminAuth = (req, res, next) => {
+  console.log("Cookies received:", req.cookies); // 🧠 Debug
   const token = req.cookies.adminToken;
-
   if (!token) return res.status(401).json({ success: false, message: "No token provided" });
-
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     req.admin = decoded;
     next();
   } catch (err) {
-    return res.status(401).json({ success: false, message: "Invalid or Session token" });
+    return res.status(401).json({ success: false, message: "Invalid or expired token" });
   }
 };
 
