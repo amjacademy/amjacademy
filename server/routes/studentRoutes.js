@@ -1,11 +1,9 @@
 const express = require("express");
-const { Login } = require("../controllers/adminloginControllers");
+const { fetch } = require("../controllers/studentannouncementControllers");
+const { fetchUpcomingClasses } = require("../controllers/upcomingclassController");
 const router = express.Router();
 
-
-
-router.post("/login", Login);
-
-
+router.get("/fetchannouncements", fetch);
+router.get("/upcoming-classes", fetchUpcomingClasses);
 
 module.exports = router;

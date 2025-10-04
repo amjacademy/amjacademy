@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom"
 import "./Login.css"
 
 const LoginForm = () => {
-  const API_BASE = "https://amjacademy-working.onrender.com/api/users"; 
+  const API_BASE = "https://amjacademy-working.onrender.com/api/users";
   const [userType, setUserType] = useState("Student");
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -87,8 +87,15 @@ const LoginForm = () => {
     const data = await res.json();
     if (data.success) {
       localStorage.setItem("username", formData.username);
-      localStorage.setItem("userType", formData.role);
-      navigate("/dashboard");
+      localStorage.setItem("user_id", data.id); 
+      if (formData.role === "Student") {
+        navigate("/student-dashboard");
+        } else if (formData.role === "Teacher") {
+          navigate("/teacher-dashboard");
+        } else {
+          // Default fallback for unknown roles
+          /* navigate("/dashboard"); */
+          }
     } else {
       alert(data.message);
     }

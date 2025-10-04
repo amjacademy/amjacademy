@@ -1,5 +1,5 @@
 "use client"
-
+import axios from "axios";
 import { useState, useEffect } from "react"
 import "./Dashboard.css"
 import Profile from "./Profile.jsx"
@@ -10,40 +10,64 @@ import MyAssignments from "./my-assignments.jsx"
 import PunctualityReport from "./punctuality-repot.jsx"
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState("dashboard")
-  const [userType] = useState("student") // This would come from auth context
+  const userType="Student";
+  const userId=localStorage.getItem('user_id');
+
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [activeTab, setActiveTab] = useState("dashboard") // This would come from auth context
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [assignmentsOpen, setAssignmentsOpen] = useState(false)
   const [showAnnouncement, setShowAnnouncement] = useState(true)
-  const [selectedClassId, setSelectedClassId] = useState(null)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const [announcements, setAnnouncements] = useState([])
+   const [upcomingClasses, setUpcomingClasses] = useState([]);
+  const [selectedClassId, setSelectedClassId] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const announcementClosed = localStorage.getItem('announcementClosed')
-    console.log("announcementClosed flag:", announcementClosed)
-    if (announcementClosed === 'true') {
-      setShowAnnouncement(false)
+const formatTime = (timeStr) => {
+  if (!timeStr) return "";
+  const [hours, minutes] = timeStr.split(":");
+  const h = parseInt(hours);
+  const m = parseInt(minutes);
+  const ampm = h >= 12 ? "PM" : "AM";
+  const displayHour = h % 12 === 0 ? 12 : h % 12;
+  return `${displayHour}:${m.toString().padStart(2, "0")} ${ampm}`;
+};
+
+useEffect(() => {
+  const fetchAnnouncements = async () => {
+    try {
+      const res = await fetch("https://amjacademy-working.onrender.com/api/student/fetchannouncements?");
+      if (!res.ok) throw new Error("Failed to fetch announcements");
+
+      const data = await res.json();
+      setAnnouncements(data);
+    } catch (err) {
+      console.error("Error fetching announcements:", err.message);
     }
-    // Load announcements from localStorage and filter for Students or All
-    const storedAnnouncements = JSON.parse(localStorage.getItem('announcements') || '[]')
-    console.log("Stored announcements:", storedAnnouncements)
-    const filtered = storedAnnouncements.filter(a => a.receiver === "Students" || a.receiver === "All")
-    console.log("Filtered announcements for Students:", filtered)
-    setAnnouncements(filtered)
-  }, [])
+  };
 
+  fetchAnnouncements();
+}, []);
+
+ 
+useEffect(() => {
+  const announcementClosed = localStorage.getItem("announcementClosed")
+  if (announcementClosed === "true") {
+    setShowAnnouncement(false)
+  }
+}, [])
+
+useEffect(() => {
+  const timer = setInterval(() => {
+    setCurrentTime(new Date());
+  }, 1000); // every 1 second
+
+  return () => clearInterval(timer); // cleanup
+}, []);
 
   // Get username from localStorage
   const username = localStorage.getItem('username') || 'User'
-
-  const defaultAnnouncement = {
-    id: 1,
-    title: "Ganesh Chaturthi Holiday",
-    message: "On account of Ganesh Chaturthi, AMJ Academy will not be conducting classes between 3 AM IST on Wednesday, 27 Aug 2025 and 2 AM IST on Thursday, 28 Aug 2025. Classes will resume normally from 3 AM IST on Thursday, 28 Aug 2025.",
-    duration: "03:00",
-    receiver: "All"
-  }
-  const [announcements, setAnnouncements] = useState([defaultAnnouncement])
 
   // Get first and last letter of username
   const getInitials = (name) => {
@@ -56,12 +80,12 @@ const Dashboard = () => {
 
   const initials = getInitials(username)
 
-  const handleCloseAnnouncement = () => {
-    setShowAnnouncement(false)
-    localStorage.setItem('announcementClosed', 'true')
-  }
-
-  const [studentId, setStudentId] = useState(() => {
+ 
+const handleCloseAnnouncement = () => {
+  setShowAnnouncement(false)
+  localStorage.setItem("announcementClosed", "true")
+}
+  /* const [studentId, setStudentId] = useState(() => {
     let id = localStorage.getItem('student_id')
     if (!id) {
       const adminStudents = JSON.parse(localStorage.getItem('admin_students') || '[]')
@@ -76,15 +100,69 @@ const Dashboard = () => {
     }
     return id
   })
+ */
+  
+  const [studentId]=useState(1);
+  
+useEffect(() => {
+  const fetchUpcomingClasses = async () => {
+    try {
+      setLoading(true);
 
-  const [upcomingClasses, setUpcomingClasses] = useState([])
+      const response = await fetch("https://amjacademy-working.onrender.com/api/student/upcoming-classes", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "user_id": userId, // pass user_id in headers
+        },
+        credentials: "include", // instead of withCredentials (fetch uses this)
+      });
 
-  useEffect(() => {
-    const classes = JSON.parse(localStorage.getItem(`student_upcoming_classes_${studentId}`) || '[]')
-    setUpcomingClasses(classes)
-  }, [studentId])
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-  const completedClasses = [
+      const data = await response.json();
+      /* console.log("Upcoming classes data:", data); */
+      if (data.success) {
+        // Map backend data to match frontend fields
+        const classes = data.upcomingClasses.map((cls) => ({
+          id: cls.student1_id + "_" + cls.date + "_" + cls.time, // unique key
+          time: cls.time,
+          date: cls.date,
+          batch: cls.batch_type,
+          teachers: [cls.teacher_name],
+          level: cls.level,
+          plan: cls.plan,
+          duration: cls.duration || "45mins", // default
+          contractId: cls.contract_id || "ic-405", // default
+          image: "/placeholder.svg?height=120&width=200&query=keyboard lesson",
+          title: `${cls.profession} Class`,
+          status: cls.status || "not started", // default
+          link: cls.link,
+        }));
+        // SORT: most recent upcoming class first
+  classes.sort((a, b) => {
+    const dateTimeA = new Date(`${a.date}T${a.time}`);
+    const dateTimeB = new Date(`${b.date}T${b.time}`);
+    return dateTimeA - dateTimeB; // ascending order: earliest first
+  });
+        setUpcomingClasses(classes);
+      } else {
+        console.error("Failed to fetch upcoming classes:", data.message || data || "No error message");
+      }
+    } catch (err) {
+      console.error("Error fetching upcoming classes:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchUpcomingClasses();
+}, [userId]);
+
+
+  /* const completedClasses = [
     {
       id: 4,
       title: "Rhythm Basics",
@@ -108,7 +186,7 @@ const Dashboard = () => {
       rating: 4,
     },
   ]
-
+ */
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: "🏠" },
     { id: "profile", label: "My Profile", icon: "👤" },
@@ -141,6 +219,18 @@ const Dashboard = () => {
   const toggleAssignments = () => {
     setAssignmentsOpen(!assignmentsOpen)
   }
+  // Utility function to check if button should be enabled
+const isJoinEnabled = (classTime, classDate) => {
+  const now = new Date();
+  const [hours, minutes, seconds] = classTime.split(":").map(Number);
+  const classDateTime = new Date(classDate);
+  classDateTime.setHours(hours, minutes, seconds);
+
+  const fiveMinutesBefore = new Date(classDateTime.getTime() - 5 * 60 * 1000);
+  const fifteenMinutesAfter = new Date(classDateTime.getTime() + 15* 60 * 1000);
+
+  return now >= fiveMinutesBefore && now <= fifteenMinutesAfter;
+};
 
   const renderContent = () => {
     switch (activeTab) {
@@ -170,95 +260,110 @@ const Dashboard = () => {
 
 
             {/* Announcements */}
-            {showAnnouncement && announcements.length > 0 && (
-              <div className="announcement announcement-upcoming">
-                <div className="announcement-icon">📢</div>
-                <div className="announcement-content">
-                  <strong>Announcement:</strong> {announcements[0].message}
+{showAnnouncement && announcements.length > 0 &&
+  announcements.map((a) => (
+    <div key={a.id} className="announcement announcement-upcoming">
+      <div className="announcement-icon">📢</div>
+      <div className="announcement-content">
+        <strong>{a.title}</strong>  <br />
+        <strong>Message:</strong> {a.message}
+      </div>
+      <button className="announcement-close" onClick={handleCloseAnnouncement}>
+        ×
+      </button>
+    </div>
+  ))
+}
+
+ {/* Upcoming Classes */}
+      <section className="classes-section">
+        <div className="section-header">
+          <h2>UPCOMING CLASSES</h2>
+        </div>
+        <div className="classes-list">
+          {upcomingClasses.map((classItem) => (
+            <div
+              key={classItem.id}
+              className="class-card-horizontal"
+              onClick={() => setSelectedClassId(classItem.id)}
+            >
+              <div className="class-image">
+                <img
+                  src={classItem.image}
+                  alt={classItem.title}
+                />
+              </div>
+              <div className="class-info">
+                <div className="class-time">{classItem.date}&nbsp;&nbsp;{classItem.time}</div>
+                <div className="class-badges">
+                  <span className="badge individual">{classItem.batch}</span>
+                  <span className="badge keyboard">{classItem.plan}</span>
+                  <span className="badge not-started">{classItem.status}</span>
                 </div>
-                <button className="announcement-close" onClick={handleCloseAnnouncement}>×</button>
-              </div>
-            )}
-
-            {/* Upcoming Classes */}
-            <section className="classes-section">
-              <div className="section-header">
-                <h2>UPCOMING CLASSES</h2>
-              </div>
-              <div className="classes-list">
-                {upcomingClasses.map((classItem) => (
-                  <div
-                    key={classItem.id}
-                    className="class-card-horizontal"
-                    onClick={() => setSelectedClassId(classItem.id)}
-                  >
-                    <div className="class-image">
-                      <img
-                        src={classItem.image || "/placeholder.svg?height=120&width=200&query=keyboard lesson"}
-                        alt={classItem.title}
-                      />
-                    </div>
-                    <div className="class-info">
-                      <div className="class-time">{classItem.time}</div>
-                      <div className="class-badges">
-                        <span className="badge individual">{classItem.batch}</span>
-                        <span className="badge keyboard">Keyboard</span>
-                        <span className="badge not-started">Not Started</span>
-                      </div>
-                      <div className="class-details">
-                        <p>Teacher Name: {classItem.teachers.join(", ")}</p>
-                        <p>Level: {classItem.level}</p>
-                        <p>Contract ID: {classItem.contractId}</p>
-                        <p>Plan: {classItem.plan}</p>
-                        <p>Duration: {classItem.duration}</p>
-                      </div>
-                    </div>
-                    <div className="class-actions">
-                      <button className="start-class-btn">JOIN CLASS</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Class Details */}
-            {selectedClassId && (
-              <section className="class-details-section">
-                <div className="section-header">
-                  <h2>CLASS DETAILS</h2>
+                <div className="class-details">
+                  <p>Teacher Name: {classItem.teachers.join(", ")}</p>
+                  <p>Level: {classItem.level}</p>
+                  <p>Contract ID: {classItem.contractId}</p>
+                  <p>Plan: {classItem.plan}</p>
+                  <p>Duration: {classItem.duration}</p>
                 </div>
-                {(() => {
-                  const selectedClass = upcomingClasses.find((c) => c.id === selectedClassId)
-                  return selectedClass ? (
-                    <div className="class-details-card">
-                      <div className="class-image">
-                        <img
-                          src={selectedClass.image || "/placeholder.svg?height=120&width=200&query=keyboard lesson"}
-                          alt={selectedClass.title}
-                        />
-                      </div>
-                      <div className="class-info">
-                        <h3>{selectedClass.title}</h3>
-                        <p>Teacher Name: {selectedClass.teachers.join(", ")}</p>
-                        <p>Time: {selectedClass.time}</p>
-                        <p>Duration: {selectedClass.duration}</p>
-                        <p>Batch: {selectedClass.batch}</p>
-                        <p>Level: {selectedClass.level}</p>
-                        <p>Contract ID: {selectedClass.contractId}</p>
-                        <p>Plan: {selectedClass.plan}</p>
-                      </div>
-                      <div className="class-actions">
-                        <button className="start-class-btn">JOIN CLASS</button>
-                        <button className="close-btn" onClick={() => setSelectedClassId(null)}>CLOSE</button>
-                      </div>
-                    </div>
-                  ) : null
-                })()}
-              </section>
-            )}
+              </div>
+              <div className="class-actions">
+                <button
+  className="start-class-btn"
+  onClick={() => window.open(classItem.link, "_blank")}
+  disabled={!isJoinEnabled(classItem.time, classItem.date)}
+>
+  JOIN CLASS
+</button>
 
-            {/* Completed Classes */}
-            {/* <section className="classes-section">
+
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Class Details */}
+      {selectedClassId && (
+        <section className="class-details-section">
+          <div className="section-header">
+            <h2>CLASS DETAILS</h2>
+          </div>
+          {(() => {
+            const selectedClass = upcomingClasses.find((c) => c.id === selectedClassId);
+            return selectedClass ? (
+              <div className="class-details-card">
+                <div className="class-image">
+                  <img
+                    src={selectedClass.image}
+                    alt={selectedClass.title}
+                  />
+                </div>
+                <div className="class-info">
+                  <h3>{selectedClass.title}</h3>
+                  <p>Teacher Name: {selectedClass.teachers.join(", ")}</p>
+                  <p>Time: {selectedClass.time}</p>
+                  <p>Duration: {selectedClass.duration}</p>
+                  <p>Batch: {selectedClass.batch}</p>
+                  <p>Level: {selectedClass.level}</p>
+                  <p>Contract ID: {selectedClass.contractId}</p>
+                  <p>Plan: {selectedClass.plan}</p>
+                </div>
+                <div className="class-actions">
+                  <button className="start-class-btn" onClick={() => window.open(selectedClass.link, "_blank")}>
+                    JOIN CLASS
+                  </button>
+                  <button className="close-btn" onClick={() => setSelectedClassId(null)}>CLOSE</button>
+                </div>
+              </div>
+            ) : null;
+          })()}
+        </section>
+      )}
+
+      {/* Completed Classes */}
+      {/* <section className="classes-section">
               <div className="section-header">
                 <h2>COMPLETED CLASSES</h2>
               </div>
@@ -293,6 +398,8 @@ const Dashboard = () => {
         )
     }
   }
+
+
 
   return (
     <div className="dashboard-container">

@@ -1,9 +1,11 @@
 const fs = require("fs");
 const path = require("path");
 const { db } = require("../config/firebase");
-const transporter = require("../config/nodemailer"); 
+const { Resend } = require("resend"); // ✅ Import Resend
 const generateOTP = require("../utils/generateOTP");
 const sendWhatsAppOTP = require("../utils/sendWhatsApp");
+
+const resend = new Resend(process.env.RESEND_API_KEY); // initialize Resend
 
 exports.sendOtp = async (req, res) => {
   try {
@@ -29,13 +31,13 @@ exports.sendOtp = async (req, res) => {
       return res.json({ success: true, message: "OTP sent via WhatsApp" });
     }
 
-    // Send via Email
+    // Send via Email using Resend
     if (method === "email") {
       let template = fs.readFileSync(path.join(__dirname, "../files/otp.html"), "utf8");
       template = template.replace("{{OTP}}", otp);
 
-      await transporter.sendMail({
-        from: `"AMJ Academy" <${process.env.EMAIL_USER}>`,
+      await resend.emails.send({
+        from: "AMJ Academy <no-reply@amjacademy.in>", // your verified sender
         to: value,
         subject: "Verify your email address",
         html: template,
@@ -52,42 +54,33 @@ exports.sendOtp = async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to send OTP" });
   }
 };
-
 exports.verifyotp = async (req, res) => {
   try {
-    const { value, otp } = req.body; // 'value' is email/phone/ID
-
+    const { value, otp } = req.body;
     if (!value || !otp) {
       return res.status(400).json({ success: false, message: "Value and OTP are required" });
     }
 
-    // Get OTP document from Firestore
-    const otpDocRef = db.collection("otp_verifications").doc(value);
-    const otpDoc = await otpDocRef.get();
-
-    if (!otpDoc.exists) {
-      return res.status(400).json({ success: false, message: "OTP not found" });
+    const doc = await db.collection("otp_verifications").doc(value).get();
+    if (!doc.exists) {
+      return res.status(404).json({ success: false, message: "OTP not found" });
     }
 
-    const otpData = otpDoc.data();
-    const now = new Date();
-
-    // Check OTP expiry (10 minutes)
-    if (otpData.expireAt.toDate() < now) {
-      await otpDocRef.delete(); // delete expired OTP
-      return res.status(400).json({ success: false, message: "OTP expired. Please request a new one." });
-    }
-
-    // Check OTP match
-    if (otpData.otp === otp) {
-      await otpDocRef.delete(); // delete OTP after successful verification
-      return res.json({ success: true, message: "OTP verified" });
-    } else {
+    const { otp: storedOtp, expireAt } = doc.data();
+    if (otp !== storedOtp) {
       return res.status(400).json({ success: false, message: "Invalid OTP" });
     }
 
-  } catch (err) {
-    console.error("Error verifying OTP:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    if (new Date() > expireAt) {
+      return res.status(400).json({ success: false, message: "OTP expired" });
+    }
+
+    // OTP is valid
+    await db.collection("otp_verifications").doc(value).delete();
+    res.json({ success: true, message: "OTP verified successfully" });
+
+  } catch (error) {
+    console.error("❌ OTP verify error:", error.message);
+    res.status(500).json({ success: false, message: "Failed to verify OTP" });
   }
 };

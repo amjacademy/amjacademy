@@ -29,12 +29,14 @@ exports.create = async (req, res) => {
     // Prepare emails
     const { email, username, password,name,role, phone, profession } = body;
 
-    // 1️⃣ Email to the user
-    const userMailOptions = {
-      from: "AMJacademy@amjacademy.in",
-      to: email,
-      subject: "AMJ Academy Account Created Successfully",
-      html: `
+    
+    // Send both emails (can be in parallel)
+   await Promise.all([
+  resend.emails.send({
+    from: "AMJacademy@amjacademy.in",
+    to: email,
+    subject: "AMJ Academy Account Created Successfully",
+    html: `
         <p>Hi ${name},</p>
         <p>Your account has been successfully created!</p>
         <p><strong>Username:</strong> ${username}</p>
@@ -44,14 +46,13 @@ exports.create = async (req, res) => {
         <br/>
         <p>Regards,<br/>AMJ Academy Team</p>
       `,
-    };
-
-    // 2️⃣ Email to the admin
-    const adminMailOptions = {
-      from: "AMJacademy@amjacademy.in",
-      to: process.env.ADMIN_EMAIL, // add ADMIN_EMAIL in your .env
-      subject: `New ${role} Account Created`,
-      html: `
+      
+  }),
+  resend.emails.send({
+    from: "AMJacademy@amjacademy.in",
+    to: process.env.ADMIN_EMAIL,
+    subject: `New ${role} Account Created`,
+    html: `
         <p>A new ${role} account has been created.</p>
         <p><strong>Name:</strong> ${name}</p>
         <p><strong>Username:</strong> ${username}</p>
@@ -60,14 +61,9 @@ exports.create = async (req, res) => {
         <p><strong>Profession:</strong> ${profession}</p>
         <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
       `,
-    };
-
-    // Send both emails (can be in parallel)
-    await Promise.all([
-      resend.emails.send(userMailOptions),
-      resend.emails.send(adminMailOptions),
-    ]);
-
+       
+  })
+]);
     // Respond
     res.status(201).json(data);
 

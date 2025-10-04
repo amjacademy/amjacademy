@@ -91,10 +91,9 @@ app.get("/api/counts", async (req, res) => {
 
 app.use("/api/arrangements",require("./routes/arrangementRoutes"));
 
-app.use("/api/student", require("./routes/studentRoutes"));
-
 app.use("/api/users", require("./routes/userloginRoutes"));
 
+app.use("/api/student", require("./routes/studentRoutes"));
 
 
 
