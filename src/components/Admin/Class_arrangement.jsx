@@ -57,12 +57,12 @@ export default function Class_arrangement({  schedules, setSchedules }) {
     fetchUsers();
   }, []);
 
-  const formatTime = (timeString) => {
+ /*  const formatTime = (timeString) => {
     const [hours, minutes] = timeString.split(':');
     const date = new Date();
     date.setHours(hours, minutes);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
+  }; */
 
   const convertTo24 = (h, m, ap) => {
     if (!h || !m) return ""
@@ -73,80 +73,95 @@ export default function Class_arrangement({  schedules, setSchedules }) {
   }
 
   const onSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
+  e.preventDefault();
+  setError("");
 
-    const isDual = batchType === "dual";
-    const time24 = convertTo24(hour, minute, ampm);
+  const isDual = batchType === "dual";
 
-    if (!studentId || !teacherId || !day || !date || !time24 || !link || (isDual && !secondStudentId)) {
-      setError("Please fill all required fields.");
-      return;
-    }
+  if (!studentId || !teacherId || !day || !date || !hour || !minute || !ampm || !link || (isDual && !secondStudentId)) {
+    setError("Please fill all required fields.");
+    return;
+  }
 
-    const formatDbTime = (t) => t.slice(0,5); // '22:00:00' → '22:00'
-
-    const conflict = schedules.some((s) => {
-      if (s.date === date && formatDbTime(s.time) === time24) {
-        // Teacher conflict
-        if (s.teacher_id === teacherId && s.id !== editingId) return true;
-
-        // Students conflict
-        const existingStudents = s.batch_type === "dual"
-          ? [s.student1_id, s.student2_id].filter(Boolean)
-          : [s.student1_id];
-
-        const newStudents = isDual
-          ? [studentId, secondStudentId].filter(Boolean)
-          : [studentId];
-
-        // Any overlap?
-        if (s.id !== editingId) {
-          return existingStudents.some(id => newStudents.includes(id));
-        }
-      }
-      return false;
-    });
-
-    if (conflict) {
-      setError("Conflict: This student or teacher already has a schedule at the same time.");
-      return;
-    }
-
-    const scheduleData = {
-      batch_type: batchType,
-      student1_id: studentId,
-      student2_id: isDual ? secondStudentId : null,
-      teacher_id: teacherId,
-      day,
-      date,
-      time: time24,
-      link
-    };
-
-    try {
-      if (isEditing) {
-        // Update existing schedule
-        const res = await axios.put(
-          `https://amjacademy-working.onrender.com/api/arrangements/update/${editingId}`,
-          scheduleData
-        );
-        setSchedules(schedules.map(s => s.id === editingId ? res.data : s));
-        resetForm();
-      } else {
-        // Create new schedule
-        const res = await axios.post(
-          "https://amjacademy-working.onrender.com/api/arrangements/create",
-          scheduleData
-        );
-        setSchedules([...schedules, res.data]);
-        resetForm();
-      }
-    } catch (err) {
-      console.error("Error saving schedule:", err);
-      setError("Failed to save schedule.");
-    }
+  // Convert form input to 24-hour format
+  const convertTo24 = (hour, minute, ampm) => {
+    let h = parseInt(hour, 10);
+    if (ampm === "PM" && h !== 12) h += 12;
+    if (ampm === "AM" && h === 12) h = 0;
+    return `${h.toString().padStart(2, "0")}:${minute.padStart(2, "0")}`;
   };
+  const time24 = convertTo24(hour, minute, ampm);
+
+  // Combine date + time and convert to UTC
+  const localDateTimeStr = `${date}T${time24}:00`; // e.g., "2025-10-05T22:00:00"
+  const utcTime = new Date(localDateTimeStr).toISOString(); // convert to UTC
+
+  // Conflict check: compare in UTC
+  const newScheduleTime = new Date(localDateTimeStr).getTime();
+
+  const conflict = schedules.some((s) => {
+    const existingTime = new Date(s.time).getTime(); // existing UTC timestamp
+
+    if (s.date === date && existingTime === newScheduleTime) {
+      // Teacher conflict
+      if (s.teacher_id === teacherId && s.id !== editingId) return true;
+
+      // Students conflict
+      const existingStudents = s.batch_type === "dual"
+        ? [s.student1_id, s.student2_id].filter(Boolean)
+        : [s.student1_id];
+
+      const newStudents = isDual
+        ? [studentId, secondStudentId].filter(Boolean)
+        : [studentId];
+
+      if (s.id !== editingId) {
+        return existingStudents.some(id => newStudents.includes(id));
+      }
+    }
+
+    return false;
+  });
+
+  if (conflict) {
+    setError("Conflict: This student or teacher already has a schedule at the same time.");
+    return;
+  }
+
+  const scheduleData = {
+    batch_type: batchType,
+    student1_id: studentId,
+    student2_id: isDual ? secondStudentId : null,
+    teacher_id: teacherId,
+    day,
+    date,
+    time: utcTime, // send UTC timestamp
+    link
+  };
+
+  try {
+    if (isEditing) {
+      // Update existing schedule
+      const res = await axios.put(
+        `https://amjacademy-working.onrender.com/api/arrangements/update/${editingId}`,
+        scheduleData
+      );
+      setSchedules(schedules.map(s => s.id === editingId ? res.data : s));
+      resetForm();
+    } else {
+      // Create new schedule
+      const res = await axios.post(
+        "https://amjacademy-working.onrender.com/api/arrangements/create",
+        scheduleData
+      );
+      setSchedules([...schedules, res.data]);
+      resetForm();
+    }
+  } catch (err) {
+    console.error("Error saving schedule:", err);
+    setError("Failed to save schedule.");
+  }
+};
 
   const onDelete = async (id) => {
     try {
@@ -446,7 +461,15 @@ export default function Class_arrangement({  schedules, setSchedules }) {
                       : lookupStudentName(s.student1_id)}
                   </td>
                   <td>{lookupTeacherName(s.teacher_id)}</td>
-                  <td>{s.date} {s.time}</td>
+   <td>
+  {s.date}{" "}
+  {new Date(s.time).toLocaleTimeString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  })}
+</td>
+
                   <td className="truncate">
                     <a href={s.link} target="_blank" rel="noreferrer" className="link">
                       {s.link}

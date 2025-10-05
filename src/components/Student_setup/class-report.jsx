@@ -1,103 +1,80 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import "./class-report.css"
+import { useState, useEffect } from "react";
+import "./class-report.css";
 
 const ClassReport = () => {
-  const [activeTab, setActiveTab] = useState("upcoming")
-  const [filterBy, setFilterBy] = useState("all")
-  const [dateRange, setDateRange] = useState("Aug 20, 2025 - Sep 18, 2025")
+  const [activeTab, setActiveTab] = useState("upcoming");
+  const [filterBy, setFilterBy] = useState("all");
+  const [dateRange, setDateRange] = useState("Aug 20, 2025 - Sep 18, 2025");
+  const [classData, setClassData] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const classData = {
-    upcoming: [
-      {
-        id: 1,
-        date: "Thursday, 21st Aug at 10:00 AM",
-        type: "Individual Batch",
-        subject: "Keyboard",
-        status: "Not Started",
-        curriculum: "N/A",
-        instructor: "Ms. Sarah",
-        image: "/keyboard-lesson.jpg",
-      },
-      {
-        id: 2,
-        date: "Thursday, 22nd Aug at 03:00 AM",
-        type: "Group Batch For Buddy (1/2)",
-        subject: "Piano",
-        status: "Not Started",
-        curriculum: "N/A",
-        instructor: "Mr. John",
-        image: "/piano-lesson.png",
-      },
-      {
-        id: 3,
-        date: "Thursday, 23rd Aug at 04:00 AM",
-        type: "Group Batch For Buddy (1/2)",
-        subject: "Guitar",
-        status: "Not Started",
-        curriculum: "N/A",
-        instructor: "Ms. Emily",
-        image: "/guitar-lesson.png",
-      },
-    ],
-    completed: [
-      {
-        id: 4,
-        date: "Wednesday, 20th Aug at 10:00 PM",
-        type: "Individual Batch",
-        subject: "Keyboard",
-        status: "Completed",
-        curriculum: "S-4 Intermediate ()",
-        instructor: "Ms. Sarah",
-        image: "/keyboard-lesson.jpg",
-      },
-      {
-        id: 5,
-        date: "Tuesday, 19th Aug at 11:00 PM",
-        type: "Sibling Batch",
-        subject: "Piano",
-        status: "Completed",
-        curriculum: "S-5 Intermediate ()",
-        instructor: "Mr. David",
-        image: "/piano-lesson.png",
-      },
-    ],
-    cancelled: [
-      {
-        id: 6,
-        date: "Monday, 18th Aug at 09:00 AM",
-        type: "Group Batch For LB",
-        subject: "Violin",
-        status: "Cancelled",
-        curriculum: "N/A",
-        instructor: "Ms. Lisa",
-        image: "/violin-lesson.jpg",
-      },
-    ],
-    missed: [
-      {
-        id: 7,
-        date: "Sunday, 17th Aug at 02:00 PM",
-        type: "Individual Batch",
-        subject: "Drums",
-        status: "Missed",
-        curriculum: "N/A",
-        instructor: "Mr. Mike",
-        image: "/drums-lesson.jpg",
-      },
-    ],
-  }
+  // Convert frontend tab to backend status
+  const getStatusValue = (tab) => {
+    switch (tab) {
+      case "upcoming":
+        return "upcoming";
+      case "completed":
+        return "completed";
+      case "cancelled":
+        return "cancelled";
+      case "missed":
+        return "missed";
+      default:
+        return "upcoming";
+    }
+  };
 
+  useEffect(() => {
+    const fetchClasses = async () => {
+      try {
+        setLoading(true);
+        const userId = localStorage.getItem("user_id");
+        if (!userId) {
+          console.error("User ID not found in localStorage!");
+          setLoading(false);
+          return;
+        }
+
+        const status = getStatusValue(activeTab);
+
+        // Backend expects these query params: user_id, status, subject
+        const queryParams = new URLSearchParams({
+          user_id: userId,
+          status,
+          subject: filterBy,
+        });
+
+        const response = await fetch(
+          `https://amjacademy-working.onrender.com/api/classreport/fetchclasses?${queryParams}`
+        );
+        const data = await response.json();
+
+        if (!response.ok) throw new Error(data.error || "Failed to fetch classes");
+
+        setClassData(data);
+      } catch (err) {
+        console.error("Error fetching classes:", err);
+        setClassData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClasses();
+  }, [activeTab, filterBy]);
+
+  // Badge helpers
   const getStatusBadge = (status) => {
     const statusClasses = {
-      "Not Started": "status-not-started",
-      Completed: "status-completed",
-      Cancelled: "status-cancelled",
-      Missed: "status-missed",
-    }
-    return statusClasses[status] || "status-default"
-  }
+      upcoming: "status-not-started",
+      completed: "status-completed",
+      cancelled: "status-cancelled",
+      missed: "status-missed",
+    };
+    return statusClasses[status] || "status-default";
+  };
 
   const getSubjectBadge = (subject) => {
     const subjectClasses = {
@@ -106,94 +83,129 @@ const ClassReport = () => {
       Guitar: "subject-guitar",
       Violin: "subject-violin",
       Drums: "subject-drums",
+    };
+    return subjectClasses[subject] || "subject-default";
+  };
+
+  // Image based on subject
+  const getSubjectImage = (subject) => {
+    switch (subject) {
+      case "Piano":
+        return "/piano-lesson.png";
+      case "Guitar":
+        return "/guitar-lesson.png";
+      case "Violin":
+        return "/violin-lesson.jpg";
+      case "Drums":
+        return "/drums-lesson.jpg";
+      default:
+        return "/keyboard-lesson.jpg";
     }
-    return subjectClasses[subject] || "subject-default"
-  }
+  };
 
   return (
     <div className="class-report-container">
-
       <div className="content-header3">
         <h1>CLASS REPORT</h1>
       </div>
 
+      {/* Filters */}
       <div className="class-report-filters">
         <div className="date-filter">
-          <input type="text" value={dateRange} onChange={(e) => setDateRange(e.target.value)} className="date-input" />
+          <input
+            type="text"
+            value={dateRange}
+            onChange={(e) => setDateRange(e.target.value)}
+            className="date-input"
+          />
         </div>
         <div className="student-filter">
-          <select className="filter-select">
-            <option>Filter by Subject</option>
-            <option>All Subjects</option>
-            <option>Keyboard</option>
-            <option>Piano</option>
-            <option>Guitar</option>
+          <select
+            className="filter-select"
+            value={filterBy}
+            onChange={(e) => setFilterBy(e.target.value)}
+          >
+            <option value="all">All Subjects</option>
+            <option value="Keyboard">Keyboard</option>
+            <option value="Piano">Piano</option>
+            <option value="Guitar">Guitar</option>
+            <option value="Violin">Violin</option>
+            <option value="Drums">Drums</option>
           </select>
         </div>
       </div>
 
+      {/* Tabs */}
       <div className="class-tabs">
-        <button
-          className={`tab-btn ${activeTab === "upcoming" ? "active" : ""}`}
-          onClick={() => setActiveTab("upcoming")}
-        >
-          UPCOMING
-        </button>
-        <button
-          className={`tab-btn ${activeTab === "completed" ? "active" : ""}`}
-          onClick={() => setActiveTab("completed")}
-        >
-          COMPLETED
-        </button>
-        <button
-          className={`tab-btn ${activeTab === "cancelled" ? "active" : ""}`}
-          onClick={() => setActiveTab("cancelled")}
-        >
-          CANCELLED
-        </button>
-        <button className={`tab-btn ${activeTab === "missed" ? "active" : ""}`} onClick={() => setActiveTab("missed")}>
-          MISSED
-        </button>
+        {["upcoming", "completed", "cancelled", "missed"].map((tab) => (
+          <button
+            key={tab}
+            className={`tab-btn ${activeTab === tab ? "active" : ""}`}
+            onClick={() => setActiveTab(tab)}
+          >
+            {tab.toUpperCase()}
+          </button>
+        ))}
         <div className="total-classes">
-          Total Upcoming Classes: <span className="count">66</span>
+          Total {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Classes:{" "}
+          <span className="count">{classData.length}</span>
         </div>
       </div>
 
+      {/* Class Cards */}
       <div className="classes-content">
-        {classData[activeTab]?.map((classItem) => (
-          <div key={classItem.id} className="class-item">
-            <div className="class-image">
-              <img src={classItem.image || "/placeholder.svg"} alt={classItem.subject} />
-            </div>
-            <div className="class-details">
-              <div className="class-date">{classItem.date}</div>
-              <div className="class-badges">
-                <span className={`badge type-badge`}>{classItem.type}</span>
-                <span className={`badge subject-badge ${getSubjectBadge(classItem.subject)}`}>{classItem.subject}</span>
-                <span className={`badge status-badge ${getStatusBadge(classItem.status)}`}>{classItem.status}</span>
+        {loading ? (
+          <p>Loading classes...</p>
+        ) : classData.length > 0 ? (
+          classData.map((classItem) => (
+            <div key={classItem.id} className="class-item">
+              <div className="class-image">
+                <img src={getSubjectImage(classItem.subject)} alt={classItem.subject} />
               </div>
-              <div className="class-curriculum">Curriculum Stamp: {classItem.curriculum}</div>
-              <div className="class-instructor">Instructor: {classItem.instructor}</div>
+              <div className="class-details">
+                <div className="class-date">
+                  {new Date(classItem.date).toLocaleDateString()}{"  "}{classItem.day}{" "}
+                  at {new Date(classItem.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                </div>
+                <div className="class-badges">
+                  <span className="badge type-badge">{classItem.batch_type}</span>
+                  <span className={`badge subject-badge ${getSubjectBadge(classItem.subject)}`}>
+                    {classItem.subject}
+                  </span>
+                  <span className={`badge status-badge ${getStatusBadge(classItem.status)}`}>
+                    {classItem.status}
+                  </span>
+                </div>
+                <div className="class-curriculum">
+                  Curriculum Stamp: {classItem.curriculum || "N/A"}
+                </div>
+                <div className="class-instructor">
+                  Instructor: {classItem.teacher_id || "N/A"}
+                </div>
+              </div>
+              <div className="class-actions">
+                {activeTab === "upcoming" && <button className="action-btn start-btn">JOIN</button>}
+                {activeTab === "completed" && <button className="action-btn view-btn">VIEW</button>}
+                {(activeTab === "cancelled" || activeTab === "missed") && (
+                  <button className="action-btn reschedule-btn">RESCHEDULE</button>
+                )}
+              </div>
             </div>
-            <div className="class-actions">
-              {activeTab === "upcoming" && <button className="action-btn start-btn">JOIN</button>}
-              {activeTab === "completed" && <button className="action-btn view-btn">VIEW</button>}
-              {(activeTab === "cancelled" || activeTab === "missed") && (
-                <button className="action-btn reschedule-btn">RESCHEDULE</button>
-              )}
-            </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <p>No classes found for this filter.</p>
+        )}
       </div>
 
-      {activeTab === "completed" && (
+      {/* Completed Extra Section */}
+      {activeTab === "completed" && classData.length > 0 && (
         <div className="view-more-section">
           <button className="view-more-btn">View Post-Class Review</button>
           <button className="view-more-btn secondary">VIEW MORE</button>
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default ClassReport
+export default ClassReport;

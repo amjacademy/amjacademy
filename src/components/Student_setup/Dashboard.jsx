@@ -202,18 +202,18 @@ useEffect(() => {
   const toggleAssignments = () => {
     setAssignmentsOpen(!assignmentsOpen)
   }
-  // Utility function to check if button should be enabled
-const isJoinEnabled = (classTime, classDate) => {
-  const now = new Date();
-  const [hours, minutes, seconds] = classTime.split(":").map(Number);
-  const classDateTime = new Date(classDate);
-  classDateTime.setHours(hours, minutes, seconds);
+ // Utility function to check if join button should be enabled
+const isJoinEnabled = (classTime) => {
+  const now = new Date(); // current user local time
+  const classDateTime = new Date(classTime); // UTC timestamp from DB converted to local
 
+  // 5 minutes before to 15 minutes after
   const fiveMinutesBefore = new Date(classDateTime.getTime() - 5 * 60 * 1000);
-  const fifteenMinutesAfter = new Date(classDateTime.getTime() + 15* 60 * 1000);
+  const fifteenMinutesAfter = new Date(classDateTime.getTime() + 15 * 60 * 1000);
 
   return now >= fiveMinutesBefore && now <= fifteenMinutesAfter;
 };
+
 
   const renderContent = () => {
     switch (activeTab) {
@@ -277,7 +277,11 @@ const isJoinEnabled = (classTime, classDate) => {
                 />
               </div>
               <div className="class-info">
-                <div className="class-time">{classItem.date}&nbsp;&nbsp;{classItem.time}</div>
+                <div className="class-time">{classItem.date}&nbsp;&nbsp;Time: {new Date(classItem.time).toLocaleTimeString(undefined, {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                        })}</div>
                 <div className="class-badges">
                   <span className="badge individual">{classItem.batch}</span>
                   <span className="badge keyboard">{classItem.plan}</span>
@@ -326,7 +330,14 @@ const isJoinEnabled = (classTime, classDate) => {
                 <div className="class-info">
                   <h3>{selectedClass.title}</h3>
                   <p>Teacher Name: {selectedClass.teachers.join(", ")}</p>
-                  <p>Time: {selectedClass.time}</p>
+                  <p>
+                      Time: {new Date(selectedClass.time).toLocaleTimeString(undefined, {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                        })}
+                  </p>
+
                   <p>Duration: {selectedClass.duration}</p>
                   <p>Batch: {selectedClass.batch}</p>
                   <p>Level: {selectedClass.level}</p>
