@@ -84,24 +84,7 @@ useEffect(() => {
 const handleCloseAnnouncement = () => {
   setShowAnnouncement(false)
   localStorage.setItem("announcementClosed", "true")
-}
-  /* const [studentId, setStudentId] = useState(() => {
-    let id = localStorage.getItem('student_id')
-    if (!id) {
-      const adminStudents = JSON.parse(localStorage.getItem('admin_students') || '[]')
-      if (adminStudents.length > 0) {
-        id = adminStudents[0].id
-        localStorage.setItem('student_id', id)
-        localStorage.setItem('username', adminStudents[0].name || 'Student')
-        localStorage.setItem('userType', 'student')
-      } else {
-        id = 'AMJS00001'
-      }
-    }
-    return id
-  })
- */
-  
+} 
   const [studentId]=useState(1);
   
 useEffect(() => {

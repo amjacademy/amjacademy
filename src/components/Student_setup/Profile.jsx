@@ -11,13 +11,13 @@ const Profile = () => {
   const profileImageInputRef = useRef(null)
   const videoInputRef = useRef(null)
   const photoInputRef = useRef(null)
+  const [storyCharacters, setStoryCharacters] = useState([])
 
-  // Load user data from localStorage
   const [userProfile, setUserProfile] = useState({
     name: "Student",
     email: "",
     username: "",
-    avatar: "images/Profile_pic.jpg?height=200&width=200",
+    avatar: "/placeholder.svg",
     totalClassesAttended: 0,
     progress: "0%",
     achievements: 0,
@@ -28,122 +28,195 @@ const Profile = () => {
 
   const [unlockedCharacters, setUnlockedCharacters] = useState(() => {
     const saved = localStorage.getItem("unlockedCharacters")
-    return saved ? JSON.parse(saved) : [0, 1, 2, 5, 10, 15, 20, 25, 30] // Some unlocked by default
+    return saved ? JSON.parse(saved) : []
   })
 
-  // Generate 60 story characters with different types and tiers
-  const storyCharacters = [
-    // Tier 1: Animals (0-19)
-    { id: 0, emoji: "🐶", name: "Puppy Pal", tier: "bronze", requirement: "Join the class" },
-    { id: 1, emoji: "🐱", name: "Kitty Friend", tier: "bronze", requirement: "First lesson" },
-    { id: 2, emoji: "🐰", name: "Bunny Buddy", tier: "bronze", requirement: "2 classes" },
-    { id: 3, emoji: "🐻", name: "Bear Hero", tier: "bronze", requirement: "3 classes" },
-    { id: 4, emoji: "🐼", name: "Panda Star", tier: "bronze", requirement: "4 classes" },
-    { id: 5, emoji: "🦁", name: "Lion King", tier: "silver", requirement: "5 classes" },
-    { id: 6, emoji: "🐯", name: "Tiger Champion", tier: "silver", requirement: "6 classes" },
-    { id: 7, emoji: "🦊", name: "Fox Genius", tier: "silver", requirement: "7 classes" },
-    { id: 8, emoji: "🐨", name: "Koala Master", tier: "silver", requirement: "8 classes" },
-    { id: 9, emoji: "🐵", name: "Monkey Fun", tier: "silver", requirement: "9 classes" },
-    { id: 10, emoji: "🦄", name: "Unicorn Magic", tier: "gold", requirement: "10 classes" },
-    { id: 11, emoji: "🐉", name: "Dragon Power", tier: "gold", requirement: "11 classes" },
-    { id: 12, emoji: "🦋", name: "Butterfly Grace", tier: "gold", requirement: "12 classes" },
-    { id: 13, emoji: "🐝", name: "Busy Bee", tier: "gold", requirement: "13 classes" },
-    { id: 14, emoji: "🐬", name: "Dolphin Splash", tier: "gold", requirement: "14 classes" },
-    { id: 15, emoji: "🦅", name: "Eagle Soar", tier: "platinum", requirement: "15 classes" },
-    { id: 16, emoji: "🦉", name: "Wise Owl", tier: "platinum", requirement: "16 classes" },
-    { id: 17, emoji: "🦚", name: "Peacock Pride", tier: "platinum", requirement: "17 classes" },
-    { id: 18, emoji: "🐧", name: "Penguin Cool", tier: "platinum", requirement: "18 classes" },
-    { id: 19, emoji: "🦈", name: "Shark Speed", tier: "platinum", requirement: "19 classes" },
-
-    // Tier 2: Music & Arts (20-39)
-    { id: 20, emoji: "🎵", name: "Music Note", tier: "bronze", requirement: "Practice 1 song" },
-    { id: 21, emoji: "🎸", name: "Guitar Star", tier: "bronze", requirement: "Learn chords" },
-    { id: 22, emoji: "🎹", name: "Piano Pro", tier: "bronze", requirement: "Play melody" },
-    { id: 23, emoji: "🎤", name: "Singer Voice", tier: "bronze", requirement: "Sing along" },
-    { id: 24, emoji: "🎧", name: "Music Lover", tier: "bronze", requirement: "Listen daily" },
-    { id: 25, emoji: "🎨", name: "Artist Brush", tier: "silver", requirement: "Create art" },
-    { id: 26, emoji: "🎭", name: "Drama King", tier: "silver", requirement: "Perform" },
-    { id: 27, emoji: "🎪", name: "Circus Fun", tier: "silver", requirement: "Show talent" },
-    { id: 28, emoji: "🎬", name: "Movie Maker", tier: "silver", requirement: "Record video" },
-    { id: 29, emoji: "🎯", name: "Target Hit", tier: "silver", requirement: "Hit goals" },
-    { id: 30, emoji: "🎲", name: "Game Master", tier: "gold", requirement: "Play games" },
-    { id: 31, emoji: "🎰", name: "Lucky Winner", tier: "gold", requirement: "Win challenge" },
-    { id: 32, emoji: "🎳", name: "Strike King", tier: "gold", requirement: "Perfect score" },
-    { id: 33, emoji: "🎺", name: "Trumpet Hero", tier: "gold", requirement: "Master brass" },
-    { id: 34, emoji: "🎻", name: "Violin Virtuoso", tier: "gold", requirement: "String master" },
-    { id: 35, emoji: "🥁", name: "Drum Beat", tier: "platinum", requirement: "Keep rhythm" },
-    { id: 36, emoji: "🎼", name: "Composer", tier: "platinum", requirement: "Write music" },
-    { id: 37, emoji: "🎶", name: "Melody Maker", tier: "platinum", requirement: "Create song" },
-    { id: 38, emoji: "🎙️", name: "Podcast Star", tier: "platinum", requirement: "Record show" },
-    { id: 39, emoji: "📻", name: "Radio Host", tier: "platinum", requirement: "Broadcast" },
-
-    // Tier 3: Stars & Space (40-49)
-    { id: 40, emoji: "⭐", name: "Bright Star", tier: "bronze", requirement: "Shine bright" },
-    { id: 41, emoji: "🌟", name: "Super Star", tier: "silver", requirement: "Excel" },
-    { id: 42, emoji: "✨", name: "Sparkle Magic", tier: "silver", requirement: "Be creative" },
-    { id: 43, emoji: "💫", name: "Dizzy Star", tier: "gold", requirement: "Amaze all" },
-    { id: 44, emoji: "🌠", name: "Shooting Star", tier: "gold", requirement: "Fast learner" },
-    { id: 45, emoji: "🌙", name: "Moon Glow", tier: "platinum", requirement: "Night owl" },
-    { id: 46, emoji: "☀️", name: "Sunshine", tier: "platinum", requirement: "Brighten day" },
-    { id: 47, emoji: "🌈", name: "Rainbow Joy", tier: "diamond", requirement: "Spread joy" },
-    { id: 48, emoji: "☁️", name: "Cloud Nine", tier: "diamond", requirement: "Sky high" },
-    { id: 49, emoji: "⚡", name: "Lightning Fast", tier: "diamond", requirement: "Quick mind" },
-
-    // Tier 4: Achievements (50-59)
-    { id: 50, emoji: "🏆", name: "Champion", tier: "gold", requirement: "Win contest" },
-    { id: 51, emoji: "🥇", name: "Gold Medal", tier: "gold", requirement: "First place" },
-    { id: 52, emoji: "🥈", name: "Silver Medal", tier: "silver", requirement: "Second place" },
-    { id: 53, emoji: "🥉", name: "Bronze Medal", tier: "bronze", requirement: "Third place" },
-    { id: 54, emoji: "🎖️", name: "Military Honor", tier: "platinum", requirement: "Discipline" },
-    { id: 55, emoji: "👑", name: "Crown Royalty", tier: "diamond", requirement: "Be the best" },
-    { id: 56, emoji: "💎", name: "Diamond Elite", tier: "diamond", requirement: "Perfection" },
-    { id: 57, emoji: "🔥", name: "Fire Spirit", tier: "platinum", requirement: "Passion" },
-    { id: 58, emoji: "💪", name: "Strong Will", tier: "platinum", requirement: "Never quit" },
-    { id: 59, emoji: "🎓", name: "Graduate", tier: "diamond", requirement: "Complete all" },
-  ]
-
+  // -------------------- FETCH PROFILE --------------------
   useEffect(() => {
-    const storedProfile = localStorage.getItem("profile_student")
-    if (storedProfile) {
-      const profileData = JSON.parse(storedProfile)
-      setUserProfile((prev) => ({
-        ...prev,
-        name: profileData.name || prev.name,
-        email: profileData.email || "",
-        username: profileData.username || "",
-        avatar: profileData.image || prev.avatar,
-        enrolledSubjects: [profileData.profession || "Piano"],
-      }))
+    const fetchProfile = async () => {
+      const userId = localStorage.getItem("user_id")
+      if (!userId) return
+
+      try {
+        const res = await fetch(`https://amjacademy-working.onrender.com/profile/${userId}`)
+        if (res.ok) {
+          const data = await res.json()
+          setUserProfile({
+            name: data.name || "Student",
+            email: data.email || "",
+            username: data.username || "",
+            avatar: data.avatar || "/placeholder.svg",
+            enrolledSubjects: data.enrolled_subjects || [],
+            totalClassesAttended: data.total_classes_attended || 0,
+            progress: data.progress || "0%",
+            achievements: data.achievements || 0,
+            videos: data.media?.filter(m => m.resource_type === "video") || [],
+            photos: data.media?.filter(m => m.resource_type === "photo") || [],
+          })
+          setUnlockedCharacters(data.unlocked || [])
+        } else if (res.status === 404) {
+          console.log("Profile not found. Initialize it first.")
+        }
+      } catch (err) {
+        console.error("Error fetching profile:", err)
+      }
     }
+
+    fetchProfile()
   }, [])
 
+  // -------------------- FETCH CHARACTERS --------------------
+  useEffect(() => {
+    const fetchCharacters = async () => {
+      try {
+        const res = await fetch("https://amjacademy-working.onrender.com/story-characters")
+        if (res.ok) {
+          const data = await res.json()
+          setStoryCharacters(data)
+        }
+      } catch (err) {
+        console.error("Error fetching story characters:", err)
+      }
+    }
+    fetchCharacters()
+  }, [])
+
+  // -------------------- FETCH MEDIA --------------------
+ useEffect(() => {
+  const fetchMedia = async () => {
+    try {
+      const userId = localStorage.getItem("user_id");
+      const res = await fetch(`https://amjacademy-working.onrender.com/media/${userId}`);
+      if (!res.ok) throw new Error("Failed to fetch media");
+
+      const data = await res.json();
+
+      // Map to include only the fields needed and ensure we use secure_url
+      const videos = data
+        .filter((m) => m.resource_type === "video")
+        .map((m) => ({
+          name: m.original_filename || "video",
+          url: m.secure_url, // Use secure_url, not public_id
+        }));
+
+      const photos = data
+        .filter((m) => m.resource_type === "photo")
+        .map((m) => ({
+          name: m.original_filename || "photo",
+          url: m.secure_url,
+        }));
+
+      setUploadedVideos(videos);
+      setUploadedPhotos(photos);
+    } catch (err) {
+      console.error("Error fetching media:", err);
+    }
+  };
+
+  fetchMedia();
+}, []);
+
+
+  // -------------------- SAVE UNLOCKED CHARACTERS --------------------
   useEffect(() => {
     localStorage.setItem("unlockedCharacters", JSON.stringify(unlockedCharacters))
   }, [unlockedCharacters])
 
-  const handleProfileImageChange = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      setNewProfileImage(URL.createObjectURL(file))
+  // -------------------- HANDLE PROFILE IMAGE --------------------
+const handleProfileImageChange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  try {
+    const userId = localStorage.getItem("user_id"); // current logged-in user
+
+    // Prepare form data for upload
+    const formData = new FormData();
+    formData.append("avatar", file); // must match upload.single("avatar")
+// must match backend parser.single("avatar")
+
+    // Upload to media endpoint
+    const mediaRes = await fetch(`https://amjacademy-working.onrender.com/profile/${userId}/avatar`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!mediaRes.ok) throw new Error("Failed to upload image");
+
+    const mediaData = await mediaRes.json();
+    const newAvatarUrl = mediaData.secure_url; // URL returned from backend
+
+    // Update frontend state
+    setUserProfile((prev) => ({
+      ...prev,
+      avatar: newAvatarUrl,
+    }));
+
+    console.log("Profile image updated successfully!");
+  } catch (err) {
+    console.error("Error updating profile image:", err);
+  }
+};
+
+
+
+// -------------------- HANDLE VIDEO UPLOAD --------------------
+const handleVideoUpload = async (e) => {
+  const files = Array.from(e.target.files);
+  const userId = localStorage.getItem("user_id");
+  const uploaded = [];
+
+  for (const file of files) {
+    const formData = new FormData();
+    formData.append("file", file); // instead of "media"
+    formData.append("type", "video");
+
+    try {
+      const res = await fetch(`https://amjacademy-working.onrender.com/media/${userId}/upload`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("Video upload failed");
+      const data = await res.json();
+      uploaded.push({ name: file.name, url: data.secure_url, resource_type: "video" });
+    } catch (err) {
+      console.error(err);
     }
   }
 
-  const handleVideoUpload = (e) => {
-    const files = Array.from(e.target.files)
-    setUploadedVideos((prev) => [
-      ...prev,
-      ...files.map((file) => ({ name: file.name, url: URL.createObjectURL(file) })),
-    ])
+  setUploadedVideos((prev) => [...prev, ...uploaded]);
+};
+
+// -------------------- HANDLE PHOTO UPLOAD --------------------
+
+const handlePhotoUpload = async (e) => {
+  const files = Array.from(e.target.files);
+  const userId = localStorage.getItem("user_id");
+  const uploaded = [];
+
+  for (const file of files) {
+    const formData = new FormData();
+    formData.append("file", file); // instead of "media"
+    formData.append("type", "photo");
+
+    try {
+      const res = await fetch(`https://amjacademy-working.onrender.com/media/${userId}/upload`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("Photo upload failed");
+      const data = await res.json();
+      uploaded.push({ name: file.name, url: data.secure_url, resource_type: "photo" });
+    } catch (err) {
+      console.error(err);
+    }
   }
 
-  const handlePhotoUpload = (e) => {
-    const files = Array.from(e.target.files)
-    setUploadedPhotos((prev) => [
-      ...prev,
-      ...files.map((file) => ({ name: file.name, url: URL.createObjectURL(file) })),
-    ])
-  }
-
+  setUploadedPhotos((prev) => [...prev, ...uploaded]);
+};
+  // -------------------- TIER COLORS --------------------
   const getTierColor = (tier) => {
     const colors = {
       bronze: "#cd7f32",
@@ -155,17 +228,12 @@ const Profile = () => {
     return colors[tier] || "#ccc"
   }
 
+  // -------------------- JSX --------------------
   return (
     <div className="profile-container">
+      {/* MUSIC NOTES ANIMATION */}
       <div className="music-notes-container">
-        <div className="music-note">♪</div>
-        <div className="music-note">♫</div>
-        <div className="music-note">♪</div>
-        <div className="music-note">♫</div>
-        <div className="music-note">♪</div>
-        <div className="music-note">♫</div>
-        <div className="music-note">♪</div>
-        <div className="music-note">♫</div>
+        {["♪","♫","♪","♫","♪","♫","♪","♫"].map((note,i)=><div key={i} className="music-note">{note}</div>)}
       </div>
 
       <div className="content-header">
@@ -174,17 +242,16 @@ const Profile = () => {
 
       <div className="profile-content">
         <div className="profile-main">
+          {/* PROFILE INFO */}
           <div className="profile-info-centered">
             <div className="profile-avatar-center">
               <div className="avatar-glow"></div>
               <img
-                src={newProfileImage || userProfile.avatar || "/placeholder.svg"}
+                src={newProfileImage || userProfile.avatar}
                 alt={userProfile.name}
                 className="avatar-image-center"
               />
-              <button className="edit-button-floating" onClick={() => profileImageInputRef.current.click()}>
-                ✏️
-              </button>
+              <button className="edit-button-floating" onClick={()=>profileImageInputRef.current.click()}>✏️</button>
               <input
                 type="file"
                 ref={profileImageInputRef}
@@ -196,152 +263,79 @@ const Profile = () => {
             <h2 className="profile-name-center">{userProfile.name}</h2>
           </div>
 
+          {/* INFO CARDS */}
           <div className="info-cards-grid">
-            <div className="info-card info-card-purple">
-              <div className="info-icon">📧</div>
-              <div className="info-content">
-                <span className="info-label">Email</span>
-                <span className="info-value">{userProfile.email || "Not provided"}</span>
+            {[
+              { icon:"📧", label:"Email", value:userProfile.email },
+              { icon:"👤", label:"Username", value:userProfile.username },
+              { icon:"🎓", label:"Classes Attended", value:userProfile.totalClassesAttended },
+              { icon:"📊", label:"Progress", value:userProfile.progress },
+              { icon:"🏆", label:"Achievements", value:userProfile.achievements },
+              { icon:"📚", label:"Subjects", value:userProfile.enrolledSubjects.join(", ") || "None" }
+            ].map((card,i)=>(
+              <div key={i} className={`info-card info-card-${i}`} >
+                <div className="info-icon">{card.icon}</div>
+                <div className="info-content">
+                  <span className="info-label">{card.label}</span>
+                  <span className="info-value">{card.value}</span>
+                </div>
               </div>
-            </div>
-
-            <div className="info-card info-card-blue">
-              <div className="info-icon">👤</div>
-              <div className="info-content">
-                <span className="info-label">Username</span>
-                <span className="info-value">{userProfile.username || "Not provided"}</span>
-              </div>
-            </div>
-
-            <div className="info-card info-card-green">
-              <div className="info-icon">🎓</div>
-              <div className="info-content">
-                <span className="info-label">Classes Attended</span>
-                <span className="info-value">{userProfile.totalClassesAttended}</span>
-              </div>
-            </div>
-
-            <div className="info-card info-card-orange">
-              <div className="info-icon">📊</div>
-              <div className="info-content">
-                <span className="info-label">Progress</span>
-                <span className="info-value">{userProfile.progress}</span>
-              </div>
-            </div>
-
-            <div className="info-card info-card-pink">
-              <div className="info-icon">🏆</div>
-              <div className="info-content">
-                <span className="info-label">Achievements</span>
-                <span className="info-value">{userProfile.achievements}</span>
-              </div>
-            </div>
-
-            <div className="info-card info-card-yellow">
-              <div className="info-icon">📚</div>
-              <div className="info-content">
-                <span className="info-label">Subjects</span>
-                <span className="info-value">{userProfile.enrolledSubjects.join(", ") || "None"}</span>
-              </div>
-            </div>
+            ))}
           </div>
 
+          {/* MEDIA SECTION */}
           <div className="profile-sections">
             <div className="section-card section-card-media">
               <div className="section-header">
                 <h3>🎬📸 My Media</h3>
-                <button className="section-icon">📱</button>
               </div>
-              <div className="section-content">
-                <div className="media-container">
-                  <div className="videos-section">
-                    <h4>🎬 My Videos</h4>
-                    <button className="upload-button" onClick={() => videoInputRef.current.click()}>
-                      📤 Upload Video
-                    </button>
-                    <input
-                      type="file"
-                      ref={videoInputRef}
-                      onChange={handleVideoUpload}
-                      accept="video/*"
-                      multiple
-                      style={{ display: "none" }}
-                    />
-                    {uploadedVideos.length > 0 ? (
-                      <div className="videos-grid">
-                        {uploadedVideos.map((video, index) => (
-                          <div key={index} className="video-item">
-                            <video src={video.url} controls width="200" />
-                            <p>{video.name}</p>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="no-content">🎥 No Videos Yet!</p>
-                    )}
-                  </div>
+              <div className="section-content media-container">
+                <div className="videos-section">
+                  <h4>🎬 My Videos</h4>
+                  <button className="upload-button" onClick={()=>videoInputRef.current.click()}>📤 Upload Video</button>
+                  <input type="file" ref={videoInputRef} onChange={handleVideoUpload} accept="video/*" multiple style={{ display:"none" }}/>
+                  {uploadedVideos.length>0 ? <div className="videos-grid">
+                    {uploadedVideos.map((v,i)=><div key={i} className="video-item"><video src={v.url} controls width="200" /><p>{v.name}</p></div>)}
+                  </div> : <p className="no-content">🎥 No Videos Yet!</p>}
+                </div>
 
-                  <div className="photos-section">
-                    <h4>📸 My Photos</h4>
-                    <button className="upload-button" onClick={() => photoInputRef.current.click()}>
-                      📤 Upload Photo
-                    </button>
-                    <input
-                      type="file"
-                      ref={photoInputRef}
-                      onChange={handlePhotoUpload}
-                      accept="image/*"
-                      multiple
-                      style={{ display: "none" }}
-                    />
-                    {uploadedPhotos.length > 0 ? (
-                      <div className="photos-grid">
-                        {uploadedPhotos.map((photo, index) => (
-                          <a key={index} href={photo.url} target="_blank" className="photo-item" rel="noreferrer">
-                            📄 {photo.name}
-                          </a>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="no-content">📷 No Photos Yet!</p>
-                    )}
-                  </div>
+                <div className="photos-section">
+                  <h4>📸 My Photos</h4>
+                  <button className="upload-button" onClick={()=>photoInputRef.current.click()}>📤 Upload Photo</button>
+                  <input type="file" ref={photoInputRef} onChange={handlePhotoUpload} accept="image/*" multiple style={{ display:"none" }}/>
+                  {uploadedPhotos.length>0 ? <div className="photos-grid">
+                    {uploadedPhotos.map((p,i)=><a key={i} href={p.url} target="_blank" rel="noreferrer" className="photo-item">📄 {p.name}</a>)}
+                  </div> : <p className="no-content">📷 No Photos Yet!</p>}
                 </div>
               </div>
             </div>
           </div>
 
+          {/* STORY CHARACTERS */}
           <div className="story-characters-section">
             <div className="characters-header">
               <h2 className="characters-title">🌟 MY STORY CHARACTERS 🌟</h2>
               <div className="characters-progress">
-                <span className="progress-badge">
-                  {unlockedCharacters.length} / {storyCharacters.length}
-                </span>
+                <span className="progress-badge">{unlockedCharacters.length} / {storyCharacters.length}</span>
                 <span className="progress-text">Characters Unlocked!</span>
               </div>
             </div>
 
             <div className="characters-grid">
-              {storyCharacters.map((character) => {
-                const isUnlocked = unlockedCharacters.includes(character.id)
+              {storyCharacters.map((c)=> {
+                const isUnlocked = unlockedCharacters.includes(c.id)
                 return (
-                  <div
-                    key={character.id}
-                    className={`character-card ${isUnlocked ? "unlocked" : "locked"}`}
-                    style={{
-                      borderColor: isUnlocked ? getTierColor(character.tier) : "#ccc",
-                    }}
-                  >
-                    <div className="character-emoji">{isUnlocked ? character.emoji : "🔒"}</div>
-                    <div className="character-name">{isUnlocked ? character.name : "???"}</div>
-                    <div className={`character-tier tier-${character.tier}`}>{character.tier.toUpperCase()}</div>
-                    <div className="character-requirement">{isUnlocked ? "✓ Unlocked!" : character.requirement}</div>
+                  <div key={c.id} className={`character-card ${isUnlocked ? "unlocked":"locked"}`} style={{borderColor: isUnlocked?getTierColor(c.tier):"#ccc"}}>
+                    <div className="character-emoji">{isUnlocked ? c.emoji : "🔒"}</div>
+                    <div className="character-name">{isUnlocked ? c.name : "???"}</div>
+                    <div className={`character-tier tier-${c.tier}`}>{c.tier.toUpperCase()}</div>
+                    <div className="character-requirement">{isUnlocked ? "✓ Unlocked!" : c.requirement}</div>
                   </div>
                 )
               })}
             </div>
           </div>
+
         </div>
       </div>
     </div>

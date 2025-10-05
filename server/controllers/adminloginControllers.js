@@ -17,12 +17,12 @@ exports.Login = async (req, res) => {
   if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
     const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: "172800m" });
 
-    res.clearCookie("adminToken", {
+   /*  res.clearCookie("adminToken", {
   path: "/",
   httpOnly: true,
   secure: true,
   sameSite: "None"
-});
+}); */
     // Set JWT in HttpOnly cookie
   res.cookie("adminToken", token, {
   httpOnly: true,

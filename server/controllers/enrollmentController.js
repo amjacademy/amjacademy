@@ -73,7 +73,6 @@ exports.create = async (req, res) => {
   }
 };
 
-
 exports.remove = async (req, res) => {
   const { id } = req.params;
   const { data, error } = await deleteEnrollment(id);

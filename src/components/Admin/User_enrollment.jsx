@@ -38,8 +38,6 @@ useEffect(() => {
   fetchEnrollments();
 }, []);
 
-
-
   const genId = () => {
     if (disabled) return
     setDisabled(true)

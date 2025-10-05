@@ -10,9 +10,10 @@ exports.fetchUpcomingClasses = async (req, res) => {
     console.log("Fetching upcoming classes for user:", userId);
 
     const { data: classes, error } = await supabase
-      .from("arrangements")
-      .select("*")
-      .eq("student1_id", userId);
+  .from("arrangements")
+  .select("*")
+  .or(`student1_id.eq.${userId},student2_id.eq.${userId}`);
+
 
     if (error) throw error;
 
