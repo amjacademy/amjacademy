@@ -55,6 +55,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  justify-content: flex-start;
 }
 
 .checkbox-group input[type="checkbox"] {
@@ -91,4 +92,47 @@
 .modal-buttons button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.terms-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+}
+
+.terms-modal-content {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  position: relative;
+}
+
+.close-terms-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #ff0000;
+  border: none;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.close-terms-btn:hover {
+  background: #cc0000;
 }
