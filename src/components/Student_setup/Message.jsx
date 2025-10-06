@@ -186,7 +186,7 @@ const Message = () => {
             <div className="chat-header">
               <div className="chat-contact-info">
                 <img
-                  src={currentContact.avatar || "/placeholder.svg"}
+                  src={currentContact.avatar || "anto-logo.jpg"}
                   alt={currentUser}
                   className="chat-avatar"
                 />

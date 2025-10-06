@@ -1,6 +1,6 @@
 .message-container {
   padding: 20px;
-  background: linear-gradient(135deg, #ff6b9d 0%, #c44569 25%, #f8b500 50%, #00d2ff 75%, #3742fa 100%);
+  /* background: linear-gradient(135deg, #ff6b9d 0%, #c44569 25%, #f8b500 50%, #00d2ff 75%, #3742fa 100%); */
   min-height: 100vh;
   font-family: "Arial", sans-serif;
 }
@@ -28,7 +28,7 @@
   padding: 0;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(10px);
-  height: calc(100vh - 200px);
+  height: calc(100vh - 150px);
   overflow: hidden;
 }
 
@@ -204,7 +204,7 @@
 }
 
 .message-content {
-  max-width: 70%;
+  max-width: 100%;
   padding: 12px 18px;
   border-radius: 20px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);

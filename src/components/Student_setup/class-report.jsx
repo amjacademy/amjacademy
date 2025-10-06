@@ -112,12 +112,16 @@ const ClassReport = () => {
       {/* Filters */}
       <div className="class-report-filters">
         <div className="date-filter">
-          <input
-            type="text"
+          <select
+            className="date-select"
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
-            className="date-input"
-          />
+          >
+            <option value="Aug 20, 2025 - Sep 18, 2025">Aug 20, 2025 - Sep 18, 2025</option>
+            <option value="Sep 19, 2025 - Oct 18, 2025">Sep 19, 2025 - Oct 18, 2025</option>
+            <option value="Oct 19, 2025 - Nov 18, 2025">Oct 19, 2025 - Nov 18, 2025</option>
+            <option value="Nov 19, 2025 - Dec 18, 2025">Nov 19, 2025 - Dec 18, 2025</option>
+          </select>
         </div>
         <div className="student-filter">
           <select
@@ -143,7 +147,7 @@ const ClassReport = () => {
             className={`tab-btn ${activeTab === tab ? "active" : ""}`}
             onClick={() => setActiveTab(tab)}
           >
-            {tab.toUpperCase()}
+            {tab === "cancelled" ? "LEAVE" : tab === "missed" ? "LAST MINUTE CANCEL" : tab.toUpperCase()}
           </button>
         ))}
         <div className="total-classes">
@@ -173,7 +177,7 @@ const ClassReport = () => {
                     {classItem.subject}
                   </span>
                   <span className={`badge status-badge ${getStatusBadge(classItem.status)}`}>
-                    {classItem.status}
+                    {classItem.status === "cancelled" ? "Leave" : classItem.status === "missed" ? "Last Minute Cancel" : classItem.status}
                   </span>
                 </div>
                 <div className="class-curriculum">
@@ -184,7 +188,14 @@ const ClassReport = () => {
                 </div>
               </div>
               <div className="class-actions">
-                {activeTab === "upcoming" && <button className="action-btn start-btn">JOIN</button>}
+                {activeTab === "upcoming" && (
+                  <button
+                    className="action-btn start-btn"
+                  onClick={() => window.location.href = "/dashboard"}
+                  >
+                    GO TO DASHBOARD
+                  </button>
+                )}
                 {activeTab === "completed" && <button className="action-btn view-btn">VIEW</button>}
                 {(activeTab === "cancelled" || activeTab === "missed") && (
                   <button className="action-btn reschedule-btn">RESCHEDULE</button>

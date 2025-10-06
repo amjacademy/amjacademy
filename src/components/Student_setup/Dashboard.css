@@ -700,6 +700,10 @@ body {
 
 .class-actions {
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
 }
 
 .start-class-btn,
@@ -708,13 +712,14 @@ body {
   background: linear-gradient(135deg, #a29bfe, #6c5ce7);
   color: white;
   border: none;
-  padding: 10px 20px;
+  padding: 12px 24px;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+  min-width: 120px;
 }
 
 .start-class-btn:hover,
@@ -731,6 +736,47 @@ body {
 
 .view-btn:hover {
   background: linear-gradient(135deg, #00b894, #00a085);
+}
+
+.leave-class-btn {
+  /* Red gradient for leave button */
+  background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.leave-class-btn:hover {
+  background: linear-gradient(135deg, #ff5252, #ff7043);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+}
+
+.last-minute-cancel-btn {
+  background: linear-gradient(135deg, #00cec9, #00b894);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(0, 206, 201, 0.3);
+  width: 100%;
+  text-align: center;
+}
+
+.last-minute-cancel-btn:hover {
+  background: linear-gradient(135deg, #00b894, #00a085);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 206, 201, 0.4);
 }
 
 /* View More Section */

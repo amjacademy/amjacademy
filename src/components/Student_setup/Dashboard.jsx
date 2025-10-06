@@ -8,6 +8,7 @@ import Footer from "../Footer/footer.jsx"
 import ClassReport from "./class-report.jsx"
 import MyAssignments from "./my-assignments.jsx"
 import PunctualityReport from "./punctuality-repot.jsx"
+import LeaveModal from "../common/LeaveModal.jsx"
 
 const Dashboard = () => {
   const userType="Student";
@@ -20,9 +21,11 @@ const Dashboard = () => {
   const [showAnnouncement, setShowAnnouncement] = useState(true)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [announcements, setAnnouncements] = useState([])
-   const [upcomingClasses, setUpcomingClasses] = useState([]);
+  const [upcomingClasses, setUpcomingClasses] = useState([]);
   const [selectedClassId, setSelectedClassId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [selectedLeaveClass, setSelectedLeaveClass] = useState(null);
 
 const formatTime = (timeStr) => {
   if (!timeStr) return "";
@@ -202,6 +205,35 @@ useEffect(() => {
   const toggleAssignments = () => {
     setAssignmentsOpen(!assignmentsOpen)
   }
+
+  const handleLeaveSubmit = async (leaveData) => {
+    try {
+      const response = await fetch("https://amjacademy-working.onrender.com/api/leave/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "user_id": userId,
+        },
+        body: JSON.stringify(leaveData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        alert("Leave request submitted successfully!");
+        // Optionally, refresh the upcoming classes or update the state
+        fetchUpcomingClasses();
+      } else {
+        alert("Failed to submit leave request: " + (data.message || "Unknown error"));
+      }
+    } catch (error) {
+      console.error("Error submitting leave request:", error);
+      alert("Failed to submit leave request. Please try again.");
+    }
+  };
  // Utility function to check if join button should be enabled
 const isJoinEnabled = (classTime) => {
   const now = new Date(); // current user local time
@@ -303,8 +335,24 @@ const isJoinEnabled = (classTime) => {
 >
   JOIN CLASS
 </button>
-
-
+                <button
+                  className="leave-class-btn"
+                  onClick={() => {
+                    setSelectedLeaveClass(classItem);
+                    setShowLeaveModal(true);
+                  }}
+                >
+                  LEAVE
+                </button>
+                <button
+                  className="last-minute-cancel-btn"
+                  onClick={() => {
+                    setSelectedLeaveClass(classItem);
+                    setShowLeaveModal(true);
+                  }}
+                >
+                  LAST MINUTE CANCEL
+                </button>
               </div>
             </div>
           ))}
@@ -347,6 +395,24 @@ const isJoinEnabled = (classTime) => {
                 <div className="class-actions">
                   <button className="start-class-btn" onClick={() => window.open(selectedClass.link, "_blank")}>
                     JOIN CLASS
+                  </button>
+                  <button
+                    className="leave-class-btn"
+                    onClick={() => {
+                      setSelectedLeaveClass(selectedClass);
+                      setShowLeaveModal(true);
+                    }}
+                  >
+                    LEAVE
+                  </button>
+                  <button
+                    className="last-minute-cancel-btn"
+                    onClick={() => {
+                      setSelectedLeaveClass(selectedClass);
+                      setShowLeaveModal(true);
+                    }}
+                  >
+                    LAST MINUTE CANCEL
                   </button>
                   <button className="close-btn" onClick={() => setSelectedClassId(null)}>CLOSE</button>
                 </div>
@@ -548,6 +614,16 @@ const isJoinEnabled = (classTime) => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Leave Modal */}
+      {showLeaveModal && (
+        <LeaveModal
+          isOpen={showLeaveModal}
+          onClose={() => setShowLeaveModal(false)}
+          onSubmit={handleLeaveSubmit}
+          classData={selectedLeaveClass}
+        />
       )}
     </div>
   )

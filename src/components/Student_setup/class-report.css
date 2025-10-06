@@ -29,7 +29,7 @@
   flex-wrap: wrap;
 }
 
-.date-input,
+.date-select,
 .filter-select {
   padding: 10px 15px;
   border: 2px solid #e0e0e0;
@@ -37,9 +37,12 @@
   background: white;
   font-size: 14px;
   min-width: 200px;
+  appearance: auto;
+  -webkit-appearance: menulist;
+  -moz-appearance: menulist;
 }
 
-.date-input:focus,
+.date-select:focus,
 .filter-select:focus {
   outline: none;
   border-color: #667eea;

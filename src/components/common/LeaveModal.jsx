@@ -27,7 +27,7 @@ const LeaveModal = ({ isOpen, onClose, onSubmit, classData }) => {
         date: classData.time, // assuming time is date string
         time: classData.time,
       });
-      alert(`Leave request sent successfully!\nReason: ${reason.trim()}`);
+      alert(`Leave request submitted successfully.\n\nReason:\n${reason.trim()}`);
       onClose();
       setReason('');
       setTermsAccepted(false);

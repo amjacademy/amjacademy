@@ -148,10 +148,10 @@ const ClassReport = () => {
           className={`tab-btn ${activeTab === "cancelled" ? "active" : ""}`}
           onClick={() => setActiveTab("cancelled")}
         >
-          CANCELLED
+          LEAVE
         </button>
         <button className={`tab-btn ${activeTab === "missed" ? "active" : ""}`} onClick={() => setActiveTab("missed")}>
-          MISSED
+          LAST MINUTE CANCEL
         </button>
         <div className="total-classes">
           Total Upcoming Classes: <span className="count">66</span>
@@ -169,13 +169,22 @@ const ClassReport = () => {
               <div className="class-badges">
                 <span className={`badge type-badge`}>{classItem.type}</span>
                 <span className={`badge subject-badge ${getSubjectBadge(classItem.subject)}`}>{classItem.subject}</span>
-                <span className={`badge status-badge ${getStatusBadge(classItem.status)}`}>{classItem.status}</span>
+                <span className={`badge status-badge ${getStatusBadge(classItem.status)}`}>
+                  {classItem.status === "Cancelled" ? "Leave" : classItem.status === "Missed" ? "Last Minute Cancel" : classItem.status}
+                </span>
               </div>
               <div className="class-curriculum">Curriculum Stamp: {classItem.curriculum}</div>
               <div className="class-instructor">Instructor: {classItem.instructor}</div>
             </div>
             <div className="class-actions">
-              {activeTab === "upcoming" && <button className="action-btn start-btn">START</button>}
+              {activeTab === "upcoming" && (
+                <button
+                  className="action-btn start-btn"
+                  onClick={() => window.location.href = "/teacher/dashboard"}
+                >
+                  GO TO DASHBOARD
+                </button>
+              )}
               {activeTab === "completed" && <button className="action-btn view-btn">VIEW</button>}
               {(activeTab === "cancelled" || activeTab === "missed") && (
                 <button className="action-btn reschedule-btn">RESCHEDULE</button>
