@@ -26,6 +26,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [selectedLeaveClass, setSelectedLeaveClass] = useState(null);
+  const [ongoingClass, setOngoingClass] = useState(null);
 
 const formatTime = (timeStr) => {
   if (!timeStr) return "";
@@ -51,7 +52,10 @@ useEffect(() => {
   };
 
   fetchAnnouncements();
+/* const interval = setInterval(fetchAnnouncements, 30000); // refresh every 30s
+  return () => clearInterval(interval); */
 }, []);
+
 
  
 useEffect(() => {
@@ -112,6 +116,7 @@ useEffect(() => {
       /* console.log("Upcoming classes data:", data); */
       if (data.success) {
         // Map backend data to match frontend fields
+        console.log("Upcoming classes raw data:", data.upcomingClasses);
         const classes = data.upcomingClasses.map((cls) => ({
           id: cls.student1_id + "_" + cls.date + "_" + cls.time, // unique key
           time: cls.time,
@@ -126,13 +131,21 @@ useEffect(() => {
           title: `${cls.profession} Class`,
           status: cls.status || "not started", // default
           link: cls.link,
+          class_id: cls.class_id,
         }));
         // SORT: most recent upcoming class first
-  classes.sort((a, b) => {
-    const dateTimeA = new Date(`${a.date}T${a.time}`);
-    const dateTimeB = new Date(`${b.date}T${b.time}`);
-    return dateTimeA - dateTimeB; // ascending order: earliest first
-  });
+  const now = new Date();
+
+classes.sort((a, b) => {
+  const dateTimeA = new Date(`${a.date}T${a.time}`);
+  const dateTimeB = new Date(`${b.date}T${b.time}`);
+
+  // Absolute difference from current time
+  const diffA = Math.abs(dateTimeA - now);
+  const diffB = Math.abs(dateTimeB - now);
+
+  return diffA - diffB; // closest to now first
+});
         setUpcomingClasses(classes);
       } else {
         console.error("Failed to fetch upcoming classes:", data.message || data || "No error message");
@@ -145,6 +158,9 @@ useEffect(() => {
   };
 
   fetchUpcomingClasses();
+  /* const interval = setInterval(fetchUpcomingClasses, 15000);
+
+  return () => clearInterval(interval); */
 }, [userId]);
 
 
@@ -206,34 +222,41 @@ useEffect(() => {
     setAssignmentsOpen(!assignmentsOpen)
   }
 
-  const handleLeaveSubmit = async (leaveData) => {
-    try {
-      const response = await fetch("https://amjacademy-working.onrender.com/api/leave/submit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "user_id": userId,
-        },
-        body: JSON.stringify(leaveData),
-      });
+const handleLeaveSubmit = async (leaveData) => {
+  if (!selectedLeaveClass) return;
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+  try {
+    const payload = {
+      user_id: userId, // send from localStorage
+      class_id: selectedLeaveClass.class_id,
+      action_type: leaveData.actionType, // "leave" or "cancel"
+      reason: leaveData.reason || "",
+    };
+    console.log("Submitting leave/cancel with payload:", payload);
 
-      const data = await response.json();
-      if (data.success) {
-        alert("Leave request submitted successfully!");
-        // Optionally, refresh the upcoming classes or update the state
-        fetchUpcomingClasses();
-      } else {
-        alert("Failed to submit leave request: " + (data.message || "Unknown error"));
-      }
-    } catch (error) {
-      console.error("Error submitting leave request:", error);
-      alert("Failed to submit leave request. Please try again.");
+    const response = await fetch("https://amjacademy-working.onrender.com/api/student/actions/submit", { // ✅ updated endpoint
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      alert("Request submitted successfully!");
+      setShowLeaveModal(false);
+    } else {
+      alert("Failed to submit request: " + (data.message || "Unknown error"));
     }
-  };
+  } catch (err) {
+    console.error("Error submitting request:", err);
+    alert("Error submitting request. Try again later.");
+  }
+};
+
+
  // Utility function to check if join button should be enabled
 const isJoinEnabled = (classTime) => {
   const now = new Date(); // current user local time
@@ -245,6 +268,61 @@ const isJoinEnabled = (classTime) => {
 
   return now >= fiveMinutesBefore && now <= fifteenMinutesAfter;
 };
+
+// 🔹 Function to handle Join button click
+const handleJoinClass = async (classItem) => {
+  try {
+    // Open the class link immediately
+    window.open(classItem.link, "_blank");
+
+    // Optimistically show as ongoing
+    setOngoingClass(classItem);
+
+    // Update backend to set status = "ongoing"
+    const response = await fetch("https://amjacademy-working.onrender.com/api/student/class-status", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ class_id: classItem.class_id, status: "ongoing" }),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      console.log("✅ Class started! Status updated to ongoing.");
+
+      // Move from upcoming → ongoing
+      setUpcomingClasses((prev) => prev.filter((c) => c.class_id !== classItem.class_id));
+      setSelectedClassId(classItem.class_id);
+    } else {
+      console.error("❌ Failed to update status:", data.message);
+    }
+  } catch (err) {
+    console.error("⚠️ Error updating status:", err);
+  }
+};
+
+// LEAVE button: 5 hours before class until 15 minutes before class
+const isLeaveEnabled = (classTime) => {
+  const now = new Date();
+  const classStart = new Date(classTime);
+  const fiveHoursBefore = new Date(classStart.getTime() - 5 * 60 * 60 * 1000); // 5 hours before
+  const fifteenMinutesBefore = new Date(classStart.getTime() - 15 * 60 * 1000); // 15 minutes before
+
+  return now >= fiveHoursBefore && now < fifteenMinutesBefore;
+};
+
+// LMC button: 15 minutes before class until 15 minutes after
+const isLastMinuteCancelEnabled = (classTime) => {
+  const now = new Date();
+  const classStart = new Date(classTime);
+  const fifteenMinutesBefore = new Date(classStart.getTime() - 15 * 60 * 1000); // 15 minutes before
+  const fifteenMinutesAfter = new Date(classStart.getTime() + 15 * 60 * 1000); // 15 minutes after
+
+  return now >= fifteenMinutesBefore && now <= fifteenMinutesAfter;
+};
+
 
 
   const renderContent = () => {
@@ -289,6 +367,41 @@ const isJoinEnabled = (classTime) => {
     </div>
   ))
 }
+{ongoingClass && (
+  <section className="class-details-section">
+    <div className="section-header">
+      <h2>ON GOING CLASS</h2>
+    </div>
+    <div className="class-details-card">
+      <div className="class-image">
+        <img src={ongoingClass.image} alt={ongoingClass.title} />
+      </div>
+      <div className="class-info">
+        <h3>{ongoingClass.title}</h3>
+        <p>Teacher Name: {ongoingClass.teachers.join(", ")}</p>
+        <p>
+          Time:{" "}
+          {new Date(ongoingClass.time).toLocaleTimeString(undefined, {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          })}
+        </p>
+        <p>Duration: {ongoingClass.duration}</p>
+        <p>Batch: {ongoingClass.batch}</p>
+        <p>Level: {ongoingClass.level}</p>
+        <p>Contract ID: {ongoingClass.class_id}</p>
+        <p>Plan: {ongoingClass.plan}</p>
+      </div>
+      <div className="class-actions">
+        <button className="close-btn" onClick={() => setOngoingClass(null)}>
+          CLOSE
+        </button>
+      </div>
+    </div>
+  </section>
+)}
+
 
  {/* Upcoming Classes */}
       <section className="classes-section">
@@ -300,7 +413,7 @@ const isJoinEnabled = (classTime) => {
             <div
               key={classItem.id}
               className="class-card-horizontal"
-              onClick={() => setSelectedClassId(classItem.id)}
+              /* onClick={() => setSelectedClassId(classItem.id)} */
             >
               <div className="class-image">
                 <img
@@ -322,105 +435,81 @@ const isJoinEnabled = (classTime) => {
                 <div className="class-details">
                   <p>Teacher Name: {classItem.teachers.join(", ")}</p>
                   <p>Level: {classItem.level}</p>
-                  <p>Contract ID: {classItem.contractId}</p>
+                  <p>Contract ID: {classItem.class_id}</p>
                   <p>Plan: {classItem.plan}</p>
                   <p>Duration: {classItem.duration}</p>
                 </div>
               </div>
               <div className="class-actions">
-                <button
+               <button
   className="start-class-btn"
-  onClick={() => window.open(classItem.link, "_blank")}
+  onClick={() => { handleJoinClass(classItem)}}
   disabled={!isJoinEnabled(classItem.time, classItem.date)}
 >
   JOIN CLASS
 </button>
-                <button
-                  className="leave-class-btn"
-                  onClick={() => {
-                    setSelectedLeaveClass(classItem);
-                    setShowLeaveModal(true);
-                  }}
-                >
-                  LEAVE
-                </button>
-                <button
-                  className="last-minute-cancel-btn"
-                  onClick={() => {
-                    setSelectedLeaveClass(classItem);
-                    setShowLeaveModal(true);
-                  }}
-                >
-                  LAST MINUTE CANCEL
-                </button>
+
+                
+      <button
+        className="leave-class-btn"
+        onClick={() => {
+          setSelectedLeaveClass({
+            ...classItem,
+            actionType: "leave", // ✅ set action type
+          });
+          setShowLeaveModal(true);
+        }}
+        disabled={!isLeaveEnabled(classItem.time)}
+      >
+        LEAVE
+      </button>
+
+      <button
+        className="last-minute-cancel-btn"
+        onClick={() => {
+          setSelectedLeaveClass({
+            ...classItem,
+            actionType: "cancel", // ✅ set action type
+          });
+          setShowLeaveModal(true);
+        }}
+        disabled={!isLastMinuteCancelEnabled(classItem.time)}
+      >
+        LAST MINUTE CANCEL
+      </button>
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Class Details */}
-      {selectedClassId && (
-        <section className="class-details-section">
-          <div className="section-header">
-            <h2>CLASS DETAILS</h2>
-          </div>
-          {(() => {
-            const selectedClass = upcomingClasses.find((c) => c.id === selectedClassId);
-            return selectedClass ? (
-              <div className="class-details-card">
-                <div className="class-image">
-                  <img
-                    src={selectedClass.image}
-                    alt={selectedClass.title}
-                  />
-                </div>
-                <div className="class-info">
-                  <h3>{selectedClass.title}</h3>
-                  <p>Teacher Name: {selectedClass.teachers.join(", ")}</p>
-                  <p>
-                      Time: {new Date(selectedClass.time).toLocaleTimeString(undefined, {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: true,
-                        })}
-                  </p>
-
-                  <p>Duration: {selectedClass.duration}</p>
-                  <p>Batch: {selectedClass.batch}</p>
-                  <p>Level: {selectedClass.level}</p>
-                  <p>Contract ID: {selectedClass.contractId}</p>
-                  <p>Plan: {selectedClass.plan}</p>
-                </div>
-                <div className="class-actions">
-                  <button className="start-class-btn" onClick={() => window.open(selectedClass.link, "_blank")}>
+      
+                  {/* <button className="start-class-btn" onClick={() => window.open(selectedClass.link, "_blank")}>
                     JOIN CLASS
                   </button>
-                  <button
-                    className="leave-class-btn"
-                    onClick={() => {
-                      setSelectedLeaveClass(selectedClass);
-                      setShowLeaveModal(true);
-                    }}
-                  >
-                    LEAVE
-                  </button>
-                  <button
-                    className="last-minute-cancel-btn"
-                    onClick={() => {
-                      setSelectedLeaveClass(selectedClass);
-                      setShowLeaveModal(true);
-                    }}
-                  >
-                    LAST MINUTE CANCEL
-                  </button>
-                  <button className="close-btn" onClick={() => setSelectedClassId(null)}>CLOSE</button>
-                </div>
-              </div>
-            ) : null;
-          })()}
-        </section>
-      )}
+                <button
+  className="leave-class-btn"
+  onClick={() => {
+    setSelectedLeaveClass(classItem);
+    setShowLeaveModal(true);
+    selectedLeaveClass.actionType = "leave"; // ✅ tell modal what type
+  }}
+>
+  LEAVE
+</button>
+
+<button
+  className="last-minute-cancel-btn"
+  onClick={() => {
+    setSelectedLeaveClass(classItem);
+    setShowLeaveModal(true);
+    selectedLeaveClass.actionType = "cancel"; // ✅ tell modal what type
+  }}
+>
+  LAST MINUTE CANCEL
+</button> */}
+
+           
 
       {/* Completed Classes */}
       {/* <section className="classes-section">

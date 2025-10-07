@@ -6,29 +6,44 @@ const router = express.Router();
 // CREATE arrangement
 router.post("/create", async (req, res) => {
   try {
-    const { batch_type, student1_id, student2_id, teacher_id, day, date, time, link } = req.body;
+  const { batch_type, student1_id, student2_id, teacher_id, day, date, time, link } = req.body;
 
-    const { data, error } = await supabase
-      .from("arrangements")
-      .insert([
-        {
-          batch_type,
-          student1_id,
-          student2_id: batch_type === "dual" ? student2_id : null,
-          teacher_id,
-          day,
-          date,
-          time,
-          link
-        }
-      ])
-      .select();
+  // 1️⃣ Fetch student1 profession from enrollments
+  const { data: enrollmentData, error: enrollmentError } = await supabase
+    .from("enrollments")
+    .select("profession")
+    .eq("id", student1_id)
+    .single(); // fetch a single row
 
-    if (error) throw error;
-    res.json(data[0]);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
+  if (enrollmentError) throw enrollmentError;
+
+  const subject = enrollmentData?.profession || null; // fallback if profession is null
+
+  // 2️⃣ Insert into arrangements table
+  const { data, error } = await supabase
+    .from("arrangements")
+    .insert([
+      {
+        batch_type,
+        student1_id,
+        student2_id: batch_type === "dual" ? student2_id : null,
+        teacher_id,
+        day,
+        date,
+        time,
+        link,
+        subject, // store profession in subject column
+      },
+    ])
+    .select();
+
+  if (error) throw error;
+
+  res.json(data[0]);
+} catch (err) {
+  res.status(400).json({ error: err.message });
+}
+
 });
 
 // GET all arrangements

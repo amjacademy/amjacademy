@@ -10,58 +10,58 @@ const ClassReport = () => {
   const [classData, setClassData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Convert frontend tab to backend status
+  // Map frontend tab to backend status in arrangements table
   const getStatusValue = (tab) => {
-    switch (tab) {
-      case "upcoming":
-        return "upcoming";
-      case "completed":
-        return "completed";
-      case "cancelled":
-        return "cancelled";
-      case "missed":
-        return "missed";
-      default:
-        return "upcoming";
+  switch (tab) {
+    case "upcoming":
+      return "upcoming";
+    case "completed":
+      return "completed";
+    case "leave":
+      return "leave";       // updated
+    case "cancel":
+      return "cancel";      // updated
+    default:
+      return "upcoming";
+  }
+};
+
+  // Fetch classes from backend
+  const fetchClasses = async () => {
+    try {
+      setLoading(true);
+      const userId = localStorage.getItem("user_id");
+      if (!userId) {
+        console.error("User ID not found in localStorage!");
+        setLoading(false);
+        return;
+      }
+
+      const status = getStatusValue(activeTab);
+
+      const queryParams = new URLSearchParams({
+        user_id: userId,
+        status,
+        subject: filterBy,
+      });
+
+      const response = await fetch(
+        `https://amjacademy-working.onrender.com/api/classreport/fetchclasses?${queryParams}`
+      );
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.error || "Failed to fetch classes");
+
+      setClassData(data);
+    } catch (err) {
+      console.error("Error fetching classes:", err);
+      setClassData([]);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    const fetchClasses = async () => {
-      try {
-        setLoading(true);
-        const userId = localStorage.getItem("user_id");
-        if (!userId) {
-          console.error("User ID not found in localStorage!");
-          setLoading(false);
-          return;
-        }
-
-        const status = getStatusValue(activeTab);
-
-        // Backend expects these query params: user_id, status, subject
-        const queryParams = new URLSearchParams({
-          user_id: userId,
-          status,
-          subject: filterBy,
-        });
-
-        const response = await fetch(
-          `https://amjacademy-working.onrender.com/api/classreport/fetchclasses?${queryParams}`
-        );
-        const data = await response.json();
-
-        if (!response.ok) throw new Error(data.error || "Failed to fetch classes");
-
-        setClassData(data);
-      } catch (err) {
-        console.error("Error fetching classes:", err);
-        setClassData([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchClasses();
   }, [activeTab, filterBy]);
 
@@ -70,8 +70,8 @@ const ClassReport = () => {
     const statusClasses = {
       upcoming: "status-not-started",
       completed: "status-completed",
-      cancelled: "status-cancelled",
-      missed: "status-missed",
+      leave: "status-cancelled",
+      cancel: "status-missed",
     };
     return statusClasses[status] || "status-default";
   };
@@ -87,19 +87,13 @@ const ClassReport = () => {
     return subjectClasses[subject] || "subject-default";
   };
 
-  // Image based on subject
   const getSubjectImage = (subject) => {
     switch (subject) {
-      case "Piano":
-        return "/piano-lesson.png";
-      case "Guitar":
-        return "/guitar-lesson.png";
-      case "Violin":
-        return "/violin-lesson.jpg";
-      case "Drums":
-        return "/drums-lesson.jpg";
-      default:
-        return "/keyboard-lesson.jpg";
+      case "Piano": return "/piano-lesson.png";
+      case "Guitar": return "/guitar-lesson.png";
+      case "Violin": return "/violin-lesson.jpg";
+      case "Drums": return "/drums-lesson.jpg";
+      default: return "/keyboard-lesson.jpg";
     }
   };
 
@@ -130,31 +124,41 @@ const ClassReport = () => {
             onChange={(e) => setFilterBy(e.target.value)}
           >
             <option value="all">All Subjects</option>
-            <option value="Keyboard">Keyboard</option>
-            <option value="Piano">Piano</option>
-            <option value="Guitar">Guitar</option>
-            <option value="Violin">Violin</option>
-            <option value="Drums">Drums</option>
+            <option value="keyboard">Keyboard</option>
+            <option value="piano">Piano</option>
+            <option value="guitar">Guitar</option>
+            <option value="violin">Violin</option>
+            <option value="drums">Drums</option>
           </select>
         </div>
       </div>
 
       {/* Tabs */}
       <div className="class-tabs">
-        {["upcoming", "completed", "cancelled", "missed"].map((tab) => (
-          <button
-            key={tab}
-            className={`tab-btn ${activeTab === tab ? "active" : ""}`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab === "cancelled" ? "LEAVE" : tab === "missed" ? "LAST MINUTE CANCEL" : tab.toUpperCase()}
-          </button>
-        ))}
-        <div className="total-classes">
-          Total {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Classes:{" "}
-          <span className="count">{classData.length}</span>
-        </div>
-      </div>
+  {["upcoming", "completed", "leave", "cancel"].map((tab) => (
+    <button
+      key={tab}
+      className={`tab-btn ${activeTab === tab ? "active" : ""}`}
+      onClick={() => setActiveTab(tab)}
+    >
+      {tab === "leave"
+        ? "LEAVE"
+        : tab === "cancel"
+        ? "LAST MINUTE CANCEL"
+        : tab.toUpperCase()}
+    </button>
+  ))}
+  <div className="total-classes">
+    Total{" "}
+    {activeTab === "leave"
+      ? "Leave"
+      : activeTab === "cancel"
+      ? "Last Minute Cancel"
+      : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}{" "}
+    Classes: <span className="count">{classData.length}</span>
+  </div>
+</div>
+
 
       {/* Class Cards */}
       <div className="classes-content">
@@ -177,7 +181,7 @@ const ClassReport = () => {
                     {classItem.subject}
                   </span>
                   <span className={`badge status-badge ${getStatusBadge(classItem.status)}`}>
-                    {classItem.status === "cancelled" ? "Leave" : classItem.status === "missed" ? "Last Minute Cancel" : classItem.status}
+                    {classItem.status === "leave" ? "Leave" : classItem.status === "cancel" ? "Last Minute Cancel" : classItem.status}
                   </span>
                 </div>
                 <div className="class-curriculum">
@@ -191,7 +195,7 @@ const ClassReport = () => {
                 {activeTab === "upcoming" && (
                   <button
                     className="action-btn start-btn"
-                  onClick={() => window.location.href = "/dashboard"}
+                    onClick={() => window.location.href = "/student-dashboard"}
                   >
                     GO TO DASHBOARD
                   </button>

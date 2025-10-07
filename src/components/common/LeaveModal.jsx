@@ -12,23 +12,23 @@ const LeaveModal = ({ isOpen, onClose, onSubmit, classData }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!reason.trim() || !termsAccepted || !additionalClass.trim()) {
-      alert('Please fill all fields and accept terms');
+    if (!reason.trim() || !termsAccepted) {
+      alert('Please fill reason and accept terms');
       return;
     }
 
     setLoading(true);
     try {
       await onSubmit({
-        reason: reason.trim(),
-        termsAccepted,
-        additionalClass: additionalClass.trim(),
-        classId: classData.id,
-        date: classData.time, // assuming time is date string
-        time: classData.time,
-      });
+  reason: reason.trim(),
+  actionType: classData.actionType || "leave", // ✅ include type
+});
+
+
       alert(`Leave request submitted successfully.\n\nReason:\n${reason.trim()}`);
       onClose();
+
+      // Reset UI-only fields
       setReason('');
       setTermsAccepted(false);
       setAdditionalClass('');
@@ -57,16 +57,16 @@ const LeaveModal = ({ isOpen, onClose, onSubmit, classData }) => {
             />
           </div>
 
-          {/* <div className="form-group">
-            <label>Additional Class for Student:</label>
+          {/* UI-only Additional Class */}
+          <div className="form-group">
+            <label>Additional Class (Optional):</label>
             <input
               type="text"
               value={additionalClass}
               onChange={(e) => setAdditionalClass(e.target.value)}
               placeholder="e.g., Next available slot or specific date/time"
-              required
             />
-          </div> */}
+          </div>
 
           <div className="form-group checkbox-group">
             <input
@@ -77,8 +77,18 @@ const LeaveModal = ({ isOpen, onClose, onSubmit, classData }) => {
               disabled={!termsAcceptedEnabled}
               required
             />
-            <label htmlFor="terms" style={{ cursor: 'pointer' }} onClick={(e) => { e.preventDefault(); setShowTerms(true); }}>
-              I accept the <span style={{ fontWeight: 'bold', textDecoration: 'underline', color: '#007bff' }}>terms and conditions</span>
+            <label
+              htmlFor="terms"
+              style={{ cursor: 'pointer' }}
+              onClick={(e) => {
+                e.preventDefault();
+                setShowTerms(true);
+              }}
+            >
+              I accept the{' '}
+              <span style={{ fontWeight: 'bold', textDecoration: 'underline', color: '#007bff' }}>
+                terms and conditions
+              </span>
             </label>
           </div>
         </form>

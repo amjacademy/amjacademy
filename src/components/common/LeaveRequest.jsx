@@ -1,15 +1,10 @@
 import React from "react";
 import "./LeaveRequest.css";
 
-interface LeaveRequestProps {
-  onAccept: () => void;
-  onClose: () => void;
-}
-
-const LeaveRequest: React.FC<LeaveRequestProps> = ({ onAccept, onClose }) => {
+const LeaveRequest = ({ onAccept, onClose }) => {
   const handleAccept = () => {
-    onAccept();
-    onClose();
+    onAccept(); // enable checkbox in LeaveModal
+    onClose();  // close terms modal
   };
 
   return (
@@ -18,7 +13,6 @@ const LeaveRequest: React.FC<LeaveRequestProps> = ({ onAccept, onClose }) => {
         <h2>Terms & Conditions</h2>
 
         <div className="terms-box">
-          <h4>Terms & Conditions</h4>
           <ul>
             <li>Class cancellation may affect your overall performance and attendance.</li>
             <li>Any extra or replacement classes scheduled must be attended without fail.</li>
@@ -29,8 +23,12 @@ const LeaveRequest: React.FC<LeaveRequestProps> = ({ onAccept, onClose }) => {
         </div>
 
         <div className="buttons">
-          <button type="button" className="cancel-btn" onClick={onClose}>Cancel</button>
-          <button type="button" className="accept-btn" onClick={handleAccept}>Accept</button>
+          <button type="button" className="cancel-btn" onClick={onClose}>
+            Cancel
+          </button>
+          <button type="button" className="accept-btn" onClick={handleAccept}>
+            Accept
+          </button>
         </div>
       </div>
     </div>

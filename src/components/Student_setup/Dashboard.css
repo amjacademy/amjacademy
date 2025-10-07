@@ -1085,3 +1085,28 @@ body {
   cursor: not-allowed;       /* show not-allowed cursor */
   opacity: 0.7;              /* optional: slight faded effect */
 }
+
+/* LEAVE Button */
+.leave-class-btn:disabled {
+  background: linear-gradient(135deg, #ffb3b3, #ffc9b3); /* muted gradient */
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+  transform: none;
+}
+
+/* LMC Button */
+.last-minute-cancel-btn:disabled {
+  background: linear-gradient(135deg, #a3e3e0, #8fd9c8); /* muted gradient */
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Optional: hover effect should not apply when disabled */
+.leave-class-btn:disabled:hover,
+.last-minute-cancel-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}

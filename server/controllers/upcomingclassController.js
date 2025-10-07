@@ -9,13 +9,22 @@ exports.fetchUpcomingClasses = async (req, res) => {
 
     console.log("Fetching upcoming classes for user:", userId);
 
-    const { data: classes, error } = await supabase
+const currentTime = new Date(); // current time
+
+// Convert 15 minutes to milliseconds
+const fifteenMinutesAgo = new Date(currentTime.getTime() - 15 * 60 * 1000).toISOString();
+
+const { data: classes, error } = await supabase
   .from("arrangements")
   .select("*")
-  .or(`student1_id.eq.${userId},student2_id.eq.${userId}`);
+  .or(`student1_id.eq.${userId},student2_id.eq.${userId}`)
+  .eq("status", "upcoming")
+  .gte("time", fifteenMinutesAgo); // fetch classes started within last 15 mins or upcoming
 
+if (error) {
+  console.error("Error fetching upcoming classes:", error);
+}
 
-    if (error) throw error;
 
     const upcomingClasses = await Promise.all(
       classes.map(async (cls) => {
@@ -45,6 +54,7 @@ exports.fetchUpcomingClasses = async (req, res) => {
           duration: "45mins",
           contract_id: "ic-405",
           status: "not started",
+          class_id: cls.class_id,
         };
       })
     );
