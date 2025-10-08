@@ -1,3 +1,4 @@
 - [x] Modify useEffect to always add all three demo notifications
 - [x] Change visibleMessages to const base = messages (remove filter by viewerKey)
 - [x] Adjust peer-avatar to use "A" instead of viewerKey.charAt(0).toUpperCase()
+- [x] Add button at top right for reschedule class in Class_arrangement.jsx

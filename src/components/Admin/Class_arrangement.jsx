@@ -231,6 +231,9 @@ export default function Class_arrangement({  schedules, setSchedules }) {
         <div className="section-title">
           <h3>Class Arrangement</h3>
         </div>
+        <div className="section-actions">
+          <button className="btn btn-primary">Reschedule Class</button>
+        </div>
       </header>
 
       <form className="form-grid" onSubmit={onSubmit}>
