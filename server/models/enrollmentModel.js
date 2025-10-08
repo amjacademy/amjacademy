@@ -33,7 +33,7 @@ async function updateEnrollment(id, updates) {
     .from("enrollments")
     .update(updates)
     .eq("id", id)
-    .select();
+    .maybeSingle();
   return { data, error };
 }
 

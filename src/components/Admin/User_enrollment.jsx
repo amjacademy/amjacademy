@@ -353,21 +353,23 @@ const fetchEnrollments = async () => {
       });
 
       const data = await response.json();
+      console.log("Server response:", data);
       if (!response.ok) {
-        setError(data.error || "Something went wrong");
-        return;
-      }
+  // Use data.message safely (it’s a string now)
+  setError(data.message || "Something went wrong");
+  return;
+}
 
       // Directly update the list
-      setList(prevList => [data, ...prevList]);
+      setList(prevList => [...data, ...prevList]);
 
       // Reset form
       resetForm();
 
-    } catch (error) {
-      console.error(error);
-      setError("Failed to enroll. Try again.");
-    }
+    } catch (err) {
+  console.error("Error submitting enrollment:", err);
+  alert("Server error. Please try again.");
+}
   }
 };
 

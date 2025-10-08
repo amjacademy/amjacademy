@@ -23,7 +23,9 @@ exports.create = async (req, res) => {
     const { data, error } = await createEnrollment(body);
     if (error) {
       console.error("Error in create:", error);
-      return res.status(500).json({ error });
+      // Send readable error message
+      const message = error.message || "Failed to create enrollment";
+      return res.status(400).json({ success: false, message });
     }
 
     // Prepare emails
