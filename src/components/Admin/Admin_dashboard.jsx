@@ -7,6 +7,7 @@ import Dashboard from "./Dashboard.jsx"
 import User_enrollment from "./User_enrollment.jsx"
 import Announcements from "./Announcements.jsx"
 import Class_arrangement from "./Class_arrangement.jsx"
+import Notification from "./Notification.jsx"
 import { HiAnnotation } from "react-icons/hi"
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -42,6 +43,7 @@ export default function Admin_Dashboard() {
   const [activeTab, setActiveTab] = useState("dashboard")
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const [apiCounts, setApiCounts] = useState({ notifications: 0 })
 
   // Get username from localStorage
   const username = localStorage.getItem('admin_username') || 'Admin'
@@ -69,6 +71,20 @@ export default function Admin_Dashboard() {
     const interval = setInterval(checkSession, 60 * 1000);
     return () => clearInterval(interval);
   }, [navigate]);
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const res = await fetch("https://amjacademy-working.onrender.com/api/counts");
+        const data = await res.json();
+        setApiCounts(data);
+      } catch (err) {
+        console.error("Failed to fetch counts:", err);
+      }
+    };
+    fetchCounts();
+  }, []);
+
   // Get first and last letter of username
   const getInitials = (name) => {
     const trimmedName = name.trim()
@@ -84,6 +100,7 @@ export default function Admin_Dashboard() {
     { id: "dashboard", label: "Dashboard", icon: "🏠" },
     { id: "enrollment", label: "User Enrollment", icon: "👥" },
     { id: "announcements", label: "Announcements", icon: "📢" },
+    { id: "notifications", label: "Notifications", icon: "🔔" },
     { id: "class-arrangement", label: "Class Arrangement", icon: "📅" },
   ]
 
@@ -114,6 +131,8 @@ export default function Admin_Dashboard() {
         return (
           <Announcements announcements={announcements} setAnnouncements={setAnnouncements} />
         )
+      case "notifications":
+        return <Notification userType="admin" />
       case "class-arrangement":
         return (
           <Class_arrangement
@@ -195,6 +214,9 @@ const handleLogout = async () => {
                   >
                     <span className="nav-icon">{item.icon}</span>
                     <span className="nav-label">{item.label}</span>
+                    {item.id === "notifications" && apiCounts.notifications > 0 && (
+                      <span className="nav-badge">{apiCounts.notifications}</span>
+                    )}
                   </button>
                 </div>
               ))}

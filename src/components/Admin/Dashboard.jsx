@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import User_enrollment from "./User_enrollment.jsx";
 import Class_arrangement from "./Class_arrangement.jsx";
+import Notification from "./Notification.jsx";
 
 function AnnouncementsPlaceholder({ onBack, announcements }) {
   return (
@@ -39,6 +40,7 @@ export default function Dashboard() {
     teachers: 0,
     announcements: 0,
     schedules: 0,
+    notifications: 0,
   });
 
   const [selectedModule, setSelectedModule] = useState(null);
@@ -110,6 +112,10 @@ export default function Dashboard() {
           <span className="stat-num">{counts.schedules}</span>
           <span className="stat-label">Schedules</span>
         </div>
+        <div className="stat" onClick={() => setSelectedModule("notifications")} style={{ cursor: "pointer" }}>
+          <span className="stat-num">{counts.notifications}</span>
+          <span className="stat-label">Notifications</span>
+        </div>
       </div>
 
       {selectedModule === "students" && (
@@ -142,6 +148,13 @@ export default function Dashboard() {
 
       {selectedModule === "schedules" && (
         <Class_arrangement schedules={schedules} setSchedules={setSchedules} />
+      )}
+
+      {selectedModule === "notifications" && (
+        <div className="detail-section">
+          <Notification userType="admin" />
+          <button onClick={() => setSelectedModule(null)}>Close Details</button>
+        </div>
       )}
     </>
   );

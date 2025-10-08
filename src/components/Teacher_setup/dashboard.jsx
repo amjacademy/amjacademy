@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import "./Dashboard.css"
 import Profile from "./Profile.jsx"
 import Message from "./Message.jsx"
+import Notification from "../Admin/Notification.jsx"
 import Footer from "../Footer/footer.jsx"
 import ClassReport from "./class-report.jsx"
 import MyAssignments from "./my-assignments.jsx"
@@ -114,6 +115,7 @@ const Dashboard = () => {
     { id: "dashboard", label: "Dashboard", icon: "🏠" },
     { id: "profile", label: "My Profile", icon: "👤" },
     { id: "message", label: "Message", icon: "💬" },
+    // { id: "notification", label: "Notification", icon: "🔔" },
     { id: "class-report", label: "Class Report", icon: "📊" },
     {
       id: "assignments",
@@ -150,6 +152,8 @@ const Dashboard = () => {
         return <Profile />
       case "message":
         return <Message />
+      // case "notification":
+      //   return <Notification userType="teacher" />
       case "class-report":
         return <ClassReport />
       case "assignments":
