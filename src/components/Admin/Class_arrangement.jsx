@@ -24,6 +24,7 @@ export default function Class_arrangement({  schedules, setSchedules }) {
   const [ampm, setAmpm] = useState("AM")
   const [link, setLink] = useState("")
   const [error, setError] = useState("")
+  const [rescheduleChecked, setRescheduleChecked] = useState(false)
 
   const [students, setStudents] = useState([])
   const [teachers, setTeachers] = useState([])
@@ -136,7 +137,8 @@ export default function Class_arrangement({  schedules, setSchedules }) {
     day,
     date,
     time: utcTime, // send UTC timestamp
-    link
+    link,
+    rescheduled: rescheduleChecked
   };
 
   try {
@@ -195,6 +197,7 @@ export default function Class_arrangement({  schedules, setSchedules }) {
     setMinute(mm);
     setAmpm(ampmVal);
     setLink(schedule.link);
+    setRescheduleChecked(schedule.rescheduled || false);
     setError("");
   };
 
@@ -213,6 +216,7 @@ export default function Class_arrangement({  schedules, setSchedules }) {
     setAmpm("AM");
     setLink("");
     setError("");
+    setRescheduleChecked(false);
   };
 
   const lookupStudentName = (id) => {
@@ -232,7 +236,9 @@ export default function Class_arrangement({  schedules, setSchedules }) {
           <h3>Class Arrangement</h3>
         </div>
         <div className="section-actions">
-          <button className="btn btn-primary">Reschedule Class</button>
+          <label>
+            <input type="checkbox" checked={rescheduleChecked} onChange={(e) => setRescheduleChecked(e.target.checked)} /> Reschedule Class
+          </label>
         </div>
       </header>
 

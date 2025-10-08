@@ -30,198 +30,146 @@ export default function Notifications({ userType = "admin" }) {
 
   const [messages, setMessages] = useLocalStore("notif_messages_v2", [])
 
-  // who is viewing this page; student view shows items routed to admin (read-only fallback)
+  // Who is viewing this page determines which notifications are visible
   const viewerKey = userType === "teacher" ? "teacher" : "admin"
 
-  // Add demo notification if none exist
+  const [search, setSearch] = useState("")
+  const [expandedId, setExpandedId] = useState(null)
+
   useEffect(() => {
     if (messages.length === 0) {
-      const demos = []
-      demos.push({
-        id: "demo-admin",
-        kind: "Admin",
-        text: "Welcome to AMJ Academy Admin! This is a demo notification for backend purposes.",
-        from: "System",
-        to: ["admin"],
-        createdAt: new Date().toISOString(),
-        read: false
-      })
-      demos.push({
-        id: "demo-teacher",
-        kind: "Welcome Teacher",
-        text: "Welcome to AMJ Academy Teacher! This is a demo notification for backend purposes.",
-        from: "System",
-        to: ["teacher"],
-        createdAt: new Date().toISOString(),
-        read: false
-      })
-      demos.push({
-        id: "demo-student",
-        kind: "Welcome Student",
-        text: "Welcome to AMJ Academy Student! This is a demo notification for backend purposes.",
-        from: "System",
-        to: ["student"],
-        createdAt: new Date().toISOString(),
-        read: false
-      })
-      setMessages(demos)
+      const now = new Date()
+      const demo = [
+        {
+          id: "demo-teacher-cancel-1",
+          kind: "Class Cancelled",
+          from: "Ms. Lisa",
+          role: "teacher",
+          text: "Today's keyboard class is cancelled due to health reasons.",
+          createdAt: now.toISOString(),
+          to: ["admin"], // teacher cancellation -> admin only
+        },
+        {
+          id: "demo-student-leave-1",
+          kind: "Leave Request",
+          from: "Ajay",
+          role: "student",
+          text: "Requesting leave for tomorrow's session due to a family function.",
+          createdAt: new Date(now.getTime() - 1000 * 60 * 45).toISOString(),
+          to: ["admin", "teacher"], // student leave -> admin + teacher
+        },
+      ]
+      setMessages(demo)
     }
   }, [messages.length, setMessages])
 
-  const [search, setSearch] = useState("")
-  const [mobileShowThreads, setMobileShowThreads] = useState(true)
-  const [selectedId, setSelectedId] = useState(null)
-
   const visibleMessages = useMemo(() => {
-    const base = messages
     const q = search.trim().toLowerCase()
+    const base = messages.filter((m) => Array.isArray(m.to) && m.to.includes(viewerKey))
     const filtered = q
       ? base.filter(
           (m) =>
             (m.kind || "").toLowerCase().includes(q) ||
             (m.text || "").toLowerCase().includes(q) ||
-            (m.teacher || "").toLowerCase().includes(q) ||
-            (m.from || "").toLowerCase().includes(q),
+            (m.from || "").toLowerCase().includes(q) ||
+            (m.role || "").toLowerCase().includes(q),
         )
       : base
-    // newest first
     return filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-  }, [messages, search])
-
-  useEffect(() => {
-    if (!selectedId && visibleMessages.length > 0) {
-      setSelectedId(visibleMessages[0].id)
-    } else if (selectedId && !visibleMessages.find((m) => m.id === selectedId)) {
-      setSelectedId(visibleMessages[0]?.id || null)
-    }
-  }, [visibleMessages, selectedId])
-
-  const selected = useMemo(
-    () => visibleMessages.find((m) => m.id === selectedId) || null,
-    [visibleMessages, selectedId],
-  )
+  }, [messages, viewerKey, search])
 
   return (
-    <section className="notif-app">
-      <header className="notif-app__header">
-        <div className="notif-app__left">
-          <h2 className="notif-title">Notifications</h2>
-          <p className="notif-subtitle">View-only inbox • aligned with dashboard theme</p>
+    <section className="nc">
+      {/* Header */}
+      <header className="nc-header">
+        <div>
+          <h2 className="nc-title">Notifications</h2>
+          <p className="nc-subtitle">Read-only • Matches dashboard theme</p>
         </div>
-        <div className="notif-app__right">
-          <button
-            className="btn-outline small hide-desktop"
-            type="button"
-            onClick={() => setMobileShowThreads((v) => !v)}
-          >
-            {mobileShowThreads ? "Open Reader" : "Open List"}
-          </button>
+        <div className="nc-tools">
+          <input
+            className="nc-search"
+            placeholder="Search notifications"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label="Search notifications"
+          />
         </div>
       </header>
 
-      <div className={`notif-layout ${mobileShowThreads ? "show-threads" : "show-chat"}`}>
-        {/* Left: list */}
-        <aside className="threads-panel">
-          <div className="threads-search">
-            <input
-              className="input"
-              placeholder="Search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              aria-label="Search notifications"
-            />
-          </div>
+      {/* Reference image (not rendered in UI, just to keep for dev reference)
+          If you'd like it visible in the app, let me know and I can embed it.
+      */}
 
-          <ul className="threads-list" role="list">
-            {visibleMessages.length === 0 ? (
-              <li className="empty-convo">No notifications yet.</li>
-            ) : (
-              visibleMessages.map((m) => (
-                <li key={m.id}>
-                  <button
-                    className={`thread-item ${selectedId === m.id ? "active" : ""} ${!m.read ? "unread" : ""}`}
-                    onClick={() => {
-                      setSelectedId(m.id)
-                      setMobileShowThreads(false)
-                      // Mark as read
-                      setMessages(prev => prev.map(msg => msg.id === m.id ? {...msg, read: true} : msg))
-                    }}
-                  >
-                    <div className="thread-avatar" aria-hidden>
-                      {(m.from || "?").charAt(0).toUpperCase()}
-                    </div>
-                    <div className="thread-main">
-                      <div className="thread-top">
-                        <span className="thread-name">
-                          {m.kind || "Notification"} {m.teacher ? `• ${m.teacher}` : ""}
-                        </span>
-                        <time className="thread-time">
-                          {m.createdAt
-                            ? new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                            : ""}
-                        </time>
-                      </div>
-                      <div className="thread-sub">
-                        <span className="thread-preview">{m.text || ""}</span>
-                      </div>
-                    </div>
-                  </button>
-                </li>
-              ))
-            )}
-          </ul>
-        </aside>
-
-        {/* Right: reader */}
-        <main className="chat-panel">
-          <header className="chat-header">
-            <div className="chat-peer">
-              <button
-                className="btn-outline small hide-desktop"
-                type="button"
-                onClick={() => setMobileShowThreads(true)}
-              >
-                Back
-              </button>
-              <div className="peer-avatar" aria-hidden>
-                {selected ? (selected.from || "?").charAt(0).toUpperCase() : "A"}
-              </div>
-              <div>
-                <div className="peer-name">{selected ? selected.kind || "Notification" : "Select a notification"}</div>
-                <div className="peer-sub">
-                  {selected
-                    ? [selected.teacher, selected.date, selected.time].filter(Boolean).join(" • ")
-                    : "Your inbox"}
-                </div>
-              </div>
-            </div>
-          </header>
-
-          <div className="messages" role="log" aria-live="polite">
-            {!selected ? (
-              <div className="empty-convo">Choose a notification from the list.</div>
-            ) : (
-              <div className="msg them">
-                <div className="bubble">
-                  <div className="bubble-kind">{selected.kind || "Notification"}</div>
-                  <div className="bubble-text">{selected.text}</div>
-                  <div className="bubble-meta">
-                    <span>{[selected.date, selected.time].filter(Boolean).join(" • ")}</span>
-                    <span>
-                      {selected.createdAt
-                        ? new Date(selected.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                        : ""}
-                    </span>
+      {/* List */}
+      <ul className="nc-list" role="list">
+        {visibleMessages.length === 0 ? (
+          <li className="nc-empty">No notifications yet.</li>
+        ) : (
+          visibleMessages.map((n) => {
+            const isTeacher = (n.role || "").toLowerCase() === "teacher"
+            const avatarLetter = (n.from || "?").charAt(0).toUpperCase()
+            const time = n.createdAt
+              ? new Date(n.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+              : ""
+            return (
+              <li key={n.id} className="nc-item">
+                <button
+                  className="nc-card"
+                  onClick={() => setExpandedId((id) => (id === n.id ? null : n.id))}
+                  aria-expanded={expandedId === n.id}
+                >
+                  <div className={`nc-avatar ${isTeacher ? "teacher" : "student"}`} aria-hidden>
+                    {avatarLetter}
                   </div>
-                </div>
-              </div>
-            )}
-          </div>
 
-          {/* Removed composer to make view-only */}
-          {/* (no composer UI here) */}
-        </main>
-      </div>
+                  <div className="nc-main">
+                    <div className="nc-row">
+                      <div className="nc-heading">
+                        <span className="nc-kind">{n.kind || "Notification"}</span>
+                        <span className={`nc-pill ${isTeacher ? "pill-teacher" : "pill-student"}`}>
+                          {isTeacher ? "Teacher" : "Student"}
+                        </span>
+                      </div>
+                      <time className="nc-time">{time}</time>
+                    </div>
+
+                    <div className="nc-meta">
+                      <span className="nc-from">
+                        From: <strong>{n.from || "Unknown"}</strong> {n.role ? `(${n.role})` : ""}
+                      </span>
+                    </div>
+
+                    <div className="nc-preview">{n.text}</div>
+
+                    {expandedId === n.id && (
+                      <div className="nc-detail">
+                        <div className="nc-detail-line">
+                          <span className="label">Delivered to</span>
+                          <span className="value">{Array.isArray(n.to) ? n.to.join(", ") : "—"}</span>
+                        </div>
+                        <div className="nc-detail-line">
+                          <span className="label">Received</span>
+                          <span className="value">
+                            {n.createdAt
+                              ? new Date(n.createdAt).toLocaleString([], {
+                                  month: "short",
+                                  day: "2-digit",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })
+                              : ""}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </button>
+              </li>
+            )
+          })
+        )}
+      </ul>
     </section>
   )
 }

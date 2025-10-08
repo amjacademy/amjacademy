@@ -617,6 +617,10 @@ body {
   transform: translateY(-2px);
 }
 
+.rescheduled-card {
+  background-color: skyblue;
+}
+
 .class-card-horizontal .class-image {
   width: 120px;
   height: 80px;
@@ -675,6 +679,14 @@ body {
 .badge.completed-badge {
   background: linear-gradient(135deg, #74b9ff, #0984e3);
   color: white;
+}
+
+.badge.rescheduled {
+  background-color: skyblue;
+  color: black;
+  padding: 0.2em 0.5em;
+  border-radius: 0.3em;
+  font-weight: bold;
 }
 
 .class-details {

@@ -95,74 +95,47 @@ const handleCloseAnnouncement = () => {
 } 
   const [studentId]=useState(1);
   
-useEffect(() => {
-  const fetchUpcomingClasses = async () => {
-    try {
-      setLoading(true);
-
-      const response = await fetch("https://amjacademy-working.onrender.com/api/student/upcoming-classes", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "user_id": userId, // pass user_id in headers
-        },
-        credentials: "include", // instead of withCredentials (fetch uses this)
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      /* console.log("Upcoming classes data:", data); */
-      if (data.success) {
-        // Map backend data to match frontend fields
-        console.log("Upcoming classes raw data:", data.upcomingClasses);
-        const classes = data.upcomingClasses.map((cls) => ({
-          id: cls.student1_id + "_" + cls.date + "_" + cls.time, // unique key
-          time: cls.time,
-          date: cls.date,
-          batch: cls.batch_type,
-          teachers: [cls.teacher_name],
-          level: cls.level,
-          plan: cls.plan,
-          duration: cls.duration || "45mins", // default
-          contractId: cls.contract_id || "ic-405", // default
-          image: "/placeholder.svg?height=120&width=200&query=keyboard lesson",
-          title: `${cls.profession} Class`,
-          status: cls.status || "not started", // default
-          link: cls.link,
-          class_id: cls.class_id,
-        }));
-        // SORT: most recent upcoming class first
-  const now = new Date();
-
-classes.sort((a, b) => {
-  const dateTimeA = new Date(`${a.date}T${a.time}`);
-  const dateTimeB = new Date(`${b.date}T${b.time}`);
-
-  // Absolute difference from current time
-  const diffA = Math.abs(dateTimeA - now);
-  const diffB = Math.abs(dateTimeB - now);
-
-  return diffA - diffB; // closest to now first
-});
-        setUpcomingClasses(classes);
-      } else {
-        console.error("Failed to fetch upcoming classes:", data.message || data || "No error message");
-      }
-    } catch (err) {
-      console.error("Error fetching upcoming classes:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchUpcomingClasses();
-  /* const interval = setInterval(fetchUpcomingClasses, 15000);
-
-  return () => clearInterval(interval); */
-}, [userId]);
+  useEffect(() => {
+    // Mock upcoming classes data including rescheduled classes for testing
+    const mockClasses = [
+      {
+        id: "1_2025-08-10_10:00",
+        time: "10:00",
+        date: "2025-08-10",
+        batch: "Individual",
+        teachers: ["Mr. Smith"],
+        level: "Beginner",
+        plan: "Basic Plan",
+        duration: "45mins",
+        contractId: "ic-405",
+        image: "/placeholder.svg?height=120&width=200&query=keyboard lesson",
+        title: "Piano Class",
+        status: "not started",
+        link: "https://example.com/class/1",
+        class_id: 1,
+        rescheduled: false,
+      },
+      {
+        id: "2_2025-08-11_14:00",
+        time: "14:00",
+        date: "2025-08-11",
+        batch: "Group",
+        teachers: ["Ms. Johnson"],
+        level: "Intermediate",
+        plan: "Advanced Plan",
+        duration: "60mins",
+        contractId: "ic-406",
+        image: "/placeholder.svg?height=120&width=200&query=guitar lesson",
+        title: "Guitar Class",
+        status: "not started",
+        link: "https://example.com/class/2",
+        class_id: 2,
+        rescheduled: true,
+      },
+    ];
+    setUpcomingClasses(mockClasses);
+    setLoading(false);
+  }, []);
 
 
   /* const completedClasses = [
@@ -416,7 +389,7 @@ const isLastMinuteCancelEnabled = (classTime) => {
           {upcomingClasses.map((classItem) => (
             <div
               key={classItem.id}
-              className="class-card-horizontal"
+              className={`class-card-horizontal ${classItem.rescheduled ? "rescheduled-card" : ""}`}
               /* onClick={() => setSelectedClassId(classItem.id)} */
             >
               <div className="class-image">
@@ -431,11 +404,11 @@ const isLastMinuteCancelEnabled = (classTime) => {
                       minute: "2-digit",
                       hour12: true,
                         })}</div>
-                <div className="class-badges">
-                  <span className="badge individual">{classItem.batch}</span>
-                  <span className="badge keyboard">{classItem.plan}</span>
-                  <span className="badge not-started">{classItem.status}</span>
-                </div>
+            <div className="class-badges">
+              <span className="badge individual">{classItem.batch}</span>
+              <span className="badge keyboard">{classItem.plan}</span>
+              <span className={`badge ${classItem.rescheduled ? "rescheduled" : "not-started"}`}>{classItem.rescheduled ? "Rescheduled" : classItem.status}</span>
+            </div>
                 <div className="class-details">
                   <p>Teacher Name: {classItem.teachers.join(", ")}</p>
                   <p>Level: {classItem.level}</p>
