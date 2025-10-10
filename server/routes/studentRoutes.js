@@ -64,11 +64,14 @@ router.post("/actions/submit", async (req, res) => {
     }
 
     // ✅ Update status in arrangements table based on action_type
-    const { data: updateData, error: updateError } = await supabase
-      .from("arrangements")
-      .update({ status: action_type }) // "leave" or "cancel"
-      .eq("class_id", class_id)
-      .select();
+   // ✅ Update user-specific status in class_participant_status
+const { data: updateData, error: updateError } = await supabase
+  .from("class_participant_status")
+  .update({ status: action_type })
+  .eq("class_id", class_id)
+  .eq("user_id", user_id)
+  .select();
+
 
     if (updateError) {
       console.error("Supabase update error:", updateError);
@@ -90,25 +93,33 @@ router.post("/actions/submit", async (req, res) => {
 
 router.put("/class-status", async (req, res) => {
   try {
-    const { class_id, status } = req.body;
+    const { class_id, status, user_id } = req.body;
 
-    if (!class_id || !status) {
-      return res.status(400).json({ success: false, message: "Missing class_id or status" });
+    if (!class_id || !status || !user_id) {
+      return res.status(400).json({ success: false, message: "Missing class_id, status, or user_id" });
     }
 
-    const { error } = await supabase
-      .from("arrangements")
-      .update({ status })
-      .eq("class_id", class_id);
+    // Update only this user's status
+    const { data, error: updateError } = await supabase
+      .from("class_participant_status")
+      .update({ status })       // use status from request
+      .eq("class_id", class_id)
+      .eq("user_id", user_id)
+      .select();
 
-    if (error) throw error;
+    if (updateError) {
+      console.error("Supabase update error:", updateError);
+      return res.status(500).json({ success: false, message: "Failed to update status" });
+    }
 
-    return res.json({ success: true, message: `Class status updated to ${status}` });
+    return res.json({ success: true, message: `Class status updated to ${status}`, data });
+
   } catch (err) {
     console.error("Error updating class status:", err);
     return res.status(500).json({ success: false, message: "Server error" });
   }
 });
+
 
 
 

@@ -51,7 +51,7 @@ const ClassReport = () => {
       const data = await response.json();
 
       if (!response.ok) throw new Error(data.error || "Failed to fetch classes");
-
+      
       setClassData(data);
     } catch (err) {
       console.error("Error fetching classes:", err);
@@ -164,52 +164,83 @@ const ClassReport = () => {
       <div className="classes-content">
         {loading ? (
           <p>Loading classes...</p>
-        ) : classData.length > 0 ? (
-          classData.map((classItem) => (
-            <div key={classItem.id} className="class-item">
-              <div className="class-image">
-                <img src={getSubjectImage(classItem.subject)} alt={classItem.subject} />
-              </div>
-              <div className="class-details">
-                <div className="class-date">
-                  {new Date(classItem.date).toLocaleDateString()}{"  "}{classItem.day}{" "}
-                  at {new Date(classItem.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                </div>
-                <div className="class-badges">
-                  <span className="badge type-badge">{classItem.batch_type}</span>
-                  <span className={`badge subject-badge ${getSubjectBadge(classItem.subject)}`}>
-                    {classItem.subject}
-                  </span>
-                  <span className={`badge status-badge ${getStatusBadge(classItem.status)}`}>
-                    {classItem.status === "leave" ? "Leave" : classItem.status === "cancel" ? "Last Minute Cancel" : classItem.status}
-                  </span>
-                </div>
-                <div className="class-curriculum">
-                  Curriculum Stamp: {classItem.curriculum || "N/A"}
-                </div>
-                <div className="class-instructor">
-                  Instructor: {classItem.teacher_id || "N/A"}
-                </div>
-              </div>
-              <div className="class-actions">
-                {activeTab === "upcoming" && (
-                  <button
-                    className="action-btn start-btn"
-                    onClick={() => window.location.href = "/student-dashboard"}
-                  >
-                    GO TO DASHBOARD
-                  </button>
-                )}
-                {activeTab === "completed" && <button className="action-btn view-btn">VIEW</button>}
-                {(activeTab === "cancelled" || activeTab === "missed") && (
-                  <button className="action-btn reschedule-btn">RESCHEDULE</button>
-                )}
-              </div>
-            </div>
-          ))
-        ) : (
-          <p>No classes found for this filter.</p>
-        )}
+        ) :classData.length > 0 ? (
+  classData.map((classItem) => {
+    const { arrangements } = classItem;
+
+    // Safety check: skip or show placeholder if arrangements is missing
+    if (!arrangements) {
+      return (
+        <div key={classItem.id} className="class-item">
+          <div className="class-details">
+            <div className="class-date">No schedule available</div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div key={classItem.id} className="class-item">
+        <div className="class-image">
+          <img
+            src={getSubjectImage(arrangements.subject)}
+            alt={arrangements.subject}
+          />
+        </div>
+        <div className="class-details">
+          <div className="class-date">
+            {new Date(arrangements.date).toLocaleDateString()} {arrangements.day} at{" "}
+            {new Date(arrangements.time).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </div>
+          <div className="class-badges">
+            <span className="badge type-badge">{classItem.batch_type}</span>
+            <span
+              className={`badge subject-badge ${getSubjectBadge(arrangements.subject)}`}
+            >
+              {arrangements.subject}
+            </span>
+            <span
+              className={`badge status-badge ${getStatusBadge(classItem.status)}`}
+            >
+              {classItem.status === "leave"
+                ? "Leave"
+                : classItem.status === "cancel"
+                ? "Last Minute Cancel"
+                : classItem.status}
+            </span>
+          </div>
+          <div className="class-curriculum">
+            Curriculum Stamp: {classItem.curriculum || "N/A"}
+          </div>
+          <div className="class-instructor">
+            Instructor: {classItem.teacher_id || "N/A"}
+          </div>
+        </div>
+        <div className="class-actions">
+          {activeTab === "upcoming" && (
+            <button
+              className="action-btn start-btn"
+              onClick={() => (window.location.href = "/student-dashboard")}
+            >
+              GO TO DASHBOARD
+            </button>
+          )}
+          {activeTab === "completed" && (
+            <button className="action-btn view-btn">VIEW</button>
+          )}
+          {(activeTab === "cancelled" || activeTab === "missed") && (
+            <button className="action-btn reschedule-btn">RESCHEDULE</button>
+          )}
+        </div>
+      </div>
+    );
+  })
+) : (
+  <p>No classes found for this filter.</p>
+)}
       </div>
 
       {/* Completed Extra Section */}

@@ -313,7 +313,7 @@ app.get("/media/:userId", async (req, res) => {
 app.use("/api/classreport", require("./routes/classreportRoutes"));
 
 
-
+app.use("/api/teacher",require("./routes/teacher/teacherRoutes"));
 
 
 

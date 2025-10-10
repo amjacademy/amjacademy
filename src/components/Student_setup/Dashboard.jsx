@@ -224,6 +224,10 @@ const handleLeaveSubmit = async (leaveData) => {
     if (data.success) {
       alert("Request submitted successfully!");
       setShowLeaveModal(false);
+      // Refresh page after 2 seconds
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000); // 2000ms = 2 seconds
     } else {
       alert("Failed to submit request: " + (data.message || "Unknown error"));
     }
@@ -261,7 +265,8 @@ const handleJoinClass = async (classItem) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ class_id: classItem.class_id, status: "ongoing" }),
+      body: JSON.stringify({ class_id: classItem.class_id, status: "ongoing",
+        user_id: userId }),
     });
 
     const data = await response.json();
@@ -272,6 +277,8 @@ const handleJoinClass = async (classItem) => {
       // Move from upcoming → ongoing
       setUpcomingClasses((prev) => prev.filter((c) => c.class_id !== classItem.class_id));
       setSelectedClassId(classItem.class_id);
+      
+      
     } else {
       console.error("❌ Failed to update status:", data.message);
     }
