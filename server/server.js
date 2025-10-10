@@ -75,16 +75,21 @@ app.get("/api/counts", async (req, res) => {
       .select("role");
 
     const { data: announcements } = await supabase.from("announcements").select("id");
-    const { data: schedules } = await supabase.from("arrangements").select("id"); 
+    const { data: schedules } = await supabase.from("arrangements").select("id");
+    const { data: rescheduledRows, count, error } = await supabase
+    .from("arrangements")
+    .select("id", { count: "exact" }) // count: "exact" gives total matching rows
+    .eq("rescheduled", true);   
 
     const studentsCount = enrollments.filter(e => e.role === "Student").length;
     const teachersCount = enrollments.filter(e => e.role === "Teacher").length;
-    const schedulesCount = schedules.length;
+   
     res.json({
       students: studentsCount,
       teachers: teachersCount,
       announcements: announcements.length,
-      schedules: schedulesCount
+      schedules: schedules.length,
+      notifications: count || 0, // number of rescheduled arrangements
     });
   } catch (err) {
     console.error(err);

@@ -12,18 +12,24 @@ export default function Announcements() {
   
 
   // Fetch announcements from backend
-  const fetchAnnouncements = async () => {
-    try {
-      const res = await fetch(`https://amjacademy-working.onrender.com/api/announcements/receive/${receiver}`, {
+// Fetch all announcements (no filtering or receiver)
+const fetchAnnouncements = async () => {
+  try {
+    const res = await fetch(
+      "https://amjacademy-working.onrender.com/api/announcements/receive",
+      {
         method: "GET",
         credentials: "include",
-      });
-      const data = await res.json();
-      setAnnouncements(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("Failed to fetch announcements:", err);
-    }
-  };
+      }
+    );
+
+    const data = await res.json();
+    setAnnouncements(Array.isArray(data) ? data : []);
+  } catch (err) {
+    console.error("Failed to fetch announcements:", err);
+  }
+};
+
 
 useEffect(() => { fetchAnnouncements(); }, [receiver]);
 

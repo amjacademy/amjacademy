@@ -182,6 +182,30 @@
   color: #6b7280;
 }
 
+.mark-read-btn {
+  background: linear-gradient(135deg, var(--nc-accent), var(--nc-accent-2));
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+.mark-read-btn:hover {
+  background: linear-gradient(135deg, var(--nc-accent-2), var(--nc-accent));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.mark-read-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .nc-header {

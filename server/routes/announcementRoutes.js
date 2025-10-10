@@ -7,7 +7,7 @@ const { send, receive, remove } = require("../controllers/announcementController
 router.post("/send", send);
 
 // GET: fetch announcements for role
-router.get("/receive/:role", receive);
+router.get("/receive", receive);
 
 // DELETE: delete announcement by ID
 router.delete("/remove/:id", remove);

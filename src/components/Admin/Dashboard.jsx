@@ -113,7 +113,7 @@ export default function Dashboard() {
           <span className="stat-label">Schedules</span>
         </div>
         <div className="stat" onClick={() => setSelectedModule("notifications")} style={{ cursor: "pointer" }}>
-          <span className="stat-num">{counts.notifications}</span>
+          <span className="stat-num">{counts.notifications || 0}</span>
           <span className="stat-label">Notifications</span>
         </div>
       </div>

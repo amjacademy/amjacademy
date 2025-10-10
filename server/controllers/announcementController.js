@@ -34,24 +34,21 @@ exports.send = async (req, res) => {
 // 2️⃣ Receive announcements for a role
 exports.receive = async (req, res) => {
   try {
-    const role = req.params.role; // "Students", "Teachers", or "All"
-    let query = supabase.from("announcements").select("*").order("created_at", { ascending: false });
+    // Fetch all announcements
+    const { data, error } = await supabase
+      .from("announcements")
+      .select("*")
+      .order("created_at", { ascending: false }); // most recent first
 
-    if (role === "All") {
-      // fetch everything (no filter needed)
-    } else {
-      query = query.or(`receiver.eq.${role},receiver.eq.All`);
-    }
-
-    const { data, error } = await query;
     if (error) throw error;
 
-    res.status(200).json(data);
+    res.status(200).json(data || []); // return empty array if no data
   } catch (err) {
     console.error("Receive Announcements Error:", err);
     res.status(500).json({ error: "Failed to fetch announcements" });
   }
 };
+
 
 
 // 3️⃣ Delete announcement

@@ -264,7 +264,7 @@ const handleOtpSubmit = async (e) => {
             />
             {errors.email && <span className="error-message">{errors.email}</span>}
             <button type="button" className="verify-btn" onClick={handleVerifyClick} disabled={loading}>
-              {loading ? "Verifying..." : "Verify"}
+              {loading ? "Verifying..." : otpVerified ? "Verified" : "Verify"}
             </button>
           </div>
 

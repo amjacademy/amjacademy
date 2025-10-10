@@ -6,7 +6,7 @@ const router = express.Router();
 // CREATE arrangement
 router.post("/create", async (req, res) => {
   try {
-  const { batch_type, student1_id, student2_id, teacher_id, day, date, time, link } = req.body;
+  const { batch_type, student1_id, student2_id, teacher_id, day, date, time, link, rescheduled } = req.body;
 
   // 1️⃣ Fetch student1 profession from enrollments
   const { data: enrollmentData, error: enrollmentError } = await supabase
@@ -33,6 +33,7 @@ router.post("/create", async (req, res) => {
         time,
         link,
         subject, // store profession in subject column
+        rescheduled: rescheduled || false, // default to false if not provided
       },
     ])
     .select();
@@ -57,7 +58,7 @@ router.get("/getdetails", async (req, res) => {
 router.put("/update/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { batch_type, student1_id, student2_id, teacher_id, day, date, time, link } = req.body;
+    const { batch_type, student1_id, student2_id, teacher_id, day, date, time, link, rescheduled } = req.body;
 
     const { data, error } = await supabase
       .from("arrangements")
@@ -69,7 +70,8 @@ router.put("/update/:id", async (req, res) => {
         day,
         date,
         time,
-        link
+        link,
+        rescheduled: rescheduled || false, // default to false if not provided
       })
       .eq("id", id)
       .select();

@@ -310,7 +310,8 @@ const fetchEnrollments = async () => {
       }
 
       // Update the list
-      setList(prevList => prevList.map(item => item.id === editingId ? data[0] : item));
+       // Directly update the list
+      setList(prevList => [...data, ...prevList]);
 
       // Reset form
       resetForm();

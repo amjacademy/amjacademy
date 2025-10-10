@@ -39,11 +39,12 @@ export default function Admin_Dashboard() {
   const [announcements, setAnnouncements] = useLocalStorage("announcements", [])
   // Schedules
   const [schedules, setSchedules] = useLocalStorage("admin_schedules", [])
+  const [notifications, setNotifications] = useLocalStorage("admin_notifications", [])
 
   const [activeTab, setActiveTab] = useState("dashboard")
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
-  const [apiCounts, setApiCounts] = useState({ notifications: 0 })
+  const [apiCounts, setApiCounts] = useState({})
 
   // Get username from localStorage
   const username = localStorage.getItem('admin_username') || 'Admin'
@@ -114,6 +115,7 @@ export default function Admin_Dashboard() {
     teachers: teachers.length,
     announcements: announcements.length,
     schedules: schedules.length,
+    notifications: notifications.length,
   }
 
   const renderContent = () => {
@@ -215,7 +217,7 @@ const handleLogout = async () => {
                     <span className="nav-icon">{item.icon}</span>
                     <span className="nav-label">{item.label}</span>
                     {item.id === "notifications" && apiCounts.notifications > 0 && (
-                      <span className="nav-badge">{apiCounts.notifications}</span>
+                      <span className="nav-badge">({apiCounts.notifications })</span>
                     )}
                   </button>
                 </div>

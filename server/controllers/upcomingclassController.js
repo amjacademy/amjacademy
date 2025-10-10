@@ -55,6 +55,7 @@ if (error) {
           contract_id: "ic-405",
           status: "not started",
           class_id: cls.class_id,
+          rescheduled: cls.rescheduled,
         };
       })
     );

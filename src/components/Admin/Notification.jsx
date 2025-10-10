@@ -39,29 +39,44 @@ export default function Notifications({ userType = "admin" }) {
   useEffect(() => {
     if (messages.length === 0) {
       const now = new Date()
-      const demo = [
-        {
-          id: "demo-teacher-cancel-1",
-          kind: "Class Cancelled",
-          from: "Ms. Lisa",
-          role: "teacher",
-          text: "Today's keyboard class is cancelled due to health reasons.",
-          createdAt: now.toISOString(),
-          to: ["admin"], // teacher cancellation -> admin only
-        },
-        {
-          id: "demo-student-leave-1",
-          kind: "Leave Request",
-          from: "Ajay",
-          role: "student",
-          text: "Requesting leave for tomorrow's session due to a family function.",
-          createdAt: new Date(now.getTime() - 1000 * 60 * 45).toISOString(),
-          to: ["admin", "teacher"], // student leave -> admin + teacher
-        },
-      ]
-      setMessages(demo)
-    }
-  }, [messages.length, setMessages])
+          const demo = [
+            {
+              id: "demo-student-welcome-1",
+              kind: "Student",
+              from: "Ajay",
+              role: "student",
+              text: "Welcome to AMJ Academy! Your learning journey starts here.",
+              createdAt: now.toISOString(),
+              to: ["admin", "teacher"],
+              redirectedFrom: "Ajay", // Specific student name to mention
+              read: false,
+            },
+            {
+              id: "demo-teacher-cancel-1",
+              kind: "Class Cancelled",
+              from: "Ms. Lisa",
+              role: "teacher",
+              text: "Today's keyboard class is cancelled due to health reasons.",
+              createdAt: now.toISOString(),
+              to: ["admin"], // teacher cancellation -> admin only
+              redirectedFrom: "Ms. Lisa",
+              read: false,
+            },
+            {
+              id: "demo-student-leave-1",
+              kind: "Leave Request",
+              from: "Ajay",
+              role: "student",
+              text: "Requesting leave for tomorrow's session due to a family function.",
+              createdAt: new Date(now.getTime() - 1000 * 60 * 45).toISOString(),
+              to: ["admin", "teacher"], // student leave -> admin + teacher
+              redirectedFrom: "Ajay",
+              read: false,
+            },
+          ]
+          setMessages(demo)
+        }
+      }, [messages.length, setMessages])
 
   const visibleMessages = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -112,58 +127,66 @@ export default function Notifications({ userType = "admin" }) {
             const time = n.createdAt
               ? new Date(n.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
               : ""
-            return (
-              <li key={n.id} className="nc-item">
-                <button
-                  className="nc-card"
-                  onClick={() => setExpandedId((id) => (id === n.id ? null : n.id))}
-                  aria-expanded={expandedId === n.id}
-                >
-                  <div className={`nc-avatar ${isTeacher ? "teacher" : "student"}`} aria-hidden>
-                    {avatarLetter}
-                  </div>
-
-                  <div className="nc-main">
-                    <div className="nc-row">
-                      <div className="nc-heading">
-                        <span className="nc-kind">{n.kind || "Notification"}</span>
-                        <span className={`nc-pill ${isTeacher ? "pill-teacher" : "pill-student"}`}>
-                          {isTeacher ? "Teacher" : "Student"}
-                        </span>
-                      </div>
-                      <time className="nc-time">{time}</time>
-                    </div>
-
-                    <div className="nc-meta">
-                      <span className="nc-from">
-                        From: <strong>{n.from || "Unknown"}</strong> {n.role ? `(${n.role})` : ""}
+          return (
+            <li key={n.id} className="nc-item">
+              <button
+                className="nc-card"
+                onClick={() => setExpandedId((id) => (id === n.id ? null : n.id))}
+                aria-expanded={expandedId === n.id}
+              >
+                <div className={`nc-avatar ${isTeacher ? "teacher" : "student"}`} aria-hidden>
+                  {avatarLetter}
+                </div>
+                <div className="nc-main">
+                  <div className="nc-row">
+                    <div className="nc-heading">
+                      <span className="nc-kind">{n.kind || "Notification"}</span>
+                      <span className={`nc-pill ${isTeacher ? "pill-teacher" : "pill-student"}`}>
+                        {isTeacher ? "Teacher" : "Student"}
                       </span>
                     </div>
-
-                    <div className="nc-preview">{n.text}</div>
-
-                    {expandedId === n.id && (
-                      <div className="nc-detail">
-                        <div className="nc-detail-line">
-                          <span className="label">Delivered to</span>
-                          <span className="value">{Array.isArray(n.to) ? n.to.join(", ") : "—"}</span>
-                        </div>
-                        <div className="nc-detail-line">
-                          <span className="label">Received</span>
-                          <span className="value">
-                            {n.createdAt
-                              ? new Date(n.createdAt).toLocaleString([], {
-                                  month: "short",
-                                  day: "2-digit",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })
-                              : ""}
-                          </span>
-                        </div>
-                      </div>
-                    )}
+                    <time className="nc-time">{time}</time>
                   </div>
+                  <div className="nc-meta">
+                    <span className="nc-from">
+                      From: <strong>{n.redirectedFrom || n.from || "Unknown"}</strong> {n.role ? `(${n.role})` : ""}
+                    </span>
+                  </div>
+                  <div className="nc-preview">{n.text}</div>
+                  {expandedId === n.id && (
+                    <div className="nc-detail">
+                      <div className="nc-detail-line">
+                        <span className="label">Delivered to</span>
+                        <span className="value">{Array.isArray(n.to) ? n.to.join(", ") : "—"}</span>
+                      </div>
+                      <div className="nc-detail-line">
+                        <span className="label">Received</span>
+                        <span className="value">
+                          {n.createdAt
+                            ? new Date(n.createdAt).toLocaleString([], {
+                                month: "short",
+                                day: "2-digit",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
+                            : ""}
+                        </span>
+                      </div>
+                      <button
+                        className="mark-read-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const updatedMessages = messages.map((msg) =>
+                            msg.id === n.id ? { ...msg, read: true } : msg
+                          );
+                          setMessages(updatedMessages);
+                        }}
+                      >
+                        Mark as Read
+                      </button>
+                    </div>
+                  )}
+                </div>
                 </button>
               </li>
             )
