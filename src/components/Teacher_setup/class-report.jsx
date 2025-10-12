@@ -234,14 +234,14 @@ const ClassReport = () => {
             Curriculum Stamp: {classItem.curriculum || "N/A"}
           </div>
           <div className="class-instructor">
-            Instructor: {classItem.teacher_id || "N/A"}
+            Student: {classItem.student_id || "N/A"}
           </div>
         </div>
         <div className="class-actions">
           {activeTab === "upcoming" && (
             <button
               className="action-btn start-btn"
-              onClick={() => (window.location.href = "/student-dashboard")}
+              onClick={() => (window.location.href = "/teacher-dashboard")}
             >
               GO TO DASHBOARD
             </button>
