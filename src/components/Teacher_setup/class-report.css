@@ -325,3 +325,112 @@
     min-width: 100%;
   }
 }
+
+@media (max-width: 480px) {
+  .class-report-container {
+    padding: 10px;
+  }
+
+  .content-header3 {
+    margin: -20px -10px 20px -10px;
+    padding: 12px 16px;
+  }
+
+  .content-header3 h1 {
+    font-size: 16px;
+  }
+
+  .class-report-filters {
+    gap: 10px;
+  }
+
+  .date-from,
+  .date-to {
+    min-width: unset;
+  }
+
+  .date-input,
+  .filter-select {
+    padding: 8px 12px;
+    font-size: 13px;
+    min-width: 100%;
+  }
+
+  .date-from label,
+  .date-to label {
+    font-size: 11px;
+  }
+
+  .student-filter {
+    max-width: 100%;
+  }
+
+  .class-tabs {
+    gap: 5px;
+    margin-bottom: 20px;
+  }
+
+  .tab-btn {
+    padding: 8px 15px;
+    font-size: 12px;
+  }
+
+  .total-classes {
+    padding: 8px 15px;
+    font-size: 12px;
+  }
+
+  .total-classes .count {
+    padding: 3px 8px;
+    font-size: 11px;
+  }
+
+  .classes-content {
+    gap: 15px;
+  }
+
+  .class-item {
+    padding: 15px;
+    gap: 15px;
+  }
+
+  .class-image {
+    height: 100px;
+  }
+
+  .class-date {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  .class-badges {
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .badge {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+
+  .class-curriculum,
+  .class-instructor {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+
+  .action-btn {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+
+  .view-more-section {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .view-more-btn {
+    padding: 10px 25px;
+    font-size: 13px;
+  }
+}

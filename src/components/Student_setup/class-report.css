@@ -29,7 +29,26 @@
   flex-wrap: wrap;
 }
 
-.date-select,
+.date-filter {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.date-from,
+.date-to {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.date-from label,
+.date-to label {
+  font-size: 12px;
+  color: #4a5568;
+}
+
+.date-input,
 .filter-select {
   padding: 10px 15px;
   border: 2px solid #e0e0e0;
@@ -42,7 +61,7 @@
   -moz-appearance: menulist;
 }
 
-.date-select:focus,
+.date-input:focus,
 .filter-select:focus {
   outline: none;
   border-color: #667eea;
@@ -208,6 +227,8 @@
 
 .class-actions {
   flex-shrink: 0;
+  display: flex;
+  gap: 10px;
 }
 
 .action-btn {
@@ -232,6 +253,11 @@
 
 .reschedule-btn {
   background: linear-gradient(45deg, #fdcb6e, #e17055);
+  color: white;
+}
+
+.not-shown-btn {
+  background: linear-gradient(45deg, #a4b0be, #57606f);
   color: white;
 }
 

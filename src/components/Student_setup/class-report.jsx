@@ -6,7 +6,8 @@ import "./class-report.css";
 const ClassReport = () => {
   const [activeTab, setActiveTab] = useState("upcoming");
   const [filterBy, setFilterBy] = useState("all");
-  const [dateRange, setDateRange] = useState("Aug 20, 2025 - Sep 18, 2025");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [classData, setClassData] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -43,6 +44,8 @@ const ClassReport = () => {
         user_id: userId,
         status,
         subject: filterBy,
+        date_from: fromDate,
+        date_to: toDate,
       });
 
       const response = await fetch(
@@ -63,7 +66,7 @@ const ClassReport = () => {
 
   useEffect(() => {
     fetchClasses();
-  }, [activeTab, filterBy]);
+  }, [activeTab, filterBy, fromDate, toDate]);
 
   // Badge helpers
   const getStatusBadge = (status) => {
@@ -106,16 +109,24 @@ const ClassReport = () => {
       {/* Filters */}
       <div className="class-report-filters">
         <div className="date-filter">
-          <select
-            className="date-select"
-            value={dateRange}
-            onChange={(e) => setDateRange(e.target.value)}
-          >
-            <option value="Aug 20, 2025 - Sep 18, 2025">Aug 20, 2025 - Sep 18, 2025</option>
-            <option value="Sep 19, 2025 - Oct 18, 2025">Sep 19, 2025 - Oct 18, 2025</option>
-            <option value="Oct 19, 2025 - Nov 18, 2025">Oct 19, 2025 - Nov 18, 2025</option>
-            <option value="Nov 19, 2025 - Dec 18, 2025">Nov 19, 2025 - Dec 18, 2025</option>
-          </select>
+          <div className="date-from">
+            <label>Date From</label>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="date-input"
+            />
+          </div>
+          <div className="date-to">
+            <label>Date To</label>
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="date-input"
+            />
+          </div>
         </div>
         <div className="student-filter">
           <select
@@ -231,8 +242,11 @@ const ClassReport = () => {
           {activeTab === "completed" && (
             <button className="action-btn view-btn">VIEW</button>
           )}
-          {(activeTab === "cancelled" || activeTab === "missed") && (
-            <button className="action-btn reschedule-btn">RESCHEDULE</button>
+          {(activeTab === "leave" || activeTab === "cancel") && (
+            <>
+              <button className="action-btn reschedule-btn">RESCHEDULE</button>
+              <button className="action-btn not-shown-btn">NOT SHOWN</button>
+            </>
           )}
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react"
 import "./punctuality-report.css"
+import "./Dashboard.css"
 
 const sessionTypes = ["All Classes", "Regular", "Special", "Demo"]
 const slotStatuses = ["All Slots", "As schedule", "Early-Out", "Behind schedule", "As schedule", "Late-Out"]
@@ -80,7 +81,7 @@ function makeDummyRow(i) {
 }
 
 export default function PunctualityReport() {
-  const [startDate, setStartDate] = useState("")
+  const [ startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
   const [sessionType, setSessionType] = useState("All Classes")
   const [slotStatus, setSlotStatus] = useState("All Slots")
@@ -117,7 +118,7 @@ export default function PunctualityReport() {
 
   return (
     <>
-      <div className="content-header">
+      <div className="content-header1">
         <h1>PUNCTUALITY REPORTS</h1>
       </div>
 

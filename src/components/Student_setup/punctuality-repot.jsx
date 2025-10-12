@@ -118,7 +118,7 @@ export default function PunctualityReport() {
 
   return (
     <>
-      <div className="content-header">
+      <div className="content-header1">
         <h1>MY PUNCTUALITY REPORT</h1>
       </div>
 

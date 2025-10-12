@@ -64,7 +64,7 @@ const Profile = () => {
   return (
     <div className="profile-container">
       
-      <div className="content-header">
+      <div className="content-header1">
         <h1>PROFILE</h1>
       </div>
 
