@@ -317,12 +317,19 @@
   }
 
   .class-report-filters {
-    flex-direction: column;
+    flex-direction: row;
   }
 
   .date-input,
   .filter-select {
-    min-width: 100%;
+    min-width: 140px;
+  }
+
+  .class-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: center;
   }
 }
 

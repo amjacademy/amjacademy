@@ -22,6 +22,8 @@ const ClassReport = () => {
       return "leave";       // updated
     case "cancel":
       return "cancel";      // updated
+    case "notshown":
+      return "notshown";      // updated
     default:
       return "upcoming";
   }
@@ -75,6 +77,7 @@ const ClassReport = () => {
       completed: "status-completed",
       leave: "status-cancelled",
       cancel: "status-missed",
+      notshown: "status-notshown",
     };
     return statusClasses[status] || "status-default";
   };
@@ -146,7 +149,7 @@ const ClassReport = () => {
 
       {/* Tabs */}
       <div className="class-tabs">
-  {["upcoming", "completed", "leave", "cancel"].map((tab) => (
+  {["upcoming", "completed", "leave", "cancel", "notshown"].map((tab) => (
     <button
       key={tab}
       className={`tab-btn ${activeTab === tab ? "active" : ""}`}
@@ -156,6 +159,8 @@ const ClassReport = () => {
         ? "LEAVE"
         : tab === "cancel"
         ? "LAST MINUTE CANCEL"
+        : tab === "notshown"
+        ? "NOT SHOWN"
         : tab.toUpperCase()}
     </button>
   ))}
@@ -165,6 +170,8 @@ const ClassReport = () => {
       ? "Leave"
       : activeTab === "cancel"
       ? "Last Minute Cancel"
+      : activeTab === "notshown"
+      ? "Not Shown"
       : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}{" "}
     Classes: <span className="count">{classData.length}</span>
   </div>
@@ -220,6 +227,8 @@ const ClassReport = () => {
                 ? "Leave"
                 : classItem.status === "cancel"
                 ? "Last Minute Cancel"
+                : classItem.status === "notshown"
+                ? "Not Shown"
                 : classItem.status}
             </span>
           </div>
@@ -245,8 +254,10 @@ const ClassReport = () => {
           {(activeTab === "leave" || activeTab === "cancel") && (
             <>
               <button className="action-btn reschedule-btn">RESCHEDULE</button>
-              <button className="action-btn not-shown-btn">NOT SHOWN</button>
             </>
+          )}
+          {activeTab === "notshown" && (
+            <button className="action-btn contact-btn">RESCHEDULE</button>
           )}
         </div>
       </div>
