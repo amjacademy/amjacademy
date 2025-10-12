@@ -421,19 +421,19 @@ const isLastMinuteCancelEnabled = (classTime) => {
                 <div className="class-details">
                   <p>Teacher Name: {classItem.teachers.join(", ")}</p>
                   <p>Level: {classItem.level}</p>
-                  <p>Contract ID: {classItem.class_id}</p>
+                  <p>Class ID: {classItem.class_id}</p>
                   <p>Plan: {classItem.plan}</p>
                   <p>Duration: {classItem.duration}</p>
                 </div>
               </div>
               <div className="class-actions">
                <button
-  className="start-class-btn"
-  onClick={() => { handleJoinClass(classItem)}}
-  disabled={!isJoinEnabled(classItem.time, classItem.date)}
->
-  JOIN CLASS
-</button>
+                  className="start-class-btn"
+                  onClick={() => { handleJoinClass(classItem)}}
+                  disabled={!isJoinEnabled(classItem.time, classItem.date)}
+                >
+                  JOIN CLASS
+                </button>
 
                 
       <button
@@ -553,41 +553,41 @@ const isLastMinuteCancelEnabled = (classTime) => {
         </div>
         <div className="header-center">
           <nav className="header-nav">
-            <a href="#" className="nav-link" onClick={() => setActiveTab("dashboard")}>
+            <a href="#" className="nav-link" onClick={() => window.location.href = '/'}>
               HOME
             </a>
             <a
               href="#"
               className={`nav-link ${activeTab === "dashboard" ? "active" : ""}`}
-              onClick={() => setActiveTab("dashboard")}
+              onClick={() => { setActiveTab("dashboard"); window.scrollTo(0, 0); }}
             >
               DASHBOARD
             </a>
             <a
               href="#"
               className={`nav-link ${activeTab === "profile" ? "active" : ""}`}
-              onClick={() => setActiveTab("profile")}
+              onClick={() => { setActiveTab("profile"); window.scrollTo(0, 0); }}
             >
               MY PROFILE
             </a>
             <a
               href="#"
               className={`nav-link ${activeTab === "class-report" ? "active" : ""}`}
-              onClick={() => setActiveTab("class-report")}
+              onClick={() => { setActiveTab("class-report"); window.scrollTo(0, 0); }}
             >
               CLASS REPORT
             </a>
             <a
               href="#"
               className={`nav-link ${activeTab === "assignments" ? "active" : ""}`}
-              onClick={() => setActiveTab("assignments")}
+              onClick={() => { setActiveTab("assignments"); window.scrollTo(0, 0); }}
             >
               MY ASSIGNMENTS
             </a>
             <a
               href="#"
               className={`nav-link ${activeTab === "punctuality-report" ? "active" : ""}`}
-              onClick={() => setActiveTab("punctuality-report")}
+              onClick={() => { setActiveTab("punctuality-report"); window.scrollTo(0, 0); }}
             >
               PUNCTUALITY REPORT
             </a>
@@ -619,6 +619,7 @@ const isLastMinuteCancelEnabled = (classTime) => {
                       } else {
                         setActiveTab(item.id)
                         setSidebarOpen(false)
+                        window.scrollTo(0, 0)
                       }
                     }}
                   >
@@ -635,6 +636,7 @@ const isLastMinuteCancelEnabled = (classTime) => {
                           onClick={() => {
                             setActiveTab(`assignments-${sub.id}`)
                             setSidebarOpen(false)
+                            window.scrollTo(0, 0)
                           }}
                         >
                           {sub.label}

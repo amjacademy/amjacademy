@@ -4,7 +4,7 @@ import { useMemo, useState } from "react"
 import "./punctuality-report.css"
 
 const sessionTypes = ["All Classes", "Regular", "Special", "Demo"]
-const slotStatuses = ["All Slots", "On-time", "Early-Out", "Late-In", "Early-In", "Late-Out"]
+const slotStatuses = ["All Slots", "As schedule", "Early-Out", "Behind schedule", "As schedule", "Late-Out"]
 
 function toCsv(rows) {
   const headers = [
@@ -57,11 +57,11 @@ function makeDummyRow(i) {
   const ampm = i % 2 === 0 ? "AM" : "PM"
   const sessionType = ["Regular", "Special", "Demo"][i % 3]
   const classType = ["Group Class", "Individual Class", "Group Demo", "Individual Demo"][i % 4]
-  const slotStatus = ["On-time", "Early-Out", "Late-In", "Late-Out", "Early-In"][i % 5]
-  const checkinStatus = ["On-time", "Late-In", "Early-In"][i % 3]
-  const checkoutStatus = ["On-time", "Early-Out", "Late-Out"][i % 3]
+  const slotStatus = ["As schedule", "Early-Out", "Behind schedule", "Late-Out", "As schedule"][i % 5]
+  const checkinStatus = ["As schedule", "Behind schedule", "As schedule"][i % 3]
+  const checkoutStatus = ["As schedule", "Early-Out", "Late-Out"][i % 3]
   const duration = `${30 + (i % 10) * 3} min.`
-  const reason = slotStatus.includes("Late") ? "Traffic" : slotStatus.includes("Early") ? "Left early" : ""
+  const reason = slotStatus.includes("Behind") ? "Traffic" : slotStatus.includes("Early") ? "Left early" : ""
 
   return {
     id: i + 1,
@@ -212,12 +212,12 @@ export default function PunctualityReport() {
                   <td>{r.checkinTime}</td>
                   <td>{r.checkoutTime}</td>
                   <td>
-                    <span className={`chip ${r.checkinStatus.toLowerCase().replace(/\\s/g, "-")}`}>
+                    <span className={`chip ${r.checkinStatus.toLowerCase().replace(/\s/g, "-")}`}>
                       {r.checkinStatus}
                     </span>
                   </td>
                   <td>
-                    <span className={`chip ${r.checkoutStatus.toLowerCase().replace(/\\s/g, "-")}`}>
+                    <span className={`chip ${r.checkoutStatus.toLowerCase().replace(/\s/g, "-")}`}>
                       {r.checkoutStatus}
                     </span>
                   </td>

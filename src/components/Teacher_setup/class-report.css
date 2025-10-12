@@ -24,9 +24,39 @@
 
 .class-report-filters {
   display: flex;
-  gap: 20px;
+  flex-direction: row;
+  gap: 15px;
   margin-bottom: 20px;
+  align-items: flex-end;
   flex-wrap: wrap;
+}
+
+.date-filter {
+  display: flex;
+  gap: 15px;
+  align-items: flex-end;
+}
+
+.date-from,
+.date-to {
+  display: grid;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center;
+  flex: 0 1 auto;
+  min-width: 200px;
+}
+
+.date-from label,
+.date-to label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.student-filter {
+  max-width: 300px;
 }
 
 .date-input,

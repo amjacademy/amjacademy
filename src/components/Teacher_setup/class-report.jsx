@@ -6,7 +6,8 @@ import "./class-report.css"
 const ClassReport = () => {
   const [activeTab, setActiveTab] = useState("upcoming")
   const [filterBy, setFilterBy] = useState("all")
-  const [dateRange, setDateRange] = useState("Aug 20, 2025 - Sep 18, 2025")
+  const [fromDate, setFromDate] = useState("")
+  const [toDate, setToDate] = useState("")
 
   const classData = {
     upcoming: [
@@ -87,6 +88,18 @@ const ClassReport = () => {
         image: "/drums-lesson.jpg",
       },
     ],
+    notshown: [
+      {
+        id: 8,
+        date: "Friday, 24th Aug at 11:00 AM",
+        type: "Individual Batch",
+        subject: "Piano",
+        status: "Not shown",
+        curriculum: "N/A",
+        instructor: "Mr. John",
+        image: "/piano-lesson.png",
+      },
+    ],
   }
 
   const getStatusBadge = (status) => {
@@ -95,6 +108,7 @@ const ClassReport = () => {
       Completed: "status-completed",
       Cancelled: "status-cancelled",
       Missed: "status-missed",
+      Rescheduled: "status-rescheduled",
     }
     return statusClasses[status] || "status-default"
   }
@@ -119,7 +133,24 @@ const ClassReport = () => {
       
       <div className="class-report-filters">
         <div className="date-filter">
-          <input type="text" value={dateRange} onChange={(e) => setDateRange(e.target.value)} className="date-input" />
+          <div className="date-from">
+            <label>Date From</label>
+            <input 
+              type="date" 
+              value={fromDate} 
+              onChange={(e) => setFromDate(e.target.value)} 
+              className="date-input" 
+            />
+          </div>
+          <div className="date-to">
+            <label>Date To</label>
+            <input 
+              type="date" 
+              value={toDate} 
+              onChange={(e) => setToDate(e.target.value)} 
+              className="date-input" 
+            />
+          </div>
         </div>
         <div className="student-filter">
           <select className="filter-select">
@@ -153,6 +184,9 @@ const ClassReport = () => {
         <button className={`tab-btn ${activeTab === "missed" ? "active" : ""}`} onClick={() => setActiveTab("missed")}>
           LAST MINUTE CANCEL
         </button>
+        <button className="tab-btn hidden-tab" onClick={() => setActiveTab("notshown")}>
+          NOT SHOWN
+        </button>
         <div className="total-classes">
           Total Upcoming Classes: <span className="count">66</span>
         </div>
@@ -170,7 +204,7 @@ const ClassReport = () => {
                 <span className={`badge type-badge`}>{classItem.type}</span>
                 <span className={`badge subject-badge ${getSubjectBadge(classItem.subject)}`}>{classItem.subject}</span>
                 <span className={`badge status-badge ${getStatusBadge(classItem.status)}`}>
-                  {classItem.status === "Cancelled" ? "Leave" : classItem.status === "Missed" ? "Last Minute Cancel" : classItem.status}
+                  {classItem.status === "Cancelled" ? "Leave" : classItem.status === "Missed" ? "Last Minute Cancel" : classItem.status === "Rescheduled" ? "Rescheduled" : classItem.status}
                 </span>
               </div>
               <div className="class-curriculum">Curriculum Stamp: {classItem.curriculum}</div>

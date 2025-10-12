@@ -184,7 +184,10 @@ const handleLogout = async () => {
         </div>
         <div className="header-center">
           <nav className="header-nav">
-            <a href="#" className="nav-link active" onClick={() => setActiveTab("dashboard")}>
+            <a href="#" className="nav-link" onClick={() => window.location.href = '/'}>
+              HOME
+            </a>
+            <a href="#" className="nav-link active" onClick={() => { setActiveTab("dashboard"); window.scrollTo(0, 0); }}>
               DASHBOARD
             </a>
           </nav>
@@ -212,6 +215,7 @@ const handleLogout = async () => {
                     onClick={() => {
                       setActiveTab(item.id)
                       setSidebarOpen(false)
+                      window.scrollTo(0, 0)
                     }}
                   >
                     <span className="nav-icon">{item.icon}</span>

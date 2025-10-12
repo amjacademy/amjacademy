@@ -211,6 +211,14 @@
   background: #fecaca;
   color: #7f1d1d;
 }
+.chip.as-schedule {
+  background: #22c55e !important;
+  color: white !important;
+}
+.chip.behind-schedule {
+  background: #ef4444 !important;
+  color: white !important;
+}
 
 /* Session type pill */
 .pill.regular {

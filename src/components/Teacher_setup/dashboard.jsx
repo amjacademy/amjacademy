@@ -1,51 +1,81 @@
 "use client"
-
+import axios from "axios";
 import { useState, useEffect } from "react"
 import "./Dashboard.css"
 import Profile from "./Profile.jsx"
 import Message from "./Message.jsx"
-import Notification from "../Admin/Notification.jsx"
+// import Notification from "../Admin/Notification.jsx"
 import Footer from "../Footer/footer.jsx"
 import ClassReport from "./class-report.jsx"
 import MyAssignments from "./my-assignments.jsx"
 import PunctualityReport from "./punctuality-report.jsx"
-import ClassCancellationReport from "./class-cancellation-report.jsx"
+import LeaveModal from "../common/LeaveModal.jsx"
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState("dashboard")
-  const [userType] = useState("teacher") // This would come from auth context
+  const userType="Student";
+  const userId=localStorage.getItem('user_id');
+
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [activeTab, setActiveTab] = useState("dashboard") // This would come from auth context
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [assignmentsOpen, setAssignmentsOpen] = useState(false)
   const [showAnnouncement, setShowAnnouncement] = useState(true)
-  const [selectedClassId, setSelectedClassId] = useState(null)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const [announcements, setAnnouncements] = useState([])
+  const [upcomingClasses, setUpcomingClasses] = useState([]);
+  const [selectedClassId, setSelectedClassId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [selectedLeaveClass, setSelectedLeaveClass] = useState(null);
+  const [ongoingClass, setOngoingClass] = useState(null);
 
-  useEffect(() => {
-    const announcementClosed = localStorage.getItem('announcementClosed')
-    console.log("announcementClosed flag:", announcementClosed)
-    if (announcementClosed === 'true') {
-      setShowAnnouncement(false)
+const formatTime = (timeStr) => {
+  if (!timeStr) return "";
+  const [hours, minutes] = timeStr.split(":");
+  const h = parseInt(hours);
+  const m = parseInt(minutes);
+  const ampm = h >= 12 ? "PM" : "AM";
+  const displayHour = h % 12 === 0 ? 12 : h % 12;
+  return `${displayHour}:${m.toString().padStart(2, "0")} ${ampm}`;
+};
+
+useEffect(() => {
+  const fetchAnnouncements = async () => {
+    try {
+      const res = await fetch("https://amjacademy-working.onrender.com/api/student/fetchannouncements?");
+      if (!res.ok) throw new Error("Failed to fetch announcements");
+
+      const data = await res.json();
+      setAnnouncements(data);
+    } catch (err) {
+      console.error("Error fetching announcements:", err.message);
     }
-    // Load announcements from localStorage and filter for Teachers or All
-    const storedAnnouncements = JSON.parse(localStorage.getItem('announcements') || '[]')
-    console.log("Stored announcements:", storedAnnouncements)
-    const filtered = storedAnnouncements.filter(a => a.receiver === "Teachers" || a.receiver === "All")
-    console.log("Filtered announcements for Teachers:", filtered)
-    setAnnouncements(filtered)
-  }, [])
+  };
 
+  fetchAnnouncements();
+/* const interval = setInterval(fetchAnnouncements, 30000); // refresh every 30s
+  return () => clearInterval(interval); */
+}, []);
+
+
+ 
+useEffect(() => {
+  const announcementClosed = localStorage.getItem("announcementClosed")
+  if (announcementClosed === "true") {
+    setShowAnnouncement(false)
+  }
+}, [])
+
+useEffect(() => {
+  const timer = setInterval(() => {
+    setCurrentTime(new Date());
+  }, 1000); // every 1 second
+
+  return () => clearInterval(timer); // cleanup
+}, []);
 
   // Get username from localStorage
   const username = localStorage.getItem('username') || 'User'
-
-  const defaultAnnouncement = {
-    id: 1,
-    title: "Ganesh Chaturthi Holiday",
-    message: "On account of Ganesh Chaturthi, AMJ Academy will not be conducting classes between 3 AM IST on Wednesday, 27 Aug 2025 and 2 AM IST on Thursday, 28 Aug 2025. Classes will resume normally from 3 AM IST on Thursday, 28 Aug 2025.",
-    duration: "03:00",
-    receiver: "All"
-  }
-  const [announcements, setAnnouncements] = useState([defaultAnnouncement])
 
   // Get first and last letter of username
   const getInitials = (name) => {
@@ -58,58 +88,84 @@ const Dashboard = () => {
 
   const initials = getInitials(username)
 
-  const handleCloseAnnouncement = () => {
-    setShowAnnouncement(false)
-    localStorage.setItem('announcementClosed', 'true')
-  }
+ 
+const handleCloseAnnouncement = () => {
+  setShowAnnouncement(false)
+  localStorage.setItem("announcementClosed", "true")
+} 
+  const [studentId]=useState(1);
+  
+useEffect(() => {
+  const fetchUpcomingClasses = async () => {
+    try {
+      setLoading(true);
 
-  const [teacherId, setTeacherId] = useState(() => {
-    let id = localStorage.getItem('teacher_id')
-    if (!id) {
-      const adminTeachers = JSON.parse(localStorage.getItem('admin_teachers') || '[]')
-      if (adminTeachers.length > 0) {
-        id = adminTeachers[0].id
-        localStorage.setItem('teacher_id', id)
-        localStorage.setItem('username', adminTeachers[0].name || 'Teacher')
-        localStorage.setItem('userType', 'teacher')
-      } else {
-        id = 'AMJT00001'
+      const response = await fetch("https://amjacademy-working.onrender.com/api/student/upcoming-classes", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "user_id": userId, // pass user_id in headers
+        },
+        credentials: "include", // instead of withCredentials (fetch uses this)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+
+      const data = await response.json();
+      /* console.log("Upcoming classes data:", data); */
+      if (data.success) {
+        // Map backend data to match frontend fields
+        console.log("Upcoming classes raw data:", data.upcomingClasses);
+        const classes = data.upcomingClasses.map((cls) => ({
+          id: cls.student1_id + "_" + cls.date + "_" + cls.time, // unique key
+          time: cls.time,
+          date: cls.date,
+          batch: cls.batch_type,
+          student: [cls.student_name],
+          level: cls.level,
+          plan: cls.plan,
+          age: cls.age,
+          student_id: cls.student1_id,
+          duration: cls.duration || "45mins", // default
+          contractId: cls.contract_id || "ic-405", // default
+          image: "/placeholder.svg?height=120&width=200&query=keyboard lesson",
+          title: `${cls.profession} Class`,
+          status: cls.status || "not started", // default
+          link: cls.link,
+          class_id: cls.class_id,
+          rescheduled: cls.rescheduled,
+        }));
+        // SORT: most recent upcoming class first
+  const now = new Date();
+
+classes.sort((a, b) => {
+  const dateTimeA = new Date(`${a.date}T${a.time}`);
+  const dateTimeB = new Date(`${b.date}T${b.time}`);
+
+  // Absolute difference from current time
+  const diffA = Math.abs(dateTimeA - now);
+  const diffB = Math.abs(dateTimeB - now);
+
+  return diffA - diffB; // closest to now first
+});
+        setUpcomingClasses(classes);
+      } else {
+        console.error("Failed to fetch upcoming classes:", data.message || data || "No error message");
+      }
+    } catch (err) {
+      console.error("Error fetching upcoming classes:", err);
+    } finally {
+      setLoading(false);
     }
-    return id
-  })
+  };
 
-  const [upcomingClasses, setUpcomingClasses] = useState([])
+  fetchUpcomingClasses();
+  /* const interval = setInterval(fetchUpcomingClasses, 15000);
 
-  useEffect(() => {
-    const classes = JSON.parse(localStorage.getItem(`teacher_upcoming_classes_${teacherId}`) || '[]')
-    setUpcomingClasses(classes)
-  }, [teacherId])
-
-  const completedClasses = [
-    {
-      id: 4,
-      title: "Rhythm Basics",
-      instructor: "Ms. Lisa",
-      time: "Yesterday at 3:00 PM",
-      duration: "45 min",
-      level: "Beginner",
-      image: "images/amj-logo.png?height=120&width=200",
-      status: "completed",
-      rating: 5,
-    },
-    {
-      id: 5,
-      title: "Vocal Warm-ups",
-      instructor: "Mr. David",
-      time: "Mon at 11:00 AM",
-      duration: "45 min",
-      level: "Beginner",
-      image: "images/amj-logo.png?height=120&width=200",
-      status: "completed",
-      rating: 4,
-    },
-  ]
+  return () => clearInterval(interval); */
+}, [userId]);
 
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: "🏠" },
@@ -129,13 +185,12 @@ const Dashboard = () => {
         { id: "assessments", label: "Assessments" },
       ],
     },
-    { id: "student-attendance", label: "Student Attendance", icon: "📅" },
-    // { id: "session-count", label: "Student Session Count Report", icon: "📈" },
+    // Student-specific items
+    { id: "punctuality-report", label: "Punctuality Report", icon: "⏰" },
+    // { id: "session-count", label: "Session Count Report", icon: "📈" },
     // { id: "holidays", label: "Upcoming Holidays", icon: "🏖️" },
-    { id: "punctuality", label: "Punctuality Reports", icon: "⏰" },
-    { id: "cancellation", label: "Class Cancellation Reports", icon: "❌" },
-    // { id: "demo-insight", label: "Due Post Demo Insight", icon: "💡" },
-    // { id: "extra-booking", label: "Extra Hour Booking Request", icon: "➕" },
+    // { id: "demo-insight", label: "Post Demo Insight", icon: "💡" },
+    // { id: "extra-booking", label: "Extra Hour Request", icon: "➕" },
   ]
 
   const toggleSidebar = () => {
@@ -146,6 +201,116 @@ const Dashboard = () => {
     setAssignmentsOpen(!assignmentsOpen)
   }
 
+const handleLeaveSubmit = async (leaveData) => {
+  if (!selectedLeaveClass) return;
+
+  try {
+    const payload = {
+      user_id: userId, // send from localStorage
+      class_id: selectedLeaveClass.class_id,
+      action_type: leaveData.actionType, // "leave" or "cancel"
+      reason: leaveData.reason || "",
+    };
+    console.log("Submitting leave/cancel with payload:", payload);
+
+    const response = await fetch("https://amjacademy-working.onrender.com/api/student/actions/submit", { // ✅ updated endpoint
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      alert("Request submitted successfully!");
+      setShowLeaveModal(false);
+      // Refresh page after 2 seconds
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000); // 2000ms = 2 seconds
+    } else {
+      alert("Failed to submit request: " + (data.message || "Unknown error"));
+    }
+  } catch (err) {
+    console.error("Error submitting request:", err);
+    alert("Error submitting request. Try again later.");
+  }
+};
+
+
+ // Utility function to check if join button should be enabled
+const isJoinEnabled = (classTime) => {
+  const now = new Date(); // current user local time
+  const classDateTime = new Date(classTime); // UTC timestamp from DB converted to local
+
+  // 5 minutes before to 15 minutes after
+  const fiveMinutesBefore = new Date(classDateTime.getTime() - 5 * 60 * 1000);
+  const fifteenMinutesAfter = new Date(classDateTime.getTime() + 15 * 60 * 1000);
+
+  return now >= fiveMinutesBefore && now <= fifteenMinutesAfter;
+};
+
+// 🔹 Function to handle Join button click
+const handleJoinClass = async (classItem) => {
+  try {
+    // Open the class link immediately
+    window.open(classItem.link, "_blank");
+
+    // Optimistically show as ongoing
+    setOngoingClass(classItem);
+
+    // Update backend to set status = "ongoing"
+    const response = await fetch("https://amjacademy-working.onrender.com/api/student/class-status", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ class_id: classItem.class_id, status: "ongoing",
+        user_id: userId }),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      console.log("✅ Class started! Status updated to ongoing.");
+
+      // Move from upcoming → ongoing
+      setUpcomingClasses((prev) => prev.filter((c) => c.class_id !== classItem.class_id));
+      setSelectedClassId(classItem.class_id);
+      
+      
+    } else {
+      console.error("❌ Failed to update status:", data.message);
+    }
+  } catch (err) {
+    console.error("⚠️ Error updating status:", err);
+  }
+};
+
+// LEAVE button: 5 hours before class until 15 minutes before class
+const isLeaveEnabled = (classTime) => {
+  const now = new Date();
+  const classStart = new Date(classTime);
+  const fiveHoursBefore = new Date(classStart.getTime() - 5 * 60 * 60 * 1000); // 5 hours before
+  const fifteenMinutesBefore = new Date(classStart.getTime() - 15 * 60 * 1000); // 15 minutes before
+
+  return now >= fiveHoursBefore && now < fifteenMinutesBefore;
+};
+
+// LMC button: 15 minutes before class until 15 minutes after
+const isLastMinuteCancelEnabled = (classTime) => {
+  const now = new Date();
+  const classStart = new Date(classTime);
+  const fifteenMinutesBefore = new Date(classStart.getTime() - 15 * 60 * 1000); // 15 minutes before
+  const fifteenMinutesAfter = new Date(classStart.getTime() + 15 * 60 * 1000); // 15 minutes after
+
+  return now >= fifteenMinutesBefore && now <= fifteenMinutesAfter;
+};
+
+
+
   const renderContent = () => {
     switch (activeTab) {
       case "profile":
@@ -153,7 +318,7 @@ const Dashboard = () => {
       case "message":
         return <Message />
       // case "notification":
-      //   return <Notification userType="teacher" />
+      //   return <Notification userType="student" />
       case "class-report":
         return <ClassReport />
       case "assignments":
@@ -164,10 +329,8 @@ const Dashboard = () => {
         return <MyAssignments initialSection="uploads" />
       case "assignments-assessments":
         return <MyAssignments initialSection="assessments" />
-      case "punctuality":
+      case "punctuality-report":
         return <PunctualityReport />
-      case "cancellation":
-        return <ClassCancellationReport />  
       case "dashboard":
       default:
         return (
@@ -178,131 +341,174 @@ const Dashboard = () => {
 
 
             {/* Announcements */}
-            {showAnnouncement && announcements.length > 0 && (
-              <div className="announcement announcement-upcoming">
-                <div className="announcement-icon">📢</div>
-                <div className="announcement-content">
-                  <strong>Announcement:</strong> {announcements[0].message}
+{showAnnouncement && announcements.length > 0 &&
+  announcements.map((a) => (
+    <div key={a.id} className="announcement announcement-upcoming">
+      <div className="announcement-icon">📢</div>
+      <div className="announcement-content">
+        <strong>{a.title}</strong>  <br />
+        <strong>Message:</strong> {a.message}
+      </div>
+      <button className="announcement-close" onClick={handleCloseAnnouncement}>
+        ×
+      </button>
+    </div>
+  ))
+}
+{ongoingClass && (
+  <section className="class-details-section">
+    <div className="section-header">
+      <h2>ON GOING CLASS</h2>
+    </div>
+    <div className="class-details-card">
+      <div className="class-image">
+        <img src={ongoingClass.image} alt={ongoingClass.title} />
+      </div>
+      <div className="class-info">
+        <h3>{ongoingClass.title}</h3>
+        <p>student Name: {ongoingClass.student.join(", ")}</p>
+        <p>
+          Time:{" "}
+          {new Date(ongoingClass.time).toLocaleTimeString(undefined, {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          })}
+        </p>
+        <p>Duration: {ongoingClass.duration}</p>
+        <p>Batch: {ongoingClass.batch}</p>
+        <p>Level: {ongoingClass.level}</p>
+        <p>Contract ID: {ongoingClass.class_id}</p>
+        <p>Plan: {ongoingClass.plan}</p>
+      </div>
+      <div className="class-actions">
+        <button className="close-btn" onClick={() => setOngoingClass(null)}>
+          CLOSE
+        </button>
+      </div>
+    </div>
+  </section>
+)}
+
+
+{/* Upcoming Classes */}
+<section className="classes-section">
+  <div className="section-header">
+    <h2>UPCOMING CLASSES</h2>
+  </div>
+
+  <div className="classes-list">
+    {upcomingClasses.map((classItem) => {
+      // 🧠 Extract students based on batch type
+      const studentsToDisplay =
+        classItem.batch.toLowerCase() === "individual"
+          ? classItem.student.slice(0, 1)
+          : classItem.student; // For "dual" or others
+
+      return (
+        <div
+          key={classItem.id}
+          className={`class-card-horizontal ${
+            classItem.rescheduled ? "rescheduled-card" : ""
+          }`}
+        >
+          {/* Class Image */}
+          <div className="class-image">
+            <img src={classItem.image} alt={classItem.title} />
+          </div>
+
+          {/* Class Info */}
+          <div className="class-info">
+            <div className="class-time">
+              {classItem.date}&nbsp;&nbsp;Time:{" "}
+              {new Date(classItem.time).toLocaleTimeString(undefined, {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+              })}
+            </div>
+
+            {/* Badges */}
+            <div className="class-badges">
+              <span className="badge individual">{classItem.batch}</span>
+              <span className="badge keyboard">{classItem.plan}</span>
+              <span
+                className={`badge ${
+                  classItem.rescheduled ? "rescheduled" : "not-started"
+                }`}
+              >
+                {classItem.rescheduled ? "Rescheduled" : classItem.status}
+              </span>
+            </div>
+
+            {/* ✅ Conditional Student Details */}
+            <div className="class-details">
+              {studentsToDisplay.map((studentName, index) => (
+                <div key={index} className="student-details">
+                  <p>Student Name: {studentName}</p>
+                  <p>Age: {Array.isArray(classItem.age) ? classItem.age[index] : classItem.age}</p>
+                  <p>Level: {Array.isArray(classItem.level) ? classItem.level[index] : classItem.level}</p>
                 </div>
-                <button className="announcement-close" onClick={handleCloseAnnouncement}>×</button>
-              </div>
-            )}
+              ))}
 
-            {/* Upcoming Classes */}
-            <section className="classes-section">
-              <div className="section-header">
-                <h2>UPCOMING CLASSES</h2>
-              </div>
-              <div className="classes-list">
-                {upcomingClasses.map((classItem) => (
-                  <div
-                    key={classItem.id}
-                    className="class-card-horizontal"
-                    onClick={() => setSelectedClassId(classItem.id)}
-                  >
-                    <div className="class-image">
-                      <img
-                        src={classItem.image || "/placeholder.svg?height=120&width=200&query=keyboard lesson"}
-                        alt={classItem.title}
-                      />
-                    </div>
-                    <div className="class-info">
-                      <div className="class-time">{classItem.time}</div>
-                      <div className="class-badges">
-                        <span className="badge individual">{classItem.batch}</span>
-                        <span className="badge keyboard">Keyboard</span>
-                        <span className="badge not-started">Not Started</span>
-                      </div>
-                      <div className="class-details">
-                        <p>Student Name: {classItem.batch === "Group Batch" ? classItem.students.join(", ") : classItem.students[0]}</p>
-                        <p>Age of Student: {classItem.ageOfStudent}</p>
-                        <p>Level: {classItem.level}</p>
-                        <p>Contract ID: {classItem.contractId}</p>
-                        <p>Plan: {classItem.plan}</p>
-                        <p>Duration: {classItem.duration}</p>
-                      </div>
-                    </div>
-                    <div className="class-actions">
-                      <button className="start-class-btn">START CLASS</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
+              <p>Class ID: {classItem.class_id}</p>
+              <p>Plan: {classItem.plan}</p>
+              <p>Duration: {classItem.duration}</p>
+            </div>
+          </div>
 
-            {/* Class Details */}
-            {selectedClassId && (
-              <section className="class-details-section">
-                <div className="section-header">
-                  <h2>CLASS DETAILS</h2>
-                </div>
-                {(() => {
-                  const selectedClass = upcomingClasses.find((c) => c.id === selectedClassId)
-                  return selectedClass ? (
-                    <div className="class-details-card">
-                      <div className="class-image">
-                        <img
-                          src={selectedClass.image || "/placeholder.svg?height=120&width=200&query=keyboard lesson"}
-                          alt={selectedClass.title}
-                        />
-                      </div>
-                      <div className="class-info">
-                        <h3>{selectedClass.title}</h3>
-                        <p>Student Name: {selectedClass.batch === "Group Batch" ? selectedClass.students.join(", ") : selectedClass.students[0]}</p>
-                        <p>Time: {selectedClass.time}</p>
-                        <p>Duration: {selectedClass.duration}</p>
-                        <p>Age of Student: {selectedClass.ageOfStudent}</p>
-                        <p>Batch: {selectedClass.batch}</p>
-                        <p>Level: {selectedClass.level}</p>
-                        <p>Contract ID: {selectedClass.contractId}</p>
-                        <p>Plan: {selectedClass.plan}</p>
-                      </div>
-                      <div className="class-actions">
-                        <button className="start-class-btn">START CLASS</button>
-                        <button className="close-btn" onClick={() => setSelectedClassId(null)}>CLOSE</button>
-                      </div>
-                    </div>
-                  ) : null
-                })()}
-              </section>
-            )}
+          {/* Actions */}
+          <div className="class-actions">
+            <button
+              className="start-class-btn"
+              onClick={() => {
+                handleJoinClass(classItem);
+              }}
+              disabled={!isJoinEnabled(classItem.time, classItem.date)}
+            >
+              JOIN CLASS
+            </button>
 
-            {/* Completed Classes */}
-            {/* <section className="classes-section">
-              <div className="section-header">
-                <h2>COMPLETED CLASSES</h2>
-              </div>
-              <div className="classes-list">
-                {completedClasses.map((classItem) => (
-                  <div key={classItem.id} className="class-card-horizontal completed">
-                    <div className="class-image">
-                      <img
-                        src={classItem.image || "/placeholder.svg?height=120&width=200&query=keyboard lesson"}
-                        alt={classItem.title}
-                      />
-                    </div>
-                    <div className="class-info">
-                      <div className="class-time">{classItem.time}</div>
-                      <div className="class-badges">
-                        <span className="badge completed-badge">Completed</span>
-                      </div>
-                      <div className="class-title">View Teacher Post-Demo Insight</div>
-                      <div className="class-subject">Keyboard</div>
-                    </div>
-                    <div className="class-actions">
-                      <button className="view-btn">View</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="view-more">
-                <button className="view-more-btn">VIEW MORE</button>
-              </div>
-            </section> */}
+            <button
+              className="leave-class-btn"
+              onClick={() => {
+                setSelectedLeaveClass({
+                  ...classItem,
+                  actionType: "leave",
+                });
+                setShowLeaveModal(true);
+              }}
+              disabled={!isLeaveEnabled(classItem.time)}
+            >
+              LEAVE
+            </button>
+
+            <button
+              className="last-minute-cancel-btn"
+              onClick={() => {
+                setSelectedLeaveClass({
+                  ...classItem,
+                  actionType: "cancel",
+                });
+                setShowLeaveModal(true);
+              }}
+              disabled={!isLastMinuteCancelEnabled(classItem.time)}
+            >
+              LAST MINUTE CANCEL
+            </button>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+</section>
+
           </>
         )
     }
   }
+
+
 
   return (
     <div className="dashboard-container">
@@ -321,43 +527,43 @@ const Dashboard = () => {
         </div>
         <div className="header-center">
           <nav className="header-nav">
-            <a href="#" className="nav-link" onClick={() => setActiveTab("dashboard")}>
+            <a href="#" className="nav-link" onClick={() => window.location.href = '/'}>
               HOME
             </a>
             <a
               href="#"
               className={`nav-link ${activeTab === "dashboard" ? "active" : ""}`}
-              onClick={() => setActiveTab("dashboard")}
+              onClick={() => { setActiveTab("dashboard"); window.scrollTo(0, 0); }}
             >
               DASHBOARD
             </a>
             <a
               href="#"
               className={`nav-link ${activeTab === "profile" ? "active" : ""}`}
-              onClick={() => setActiveTab("profile")}
+              onClick={() => { setActiveTab("profile"); window.scrollTo(0, 0); }}
             >
               MY PROFILE
             </a>
             <a
               href="#"
               className={`nav-link ${activeTab === "class-report" ? "active" : ""}`}
-              onClick={() => setActiveTab("class-report")}
+              onClick={() => { setActiveTab("class-report"); window.scrollTo(0, 0); }}
             >
               CLASS REPORT
             </a>
             <a
               href="#"
               className={`nav-link ${activeTab === "assignments" ? "active" : ""}`}
-              onClick={() => setActiveTab("assignments")}
+              onClick={() => { setActiveTab("assignments"); window.scrollTo(0, 0); }}
             >
               MY ASSIGNMENTS
             </a>
             <a
               href="#"
-              className={`nav-link ${activeTab === "student-attendance" ? "active" : ""}`}
-              onClick={() => setActiveTab("student-attendance")}
+              className={`nav-link ${activeTab === "punctuality-report" ? "active" : ""}`}
+              onClick={() => { setActiveTab("punctuality-report"); window.scrollTo(0, 0); }}
             >
-              STUDENT
+              PUNCTUALITY REPORT
             </a>
           </nav>
         </div>
@@ -387,6 +593,7 @@ const Dashboard = () => {
                       } else {
                         setActiveTab(item.id)
                         setSidebarOpen(false)
+                        window.scrollTo(0, 0)
                       }
                     }}
                   >
@@ -403,6 +610,7 @@ const Dashboard = () => {
                           onClick={() => {
                             setActiveTab(`assignments-${sub.id}`)
                             setSidebarOpen(false)
+                            window.scrollTo(0, 0)
                           }}
                         >
                           {sub.label}
@@ -457,6 +665,16 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Leave Modal */}
+      {showLeaveModal && (
+        <LeaveModal
+          isOpen={showLeaveModal}
+          onClose={() => setShowLeaveModal(false)}
+          onSubmit={handleLeaveSubmit}
+          classData={selectedLeaveClass}
+        />
       )}
     </div>
   )
