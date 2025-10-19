@@ -19,6 +19,7 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard") // This would come from auth context
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [assignmentsOpen, setAssignmentsOpen] = useState(false)
+  const [notificationOpen, setNotificationOpen] = useState(false)
   const [showAnnouncement, setShowAnnouncement] = useState(true)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [announcements, setAnnouncements] = useState([])
@@ -128,7 +129,7 @@ useEffect(() => {
           plan: cls.plan,
           duration: cls.duration || "45mins", // default
           contractId: cls.contract_id || "ic-405", // default
-          image: "/placeholder.svg?height=120&width=200&query=keyboard lesson",
+          image: "/images/amj-logo.png?height=120&width=200&query=keyboard lesson",
           title: `${cls.profession} Class`,
           status: cls.status || "not started", // default
           link: cls.link,
@@ -197,6 +198,10 @@ classes.sort((a, b) => {
 
   const toggleAssignments = () => {
     setAssignmentsOpen(!assignmentsOpen)
+  }
+
+  const toggleNotification = () => {
+    setNotificationOpen(!notificationOpen)
   }
 
 const handleLeaveSubmit = async (leaveData) => {
@@ -380,6 +385,9 @@ const isLastMinuteCancelEnabled = (classTime) => {
         <p>Plan: {ongoingClass.plan}</p>
       </div>
       <div className="class-actions">
+        <button className="rejoin-btn" onClick={() => window.open(ongoingClass.link, "_blank")}>
+          RE-JOIN
+        </button>
         <button className="close-btn" onClick={() => setOngoingClass(null)}>
           CLOSE
         </button>

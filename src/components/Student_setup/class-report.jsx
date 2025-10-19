@@ -13,21 +13,17 @@ const ClassReport = () => {
 
   // Map frontend tab to backend status in arrangements table
   const getStatusValue = (tab) => {
-  switch (tab) {
-    case "upcoming":
-      return "upcoming";
-    case "completed":
-      return "completed";
-    case "leave":
-      return "leave";       // updated
-    case "cancel":
-      return "cancel";      // updated
-    case "notshown":
-      return "notshown";      // updated
-    default:
-      return "upcoming";
-  }
-};
+    switch (tab) {
+      case "upcoming":
+        return "upcoming";
+      case "completed":
+        return "completed";
+      case "Missing":
+        return "Missing"; // backend should return leave/cancel/notshown
+      default:
+        return "upcoming";
+    }
+  };
 
   // Fetch classes from backend
   const fetchClasses = async () => {
@@ -56,7 +52,7 @@ const ClassReport = () => {
       const data = await response.json();
 
       if (!response.ok) throw new Error(data.error || "Failed to fetch classes");
-      
+
       setClassData(data);
     } catch (err) {
       console.error("Error fetching classes:", err);
@@ -95,11 +91,16 @@ const ClassReport = () => {
 
   const getSubjectImage = (subject) => {
     switch (subject) {
-      case "Piano": return "/piano-lesson.png";
-      case "Guitar": return "/guitar-lesson.png";
-      case "Violin": return "/violin-lesson.jpg";
-      case "Drums": return "/drums-lesson.jpg";
-      default: return "/keyboard-lesson.jpg";
+      case "Piano":
+        return "/piano-lesson.png";
+      case "Guitar":
+        return "/guitar-lesson.png";
+      case "Violin":
+        return "/violin-lesson.jpg";
+      case "Drums":
+        return "/drums-lesson.jpg";
+      default:
+        return "/keyboard-lesson.jpg";
     }
   };
 
@@ -149,123 +150,127 @@ const ClassReport = () => {
 
       {/* Tabs */}
       <div className="class-tabs">
-  {["upcoming", "completed", "leave", "cancel", "notshown"].map((tab) => (
-    <button
-      key={tab}
-      className={`tab-btn ${activeTab === tab ? "active" : ""}`}
-      onClick={() => setActiveTab(tab)}
-    >
-      {tab === "leave"
-        ? "LEAVE"
-        : tab === "cancel"
-        ? "LAST MINUTE CANCEL"
-        : tab === "notshown"
-        ? "NOT SHOWN"
-        : tab.toUpperCase()}
-    </button>
-  ))}
-  <div className="total-classes">
-    Total{" "}
-    {activeTab === "leave"
-      ? "Leave"
-      : activeTab === "cancel"
-      ? "Last Minute Cancel"
-      : activeTab === "notshown"
-      ? "Not Shown"
-      : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}{" "}
-    Classes: <span className="count">{classData.length}</span>
-  </div>
-</div>
-
+        {["upcoming", "completed", "Missing"].map((tab) => (
+          <button
+            key={tab}
+            className={`tab-btn ${activeTab === tab ? "active" : ""}`}
+            onClick={() => setActiveTab(tab)}
+          >
+            {tab.toUpperCase()}
+          </button>
+        ))}
+        <div className="total-classes">
+          Total{" "}
+          {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Classes:{" "}
+          <span className="count">{classData.length}</span>
+        </div>
+      </div>
 
       {/* Class Cards */}
       <div className="classes-content">
         {loading ? (
           <p>Loading classes...</p>
-        ) :classData.length > 0 ? (
-  classData.map((classItem) => {
-    const { arrangements } = classItem;
+        ) : classData.length > 0 ? (
+          classData.map((classItem) => {
+            const { arrangements } = classItem;
 
-    // Safety check: skip or show placeholder if arrangements is missing
-    if (!arrangements) {
-      return (
-        <div key={classItem.id} className="class-item">
-          <div className="class-details">
-            <div className="class-date">No schedule available</div>
-          </div>
-        </div>
-      );
-    }
+            if (!arrangements) {
+              return (
+                <div key={classItem.id} className="class-item">
+                  <div className="class-details">
+                    <div className="class-date">No schedule available</div>
+                  </div>
+                </div>
+              );
+            }
 
-    return (
-      <div key={classItem.id} className="class-item">
-        <div className="class-image">
-          <img
-            src={getSubjectImage(arrangements.subject)}
-            alt={arrangements.subject}
-          />
-        </div>
-        <div className="class-details">
-          <div className="class-date">
-            {new Date(arrangements.date).toLocaleDateString()} {arrangements.day} at{" "}
-            {new Date(arrangements.time).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </div>
-          <div className="class-badges">
-            <span className="badge type-badge">{classItem.batch_type}</span>
-            <span
-              className={`badge subject-badge ${getSubjectBadge(arrangements.subject)}`}
-            >
-              {arrangements.subject}
-            </span>
-            <span
-              className={`badge status-badge ${getStatusBadge(classItem.status)}`}
-            >
-              {classItem.status === "leave"
-                ? "Leave"
-                : classItem.status === "cancel"
-                ? "Last Minute Cancel"
-                : classItem.status === "notshown"
-                ? "Not Shown"
-                : classItem.status}
-            </span>
-          </div>
-          <div className="class-curriculum">
-            Curriculum Stamp: {classItem.curriculum || "N/A"}
-          </div>
-          <div className="class-instructor">
-            Instructor: {classItem.teacher_id || "N/A"}
-          </div>
-        </div>
-        <div className="class-actions">
-          {activeTab === "upcoming" && (
-            <button
-              className="action-btn start-btn"
-              onClick={() => (window.location.href = "/student-dashboard")}
-            >
-              GO TO DASHBOARD
-            </button>
-          )}
-          {activeTab === "completed" && (
-            <button className="action-btn view-btn">VIEW</button>
-          )}
-          {(activeTab === "leave" || activeTab === "cancel") && (
-            <>
-              <button className="action-btn reschedule-btn">RESCHEDULE</button>
-            </>
-          )}
-          {activeTab === "notshown" && (
-            <button className="action-btn contact-btn">RESCHEDULE</button>
-          )}
-        </div>
-      </div>
-    );
-  })
-) : (
-  <p>No classes found for this filter.</p>
-)}
+            return (
+              <div key={classItem.id} className="class-item">
+                <div className="class-image">
+                  <img
+                    src={getSubjectImage(arrangements.subject)}
+                    alt={arrangements.subject}
+                  />
+                </div>
+                <div className="class-details">
+                  <div className="class-date">
+                    {new Date(arrangements.date).toLocaleDateString()}{" "}
+                    {arrangements.day} at{" "}
+                    {new Date(arrangements.time).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </div>
+                  <div className="class-badges">
+                    <span className="badge type-badge">
+                      {classItem.batch_type}
+                    </span>
+                    <span
+                      className={`badge subject-badge ${getSubjectBadge(
+                        arrangements.subject
+                      )}`}
+                    >
+                      {arrangements.subject}
+                    </span>
+                    <span
+                      className={`badge status-badge ${getStatusBadge(
+                        classItem.status
+                      )}`}
+                    >
+                      {classItem.status}
+                    </span>
+                  </div>
+
+                  <div className="class-curriculum">
+                    Curriculum Stamp: {classItem.curriculum || "N/A"}
+                  </div>
+                  <div className="class-instructor">
+                    Instructor: {classItem.teacher_id || "N/A"}
+                  </div>
+
+                  {/* Missing tab details */}
+                  {activeTab === "Missing" && (
+                    <>
+                      <p className="class-status-detail">
+                        {classItem.status === "leave"
+                          ? "Leave"
+                          : classItem.status === "cancel"
+                          ? "Last Minute Cancel"
+                          : classItem.status === "notshown"
+                          ? "Not Shown"
+                          : "Missing"}
+                      </p>
+                      <p className="class-reason">
+                        <strong>Reason:</strong>{" "}
+                        {classItem.reason || "No reason provided"}
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                {(activeTab === "upcoming" || activeTab === "completed") && (
+                  <div className="class-actions">
+                    {activeTab === "upcoming" && (
+                      <button
+                        className="action-btn start-btn"
+                        onClick={() =>
+                          (window.location.href = "/student-dashboard")
+                        }
+                      >
+                        GO TO DASHBOARD
+                      </button>
+                    )}
+                    {activeTab === "completed" && (
+                      <button className="action-btn view-btn">VIEW</button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        ) : (
+          <p>No classes found for this filter.</p>
+        )}
       </div>
 
       {/* Completed Extra Section */}

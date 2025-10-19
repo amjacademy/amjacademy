@@ -20,7 +20,7 @@ function useLocalStore(key, initialValue) {
   return [value, setValue]
 }
 
-export default function Notifications({ userType = "admin" }) {
+export default function Notifications({ userType = "admin", filterKind, filterRole }) {
   // Admin inbox
   const [adminInbox, setAdminInbox] = useLocalStore("notif_admin", [])
   // Teacher inbox
@@ -35,52 +35,71 @@ export default function Notifications({ userType = "admin" }) {
 
   const [search, setSearch] = useState("")
   const [expandedId, setExpandedId] = useState(null)
+  const [filterType, setFilterType] = useState("all")
 
   useEffect(() => {
-    if (messages.length === 0) {
-      const now = new Date()
-          const demo = [
-            {
-              id: "demo-student-welcome-1",
-              kind: "Student",
-              from: "Ajay",
-              role: "student",
-              text: "Welcome to AMJ Academy! Your learning journey starts here.",
-              createdAt: now.toISOString(),
-              to: ["admin", "teacher"],
-              redirectedFrom: "Ajay", // Specific student name to mention
-              read: false,
-            },
-            {
-              id: "demo-teacher-cancel-1",
-              kind: "Class Cancelled",
-              from: "Ms. Lisa",
-              role: "teacher",
-              text: "Today's keyboard class is cancelled due to health reasons.",
-              createdAt: now.toISOString(),
-              to: ["admin"], // teacher cancellation -> admin only
-              redirectedFrom: "Ms. Lisa",
-              read: false,
-            },
-            {
-              id: "demo-student-leave-1",
-              kind: "Leave Request",
-              from: "Ajay",
-              role: "student",
-              text: "Requesting leave for tomorrow's session due to a family function.",
-              createdAt: new Date(now.getTime() - 1000 * 60 * 45).toISOString(),
-              to: ["admin", "teacher"], // student leave -> admin + teacher
-              redirectedFrom: "Ajay",
-              read: false,
-            },
-          ]
-          setMessages(demo)
-        }
-      }, [messages.length, setMessages])
+    const now = new Date()
+    const demo = [
+      {
+        id: "demo-student-leave-1",
+        kind: "Leave Request",
+        from: "Ajay",
+        role: "student",
+        text: "Requesting leave for tomorrow's keyboard class due to a family function.",
+        createdAt: now.toISOString(),
+        to: ["admin", "teacher"], // student leave -> admin + teacher
+        redirectedFrom: "Ajay",
+        read: false,
+      },
+      {
+        id: "demo-teacher-leave-1",
+        kind: "Leave Request",
+        from: "Ms. Lisa",
+        role: "teacher",
+        text: "I am taking leave tomorrow for a personal appointment. Please arrange a substitute.",
+        createdAt: new Date(now.getTime() - 1000 * 60 * 15).toISOString(),
+        to: ["admin", "teacher"], // teacher leave -> admin and teacher
+        redirectedFrom: "Ms. Lisa",
+        read: false,
+      },
+      {
+        id: "demo-student-cancel-1",
+        kind: "Last Minute Cancellation",
+        from: "Priya",
+        role: "student",
+        text: "I cannot attend today's piano class. I apologize for the short notice.",
+        createdAt: new Date(now.getTime() - 1000 * 60 * 30).toISOString(),
+        to: ["admin", "teacher"], // student cancellation -> admin + teacher
+        redirectedFrom: "Priya",
+        read: false,
+      },
+      {
+        id: "demo-teacher-cancel-1",
+        kind: "Last Minute Cancellation",
+        from: "Mr. David",
+        role: "teacher",
+        text: "Today's guitar class is cancelled due to an emergency. Will reschedule soon.",
+        createdAt: new Date(now.getTime() - 1000 * 60 * 45).toISOString(),
+        to: ["admin", "teacher"], // teacher cancellation -> admin and teacher
+        redirectedFrom: "Mr. David",
+        read: false,
+      },
+    ]
+    setMessages(demo)
+  }, [])
 
   const visibleMessages = useMemo(() => {
     const q = search.trim().toLowerCase()
-    const base = messages.filter((m) => Array.isArray(m.to) && m.to.includes(viewerKey))
+    let base = messages.filter((m) => Array.isArray(m.to) && m.to.includes(viewerKey))
+    if (filterKind) {
+      base = base.filter((m) => m.kind === filterKind)
+    }
+    if (filterRole) {
+      base = base.filter((m) => m.role === filterRole)
+    }
+    if (filterType !== "all") {
+      base = base.filter((m) => (m.role || "").toLowerCase() === filterType)
+    }
     const filtered = q
       ? base.filter(
           (m) =>
@@ -91,7 +110,7 @@ export default function Notifications({ userType = "admin" }) {
         )
       : base
     return filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-  }, [messages, viewerKey, search])
+  }, [messages, viewerKey, search, filterType, filterKind, filterRole])
 
   return (
     <section className="nc">
@@ -102,6 +121,26 @@ export default function Notifications({ userType = "admin" }) {
           <p className="nc-subtitle">Read-only • Matches dashboard theme</p>
         </div>
         <div className="nc-tools">
+          <div className="filter-buttons">
+            <button
+              className={`filter-btn ${filterType === "all" ? "active" : ""}`}
+              onClick={() => setFilterType("all")}
+            >
+              All
+            </button>
+            <button
+              className={`filter-btn ${filterType === "student" ? "active" : ""}`}
+              onClick={() => setFilterType("student")}
+            >
+              Student
+            </button>
+            <button
+              className={`filter-btn ${filterType === "teacher" ? "active" : ""}`}
+              onClick={() => setFilterType("teacher")}
+            >
+              Teacher
+            </button>
+          </div>
           <input
             className="nc-search"
             placeholder="Search notifications"
@@ -127,66 +166,66 @@ export default function Notifications({ userType = "admin" }) {
             const time = n.createdAt
               ? new Date(n.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
               : ""
-          return (
-            <li key={n.id} className="nc-item">
-              <button
-                className="nc-card"
-                onClick={() => setExpandedId((id) => (id === n.id ? null : n.id))}
-                aria-expanded={expandedId === n.id}
-              >
-                <div className={`nc-avatar ${isTeacher ? "teacher" : "student"}`} aria-hidden>
-                  {avatarLetter}
-                </div>
-                <div className="nc-main">
-                  <div className="nc-row">
-                    <div className="nc-heading">
-                      <span className="nc-kind">{n.kind || "Notification"}</span>
-                      <span className={`nc-pill ${isTeacher ? "pill-teacher" : "pill-student"}`}>
-                        {isTeacher ? "Teacher" : "Student"}
-                      </span>
-                    </div>
-                    <time className="nc-time">{time}</time>
+            return (
+              <li key={n.id} className="nc-item">
+                <button
+                  className="nc-card"
+                  onClick={() => setExpandedId((id) => (id === n.id ? null : n.id))}
+                  aria-expanded={expandedId === n.id}
+                >
+                  <div className={`nc-avatar ${isTeacher ? "teacher" : "student"}`} aria-hidden>
+                    {avatarLetter}
                   </div>
-                  <div className="nc-meta">
-                    <span className="nc-from">
-                      From: <strong>{n.redirectedFrom || n.from || "Unknown"}</strong> {n.role ? `(${n.role})` : ""}
-                    </span>
-                  </div>
-                  <div className="nc-preview">{n.text}</div>
-                  {expandedId === n.id && (
-                    <div className="nc-detail">
-                      <div className="nc-detail-line">
-                        <span className="label">Delivered to</span>
-                        <span className="value">{Array.isArray(n.to) ? n.to.join(", ") : "—"}</span>
-                      </div>
-                      <div className="nc-detail-line">
-                        <span className="label">Received</span>
-                        <span className="value">
-                          {n.createdAt
-                            ? new Date(n.createdAt).toLocaleString([], {
-                                month: "short",
-                                day: "2-digit",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })
-                            : ""}
+                  <div className="nc-main">
+                    <div className="nc-row">
+                      <div className="nc-heading">
+                        <span className="nc-kind">{n.kind || "Notification"}</span>
+                        <span className={`nc-pill ${isTeacher ? "pill-teacher" : "pill-student"}`}>
+                          {isTeacher ? "Teacher" : "Student"}
                         </span>
                       </div>
-                      <button
-                        className="mark-read-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const updatedMessages = messages.map((msg) =>
-                            msg.id === n.id ? { ...msg, read: true } : msg
-                          );
-                          setMessages(updatedMessages);
-                        }}
-                      >
-                        Mark as Read
-                      </button>
+                      <time className="nc-time">{time}</time>
                     </div>
-                  )}
-                </div>
+                    <div className="nc-meta">
+                      <span className="nc-from">
+                        From: <strong>{n.redirectedFrom || n.from || "Unknown"}</strong> {n.role ? `(${n.role})` : ""}
+                      </span>
+                    </div>
+                    <div className="nc-preview">{n.text}</div>
+                    {expandedId === n.id && (
+                      <div className="nc-detail">
+                        <div className="nc-detail-line">
+                          <span className="label">Delivered to</span>
+                          <span className="value">{Array.isArray(n.to) ? n.to.join(", ") : "—"}</span>
+                        </div>
+                        <div className="nc-detail-line">
+                          <span className="label">Received</span>
+                          <span className="value">
+                            {n.createdAt
+                              ? new Date(n.createdAt).toLocaleString([], {
+                                  month: "short",
+                                  day: "2-digit",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })
+                              : ""}
+                          </span>
+                        </div>
+                        <button
+                          className="mark-read-btn"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            const updatedMessages = messages.map((msg) =>
+                              msg.id === n.id ? { ...msg, read: true } : msg,
+                            )
+                            setMessages(updatedMessages)
+                          }}
+                        >
+                          {n.role === "teacher" ? "Reschedule" : "Mark as Read"}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </button>
               </li>
             )

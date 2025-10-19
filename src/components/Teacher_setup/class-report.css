@@ -295,6 +295,19 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
+.class-status-detail {
+  font-weight: 600;
+  color: #e67e22;
+  margin-top: 6px;
+}
+
+.class-reason {
+  font-size: 0.95rem;
+  color: #555;
+  margin-top: 4px;
+}
+
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .class-item {

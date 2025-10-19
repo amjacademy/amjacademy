@@ -38,9 +38,6 @@
   gap: 12px;
   margin-bottom: 10px;
 }
-.annc-grid {
-  /* Specific to announcements */
-}
 
 .field {
   grid-column: span 6;
@@ -240,4 +237,95 @@
 .error {
   color: var(--danger);
   font-size: 14px;
+}
+
+/* Time input group */
+.time-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.time-select {
+  width: 60px;
+}
+
+.time-separator {
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .card--pad {
+    padding: 12px;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .field {
+    grid-column: span 1;
+  }
+
+  .time-input-group {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .time-select {
+    width: 50px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .annc-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .annc-foot {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .meta {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 480px) {
+  .card--pad {
+    padding: 8px;
+  }
+
+  .annc {
+    padding: 8px;
+  }
+
+  .section-title {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .badge {
+    align-self: flex-start;
+  }
 }

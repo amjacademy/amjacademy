@@ -166,7 +166,27 @@ function EmptyState({ title, subtitle }) {
   )
 }
 
-export default function User_enrollment({ students, setStudents, teachers, setTeachers }) {
+export default function User_enrollment({ students, setStudents, teachers, setTeachers, editingRow }) {
+  // If editingRow is passed, populate the form
+  useEffect(() => {
+    if (editingRow) {
+      setEditingId(editingRow.id);
+      setId(editingRow.id);
+      setName(editingRow.name);
+      setAge(editingRow.age);
+      setProfession(editingRow.profession);
+      setPhone(editingRow.phone);
+      setEmail(editingRow.email);
+      setImage(editingRow.image);
+      setPassword(editingRow.password);
+      setUsername(editingRow.username);
+      setBatchType(editingRow.batchtype || "individual");
+      setPlan(editingRow.plan || "Beginner");
+      setLevel(editingRow.level || "1");
+      setExperienceLevel(editingRow.experiencelevel || "");
+      setRole(editingRow.role);
+    }
+  }, [editingRow]);
   const [role, setRole] = useState("Student")
   const [id, setId] = useState("")
   const [name, setName] = useState("")
@@ -205,17 +225,8 @@ const fetchEnrollments = async () => {
       alert("Generate username first")
       return
     }
-    const maxLength = username.length
-    const numberAllocation = Math.floor(Math.random() * 10000).toString().padStart(4, '0')
-    let pwd = username + numberAllocation
-    // Add a mandatory special character
-    const specialChars = "!@#$%^&*()_+-=[]{}|;:,.<>?";
-    const special = specialChars[Math.floor(Math.random() * specialChars.length)];
-    const insertPos = Math.floor(Math.random() * (pwd.length + 1));
-    pwd = pwd.slice(0, insertPos) + special + pwd.slice(insertPos);
-    while (pwd.length < maxLength) {
-      pwd += Math.floor(Math.random() * 10).toString()
-    }
+    const firstFour = username.substring(0, 4)
+    const pwd = "123@" + firstFour
     setPassword(pwd)
   }
 
@@ -223,6 +234,7 @@ const fetchEnrollments = async () => {
     if (!name.trim()) return
     let baseName = name.replace(/\s+/g, '') // Remove spaces from name
     baseName = baseName.substring(0, 8) // Limit to first 8 characters
+    baseName = baseName.charAt(0).toUpperCase() + baseName.slice(1).toLowerCase() // Capitalize first letter, lowercase rest
 
     // Collect all usernames from students and teachers
     const allUsernames = [...students, ...teachers].map(item => item.username || '')
@@ -249,8 +261,10 @@ const fetchEnrollments = async () => {
   }
 
   useEffect(() => {
-    generateUsername()
-  }, [name])
+    if (!editingId) {
+      generateUsername()
+    }
+  }, [name, editingId])
 
   const list = role === "Student" ? students : teachers
   const setList = role === "Student" ? setStudents : setTeachers

@@ -1,68 +1,237 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import User_enrollment from "./User_enrollment.jsx";
-import Class_arrangement from "./Class_arrangement.jsx";
 import Notification from "./Notification.jsx";
 
-function AnnouncementsPlaceholder({ onBack, announcements }) {
+function AnnouncementsTable({ onBack }) {
+  const [announcements, setAnnouncements] = useState([]);
+
+  useEffect(() => {
+    const fetchAnnouncements = async () => {
+      try {
+        const res = await fetch("https://amjacademy-working.onrender.com/api/announcements/getall", {
+          method: "GET",
+          credentials: "include",
+        });
+        const data = await res.json();
+        setAnnouncements(data);
+      } catch (err) {
+        console.error("Error fetching announcements:", err);
+      }
+    };
+    fetchAnnouncements();
+  }, []);
+
   return (
     <div>
-      <button onClick={onBack}>Back</button>
-      <h2>Announcements Details</h2>
+      <h2 style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white', padding: '12px 20px', borderRadius: '16px', boxShadow: '0 8px 24px rgba(0, 242, 254, 0.18)', textAlign: 'center', fontSize: '1.5em', fontWeight: '600', marginBottom: '20px' }}>Announcements Table</h2>
+      <button onClick={onBack} style={{ backgroundColor: '#00008B', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>Back</button>
       {announcements.length === 0 ? (
         <p>No announcements available.</p>
       ) : (
-        announcements.map((a) => (
-          <div key={a.id} className="announcement-item">
-            <h3>{a.title}</h3>
-            <p>{a.message}</p>
-            <p><strong>Receiver:</strong> {a.receiver}</p>
-            <p><strong>Duration:</strong> {a.duration}</p>
-          </div>
-        ))
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Message</th>
+              <th>Receiver</th>
+              <th>Duration</th>
+            </tr>
+          </thead>
+          <tbody>
+            {announcements.map((a) => (
+              <tr key={a.id}>
+                <td>{a.title}</td>
+                <td>{a.message}</td>
+                <td>{a.receiver}</td>
+                <td>{a.duration}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
     </div>
   );
 }
 
-function SchedulesPlaceholder({ onBack }) {
+function SchedulesTable({ schedules, onBack, onViewSchedule }) {
+  const [students, setStudents] = useState([]);
+  const [teachers, setTeachers] = useState([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch("https://amjacademy-working.onrender.com/api/arrangements/fetchusers");
+        const data = await res.json();
+        setStudents(data.students);
+        setTeachers(data.teachers);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchUsers();
+  }, []);
+
+  const lookupStudentName = (id) => {
+    const found = students.find((x) => x.id === id);
+    return found?.name || id;
+  };
+
+  const lookupTeacherName = (id) => {
+    const found = teachers.find((x) => x.id === id);
+    return found?.name || id;
+  };
+
   return (
     <div>
-      <button onClick={onBack}>Back</button>
-      <h2>Schedules Details</h2>
-      <p>Details for Schedules will be implemented here.</p>
+      <h2 style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white', padding: '12px 20px', borderRadius: '16px', boxShadow: '0 8px 24px rgba(0, 242, 254, 0.18)', textAlign: 'center', fontSize: '1.5em', fontWeight: '600', marginBottom: '20px' }}>Schedules Table</h2>
+      <button onClick={onBack} style={{ backgroundColor: '#00008B', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>Back</button>
+      {schedules.length === 0 ? (
+        <p>No schedules available.</p>
+      ) : (
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Teacher</th>
+              <th>Class Type</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {schedules.map((s) => (
+              <tr key={s.id}>
+                <td>
+                  {s.batch_type === "dual"
+                    ? `${lookupStudentName(s.student1_id)} & ${lookupStudentName(s.student2_id)}`
+                    : lookupStudentName(s.student1_id)}
+                </td>
+                <td>{lookupTeacherName(s.teacher_id)}</td>
+                <td>{s.batch_type === "dual" ? "Dual" : "Individual"}</td>
+                <td>{s.date}</td>
+                <td>
+                  {new Date(s.time).toLocaleTimeString(undefined, {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                  })}
+                </td>
+                <td>
+                  <button onClick={() => onViewSchedule(s)} style={{ backgroundColor: '#007bff', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>View</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
 
-export default function Dashboard() {
-  const [counts, setCounts] = useState({
-    students: 0,
-    teachers: 0,
-    announcements: 0,
-    schedules: 0,
-    notifications: 0,
-  });
+function StudentsTable({ students, onBack, onView }) {
+  return (
+    <div>
+      <h2 style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white', padding: '12px 20px', borderRadius: '16px', boxShadow: '0 8px 24px rgba(0, 242, 254, 0.18)', textAlign: 'center', fontSize: '1.5em', fontWeight: '600', marginBottom: '20px' }}>Students Table</h2>
+      <button onClick={onBack} style={{ backgroundColor: '#00008B', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>Back</button>
+      {students.length === 0 ? (
+        <p>No students available.</p>
+      ) : (
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Avatar</th>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Age</th>
+              <th>Profession</th>
+              <th>Phone</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {students.map((row, index) => (
+              <tr key={row.id || `${row.name}-${index}`}>
+                <td>
+                  {row.image ? (
+                    <img src={row.image || "/placeholder.svg"} alt={`${row.name} avatar`} className="avatar-sm" />
+                  ) : (
+                    <div className="avatar-sm avatar-sm--placeholder" aria-hidden="true" />
+                  )}
+                </td>
+                <td>{row.id}</td>
+                <td>{row.name}</td>
+                <td>{row.age}</td>
+                <td>{row.profession || "—"}</td>
+                <td>{row.phone}</td>
+                <td>
+                  <button onClick={() => onView(row)} style={{ backgroundColor: '#007bff', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>View</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
 
+function TeachersTable({ teachers, onBack, onView }) {
+  return (
+    <div>
+      <h2 style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white', padding: '12px 20px', borderRadius: '16px', boxShadow: '0 8px 24px rgba(0, 242, 254, 0.18)', textAlign: 'center', fontSize: '1.5em', fontWeight: '600', marginBottom: '20px' }}>Teachers Table</h2>
+      <button onClick={onBack} style={{ backgroundColor: '#00008B', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>Back</button>
+      {teachers.length === 0 ? (
+        <p>No teachers available.</p>
+      ) : (
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Avatar</th>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Age</th>
+              <th>Profession</th>
+              <th>Phone</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {teachers.map((row, index) => (
+              <tr key={row.id || `${row.name}-${index}`}>
+                <td>
+                  {row.image ? (
+                    <img src={row.image || "/placeholder.svg"} alt={`${row.name} avatar`} className="avatar-sm" />
+                  ) : (
+                    <div className="avatar-sm avatar-sm--placeholder" aria-hidden="true" />
+                  )}
+                </td>
+                <td>{row.id}</td>
+                <td>{row.name}</td>
+                <td>{row.age}</td>
+                <td>{row.profession || "—"}</td>
+                <td>{row.phone}</td>
+                <td>
+                  <button onClick={() => onView(row)} style={{ backgroundColor: '#007bff', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>View</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
+export default function Dashboard({ counts, schedules, onView, onViewSchedule }) {
   const [selectedModule, setSelectedModule] = useState(null);
+  const [showNotificationMenu, setShowNotificationMenu] = useState(false);
 
   // State for students and teachers data to pass to User_enrollment
   const [students, setStudents] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
-  const [schedules, setSchedules] = useState([]);
-
-  useEffect(() => {
-    const fetchCounts = async () => {
-      try {
-        const res = await fetch("https://amjacademy-working.onrender.com/api/counts");
-        const data = await res.json();
-        setCounts(data);
-      } catch (err) {
-        console.error("Failed to fetch counts:", err);
-      }
-    };
-    fetchCounts();
-  }, []);
 
   // Fetch students and teachers data when needed
   useEffect(() => {
@@ -90,6 +259,12 @@ export default function Dashboard() {
     setSelectedModule(null);
   };
 
+  const handleView = (row) => {
+    if (onView) {
+      onView(row);
+    }
+  };
+
   return (
     <>
       <div className="content-header1">
@@ -112,50 +287,50 @@ export default function Dashboard() {
           <span className="stat-num">{counts.schedules}</span>
           <span className="stat-label">Schedules</span>
         </div>
-        <div className="stat" onClick={() => setSelectedModule("notifications")} style={{ cursor: "pointer" }}>
+        <div className="stat" style={{ position: 'relative', cursor: 'pointer' }} onClick={() => setShowNotificationMenu(!showNotificationMenu)}>
           <span className="stat-num">{counts.notifications || 0}</span>
           <span className="stat-label">Notifications</span>
+          {showNotificationMenu && (
+            <div style={{ position: 'absolute', top: '100%', left: 0, backgroundColor: 'white', border: '1px solid #ccc', borderRadius: '4px', zIndex: 1000, minWidth: '150px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+              <button onClick={(e) => { e.stopPropagation(); setSelectedModule("leave"); setShowNotificationMenu(false); }} style={{ display: 'block', width: '100%', padding: '8px 12px', border: 'none', background: 'none', textAlign: 'left', cursor: 'pointer' }}>Leave</button>
+              <button onClick={(e) => { e.stopPropagation(); setSelectedModule("last_minute_cancel"); setShowNotificationMenu(false); }} style={{ display: 'block', width: '100%', padding: '8px 12px', border: 'none', background: 'none', textAlign: 'left', cursor: 'pointer' }}>Last Minute Cancel</button>
+            </div>
+          )}
         </div>
       </div>
 
       {selectedModule === "students" && (
-        <div className="detail-section">
-          <User_enrollment
-            students={students}
-            setStudents={setStudents}
-            teachers={teachers}
-            setTeachers={setTeachers}
-          />
-          <button onClick={() => setSelectedModule(null)}>Close Details</button>
-        </div>
+        <StudentsTable students={students} onBack={() => setSelectedModule(null)} onView={handleView} />
       )}
 
       {selectedModule === "teachers" && (
-        <div className="detail-section">
-          <User_enrollment
-            students={students}
-            setStudents={setStudents}
-            teachers={teachers}
-            setTeachers={setTeachers}
-          />
-          <button onClick={() => setSelectedModule(null)}>Close Details</button>
-        </div>
+        <TeachersTable teachers={teachers} onBack={() => setSelectedModule(null)} onView={handleView} />
       )}
 
+
+
       {selectedModule === "announcements" && (
-        <AnnouncementsPlaceholder onBack={() => setSelectedModule(null)} announcements={announcements} />
+        <AnnouncementsTable onBack={() => setSelectedModule(null)} />
       )}
 
       {selectedModule === "schedules" && (
-        <Class_arrangement schedules={schedules} setSchedules={setSchedules} />
+        <SchedulesTable schedules={schedules} onBack={() => setSelectedModule(null)} onViewSchedule={onViewSchedule} />
       )}
 
-      {selectedModule === "notifications" && (
-        <div className="detail-section">
-          <Notification userType="admin" />
-          <button onClick={() => setSelectedModule(null)}>Close Details</button>
+      {selectedModule === "leave" && (
+        <div>
+          <button onClick={() => setSelectedModule(null)} style={{ backgroundColor: '#00008B', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', marginBottom: '10px', cursor: 'pointer' }}>Back</button>
+          <Notification userType="admin" filterKind="Leave Request" filterRole="student" />
         </div>
       )}
+
+      {selectedModule === "last_minute_cancel" && (
+        <div>
+          <button onClick={() => setSelectedModule(null)} style={{ backgroundColor: '#00008B', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', marginBottom: '10px', cursor: 'pointer' }}>Back</button>
+          <Notification userType="admin" filterKind="Last Minute Cancellation" filterRole="student" />
+        </div>
+      )}
+
     </>
   );
 }

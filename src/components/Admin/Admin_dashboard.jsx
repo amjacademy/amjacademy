@@ -10,7 +10,7 @@ import Class_arrangement from "./Class_arrangement.jsx"
 import Notification from "./Notification.jsx"
 import { HiAnnotation } from "react-icons/hi"
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 function useLocalStorage(key, initialValue) {
   const [state, setState] = useState(() => {
@@ -32,6 +32,7 @@ function useLocalStorage(key, initialValue) {
 
 export default function Admin_Dashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   // Enrollment data
   const [students, setStudents] = useLocalStorage("admin_students", [])
   const [teachers, setTeachers] = useLocalStorage("admin_teachers", [])
@@ -42,8 +43,18 @@ export default function Admin_Dashboard() {
   const [notifications, setNotifications] = useLocalStorage("admin_notifications", [])
 
   const [activeTab, setActiveTab] = useState("dashboard")
+  const [editingRow, setEditingRow] = useState(null)
+
+  // Check for editingRow in location state
+  useEffect(() => {
+    if (location.state?.editingRow) {
+      setActiveTab("enrollment");
+      setEditingRow(location.state.editingRow);
+    }
+  }, [location.state]);
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const [showNotificationSubmenu, setShowNotificationSubmenu] = useState(false)
   const [apiCounts, setApiCounts] = useState({})
 
   // Get username from localStorage
@@ -84,6 +95,18 @@ export default function Admin_Dashboard() {
       }
     };
     fetchCounts();
+  }, []);
+
+  useEffect(() => {
+    const fetchSchedules = async () => {
+      try {
+        const res = await axios.get("https://amjacademy-working.onrender.com/api/arrangements/getdetails");
+        setSchedules(res.data);
+      } catch (err) {
+        console.error("Error fetching schedules:", err);
+      }
+    };
+    fetchSchedules();
   }, []);
 
   // Get first and last letter of username
@@ -127,6 +150,7 @@ export default function Admin_Dashboard() {
             setStudents={setStudents}
             teachers={teachers}
             setTeachers={setTeachers}
+            editingRow={editingRow}
           />
         )
       case "announcements":
@@ -135,6 +159,10 @@ export default function Admin_Dashboard() {
         )
       case "notifications":
         return <Notification userType="admin" />
+      case "leave":
+        return <Notification userType="admin" filterKind="Leave Request" filterRole="student" />
+      case "last_minute_cancel":
+        return <Notification userType="admin" filterKind="Last Minute Cancellation" filterRole="student" />
       case "class-arrangement":
         return (
           <Class_arrangement
@@ -146,7 +174,7 @@ export default function Admin_Dashboard() {
         )
       case "dashboard":
       default:
-        return <Dashboard counts={counts} />
+        return <Dashboard counts={counts} schedules={schedules} onView={(row) => { setActiveTab("enrollment"); setEditingRow(row); }} onViewSchedule={() => setActiveTab("class-arrangement")} />
     }
   }
 const handleLogout = async () => {
@@ -210,20 +238,51 @@ const handleLogout = async () => {
             <div className="menu-items">
               {menuItems.map((item) => (
                 <div key={item.id} className="nav-item-container">
-                  <button
-                    className={`nav-item ${activeTab === item.id ? "active" : ""}`}
-                    onClick={() => {
-                      setActiveTab(item.id)
-                      setSidebarOpen(false)
-                      window.scrollTo(0, 0)
-                    }}
-                  >
-                    <span className="nav-icon">{item.icon}</span>
-                    <span className="nav-label">{item.label}</span>
-                    {item.id === "notifications" && apiCounts.notifications > 0 && (
-                      <span className="nav-badge">({apiCounts.notifications })</span>
-                    )}
-                  </button>
+                  {item.id === "notifications" ? (
+                    <div style={{ position: 'relative' }}>
+                      <button
+                        className={`nav-item ${activeTab === item.id ? "active" : ""}`}
+                        onClick={() => setShowNotificationSubmenu(!showNotificationSubmenu)}
+                      >
+                        <span className="nav-icon">{item.icon}</span>
+                        <span className="nav-label">{item.label}</span>
+                        {item.id === "notifications" && apiCounts.notifications > 0 && (
+                          <span className="nav-badge">({apiCounts.notifications })</span>
+                        )}
+                      </button>
+                      {showNotificationSubmenu && (
+                        <div style={{ position: 'absolute', top: '100%', left: 0, backgroundColor: '#f8f9fa', border: '1px solid #dee2e6', borderRadius: '4px', zIndex: 1000, minWidth: '200px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                          <button
+                            onClick={() => { setActiveTab("leave"); setShowNotificationSubmenu(false); setSidebarOpen(false); window.scrollTo(0, 0); }}
+                            style={{ display: 'block', width: '100%', padding: '8px 12px', border: 'none', background: 'none', textAlign: 'left', cursor: 'pointer' }}
+                          >
+                            Leave
+                          </button>
+                          <button
+                            onClick={() => { setActiveTab("last_minute_cancel"); setShowNotificationSubmenu(false); setSidebarOpen(false); window.scrollTo(0, 0); }}
+                            style={{ display: 'block', width: '100%', padding: '8px 12px', border: 'none', background: 'none', textAlign: 'left', cursor: 'pointer' }}
+                          >
+                            Last Minute Cancel
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <button
+                      className={`nav-item ${activeTab === item.id ? "active" : ""}`}
+                      onClick={() => {
+                        setActiveTab(item.id)
+                        setSidebarOpen(false)
+                        window.scrollTo(0, 0)
+                      }}
+                    >
+                      <span className="nav-icon">{item.icon}</span>
+                      <span className="nav-label">{item.label}</span>
+                      {item.id === "notifications" && apiCounts.notifications > 0 && (
+                        <span className="nav-badge">({apiCounts.notifications })</span>
+                      )}
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

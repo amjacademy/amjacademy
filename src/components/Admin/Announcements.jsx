@@ -6,7 +6,10 @@ export default function Announcements() {
   const [receiver, setReceiver] = useState("Students");
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
-  const [duration, setDuration] = useState("23:59"); // default end of day
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]); // default today
+  const [hour, setHour] = useState("12");
+  const [minute, setMinute] = useState("00");
+  const [ampm, setAmpm] = useState("AM");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   
@@ -39,18 +42,19 @@ useEffect(() => { fetchAnnouncements(); }, [receiver]);
     e.preventDefault();
     setError("");
 
-    if (!title || !message || !duration) {
-      setError("Please fill in title, message, and duration.");
+    if (!title || !message || !date || !hour || !minute || !ampm) {
+      setError("Please fill in title, message, date, and time.");
       return;
     }
 
     setLoading(true);
 
     try {
+      const time = `${hour}:${minute} ${ampm}`;
       const res = await fetch("https://amjacademy-working.onrender.com/api/announcements/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ receiver, title, message, duration }),
+        body: JSON.stringify({ receiver, title, message, date, time }),
         credentials: "include",
       });
 
@@ -66,7 +70,10 @@ fetchAnnouncements();
 
         setTitle("");
         setMessage("");
-        setDuration("23:59");
+        setDate(new Date().toISOString().split('T')[0]);
+        setHour("12");
+        setMinute("00");
+        setAmpm("AM");
       }
     } catch (err) {
       console.error(err);
@@ -145,15 +152,54 @@ fetchAnnouncements();
         </div>
 
         <div className="field">
-          <label className="label">Duration (time)</label>
+          <label className="label">Date</label>
           <input
             className="input"
-            type="time"
-            value={duration}
-            onChange={(e) => setDuration(e.target.value)}
-            aria-label="Duration time"
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            aria-label="Announcement date"
             required
           />
+        </div>
+        <div className="field">
+          <label className="label">Time</label>
+          <div className="time-input-group">
+            <select
+              className="input time-select"
+              value={hour}
+              onChange={(e) => setHour(e.target.value)}
+              aria-label="Hour"
+            >
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
+                <option key={h} value={h.toString().padStart(2, '0')}>
+                  {h}
+                </option>
+              ))}
+            </select>
+            <span className="time-separator">:</span>
+            <select
+              className="input time-select"
+              value={minute}
+              onChange={(e) => setMinute(e.target.value)}
+              aria-label="Minute"
+            >
+              {Array.from({ length: 60 }, (_, i) => i).map((m) => (
+                <option key={m} value={m.toString().padStart(2, '0')}>
+                  {m.toString().padStart(2, '0')}
+                </option>
+              ))}
+            </select>
+            <select
+              className="input time-select"
+              value={ampm}
+              onChange={(e) => setAmpm(e.target.value)}
+              aria-label="AM/PM"
+            >
+              <option value="AM">AM</option>
+              <option value="PM">PM</option>
+            </select>
+          </div>
         </div>
 
         <div className="field form-actions">
@@ -184,14 +230,9 @@ fetchAnnouncements();
         <p className="annc-msg">{a.message}</p>
         <footer className="annc-foot">
           <time className="meta">{a.created_at ? new Date(a.created_at).toLocaleString() : "N/A"}</time>
-          {a.duration && (
+          {a.date && a.time && (
             <span className="meta">
-              Ends at: {(() => {
-                const [hours, minutes] = a.duration.split(":");
-                const endTime = new Date();
-                endTime.setHours(Number(hours), Number(minutes), 0, 0);
-                return endTime.toLocaleTimeString("en-US", { hour: "numeric", minute: "numeric", hour12: true });
-              })()}
+              On {new Date(a.date).toLocaleDateString()} at {a.time}
             </span>
           )}
           <button className="btn btn-danger btn-sm btn-smaller" onClick={() => onDelete(a.id)}>

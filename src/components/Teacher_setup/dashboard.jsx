@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import "./Dashboard.css"
 import Profile from "./Profile.jsx"
 import Message from "./Message.jsx"
-// import Notification from "../Admin/Notification.jsx"
+import Notification from "../Admin/Notification.jsx"
 import Footer from "../Footer/footer.jsx"
 import ClassReport from "./class-report.jsx"
 import MyAssignments from "./my-assignments.jsx"
@@ -130,7 +130,7 @@ useEffect(() => {
           student_id: cls.student1_id,
           duration: cls.duration || "45mins", // default
           contractId: cls.contract_id || "ic-405", // default
-          image: "/placeholder.svg?height=120&width=200&query=keyboard lesson",
+          image: "/images/amj-logo.png?height=120&width=200&query=keyboard lesson",
           title: `${cls.profession} Class`,
           status: cls.status || "not started", // default
           link: cls.link,
@@ -382,6 +382,9 @@ const isLastMinuteCancelEnabled = (classTime) => {
         <p>Plan: {ongoingClass.plan}</p>
       </div>
       <div className="class-actions">
+        <button className="rejoin-btn" onClick={() => window.open(ongoingClass.link, "_blank")}>
+          RE-JOIN
+        </button>
         <button className="close-btn" onClick={() => setOngoingClass(null)}>
           CLOSE
         </button>

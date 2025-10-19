@@ -9,6 +9,10 @@
   padding: 16px;
 }
 
+.section-title h3{
+  color: black;
+}
+
 /* Headers */
 .section-header {
   display: flex;

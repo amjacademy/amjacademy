@@ -509,6 +509,26 @@ body {
   box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
 }
 
+.rejoin-btn {
+  background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+  min-width: 100px;
+}
+
+.rejoin-btn:hover {
+  background: linear-gradient(135deg, #6c5ce7, #5f3dc4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(108, 92, 231, 0.4);
+}
+
 /* Responsive styles for class-details-card buttons */
 @media (max-width: 768px) {
   .class-details-card {
