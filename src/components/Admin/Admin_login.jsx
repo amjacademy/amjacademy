@@ -58,77 +58,87 @@ export default function AdminLogin() {
 
 
   return (
-    <main className="admin-login-container">
-      <section className="admin-login-card" aria-labelledby="admin-login-title">
-        <header className="admin-login-header">
-          <h1 id="admin-login-title" className="admin-login-title">
-            AMJ Academy Admin
-          </h1>
-          <p className="admin-login-subtitle">Sign in to manage the platform</p>
-        </header>
-
-        <form className="admin-login-form" onSubmit={onSubmit} noValidate>
-          <div className="admin-form-group">
-            <label htmlFor="username" className="admin-form-label">
-              Username
-            </label>
-            <input
-              id="username"
-              name="username"
-              type="text"
-              className={`admin-form-input ${errors.username ? "admin-error" : ""}`}
-              placeholder="Enter admin username"
-              value={formData.username}
-              onChange={onChange}
-              autoComplete="username"
-              aria-invalid={!!errors.username}
-              aria-describedby={errors.username ? "username-error" : undefined}
-            />
-            {errors.username && (
-              <span id="username-error" className="admin-error-message" role="alert">
-                {errors.username}
-              </span>
-            )}
+    <>
+      {loading && (
+        <div className="admin-loading-overlay">
+          <div className="admin-loading-container">
+            <div className="admin-loading-spinner"></div>
+            <p>Signing in...</p>
           </div>
+        </div>
+      )}
+      <main className="admin-login-container">
+        <section className="admin-login-card" aria-labelledby="admin-login-title">
+          <header className="admin-login-header">
+            <h1 id="admin-login-title" className="admin-login-title">
+              AMJ Academy Admin
+            </h1>
+            <p className="admin-login-subtitle">Sign in to manage the platform</p>
+          </header>
 
-          <div className="admin-form-group">
-            <label htmlFor="password" className="admin-form-label">
-              Password
-            </label>
-            <div className="admin-password-wrapper">
+          <form className="admin-login-form" onSubmit={onSubmit} noValidate>
+            <div className="admin-form-group">
+              <label htmlFor="username" className="admin-form-label">
+                Username
+              </label>
               <input
-                id="password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                className={`admin-form-input ${errors.password ? "admin-error" : ""}`}
-                placeholder="Enter admin password"
-                value={formData.password}
+                id="username"
+                name="username"
+                type="text"
+                className={`admin-form-input ${errors.username ? "admin-error" : ""}`}
+                placeholder="Enter admin username"
+                value={formData.username}
                 onChange={onChange}
-                autoComplete="current-password"
-                aria-invalid={!!errors.password}
-                aria-describedby={errors.password ? "password-error" : undefined}
+                autoComplete="username"
+                aria-invalid={!!errors.username}
+                aria-describedby={errors.username ? "username-error" : undefined}
               />
-              <button
-                type="button"
-                className="admin-toggle-password"
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                onClick={() => setShowPassword((s) => !s)}
-              >
-                {showPassword ? "Hide" : "Show"}
-              </button>
+              {errors.username && (
+                <span id="username-error" className="admin-error-message" role="alert">
+                  {errors.username}
+                </span>
+              )}
             </div>
-            {errors.password && (
-              <span id="password-error" className="admin-error-message" role="alert">
-                {errors.password}
-              </span>
-            )}
-          </div>
 
-          <button type="submit" className="admin-login-btn" disabled={loading}>
-            {loading ? "Signing in..." : "Sign in to Admin"}
-          </button>
-        </form>
-      </section>
-    </main>
+            <div className="admin-form-group">
+              <label htmlFor="password" className="admin-form-label">
+                Password
+              </label>
+              <div className="admin-password-wrapper">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  className={`admin-form-input ${errors.password ? "admin-error" : ""}`}
+                  placeholder="Enter admin password"
+                  value={formData.password}
+                  onChange={onChange}
+                  autoComplete="current-password"
+                  aria-invalid={!!errors.password}
+                  aria-describedby={errors.password ? "password-error" : undefined}
+                />
+                <button
+                  type="button"
+                  className="admin-toggle-password"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  onClick={() => setShowPassword((s) => !s)}
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+              {errors.password && (
+                <span id="password-error" className="admin-error-message" role="alert">
+                  {errors.password}
+                </span>
+              )}
+            </div>
+
+            <button type="submit" className="admin-login-btn" disabled={loading}>
+              {loading ? "Signing in..." : "Sign in to Admin"}
+            </button>
+          </form>
+        </section>
+      </main>
+    </>
   )
 }

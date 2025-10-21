@@ -177,6 +177,7 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
       setProfession(editingRow.profession);
       setPhone(editingRow.phone);
       setEmail(editingRow.email);
+      setAdditionalEmail(editingRow.additionalEmail || "");
       setImage(editingRow.image);
       setPassword(editingRow.password);
       setUsername(editingRow.username);
@@ -194,6 +195,7 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
   const [profession, setProfession] = useState("")
   const [phone, setPhone] = useState("")
   const [email, setEmail] = useState("")
+  const [additionalEmail, setAdditionalEmail] = useState("")
   const [image, setImage] = useState("")
   const [password, setPassword] = useState("")
   const [username, setUsername] = useState("")
@@ -300,6 +302,7 @@ const fetchEnrollments = async () => {
       profession,
       phone,
       email,
+      additionalEmail,
       image,
       password,
       username,
@@ -350,6 +353,7 @@ const fetchEnrollments = async () => {
       profession,
       phone,
       email,
+      additionalEmail,
       image,
       password,
       username,
@@ -390,7 +394,7 @@ const fetchEnrollments = async () => {
 
 const resetForm = () => {
   setId(""); setName(""); setAge(""); setProfession(""); setPhone("");
-  setEmail(""); setImage(""); setPassword(""); setUsername("");
+  setEmail(""); setAdditionalEmail(""); setImage(""); setPassword(""); setUsername("");
   setBatchType("individual"); setPlan("Beginner"); setLevel("1");
   setExperienceLevel(""); setEditingId(null);
 };
@@ -403,6 +407,7 @@ const onEdit = (row) => {
   setProfession(row.profession);
   setPhone(row.phone);
   setEmail(row.email);
+  setAdditionalEmail(row.additionalEmail || "");
   setImage(row.image);
   setPassword(row.password);
   setUsername(row.username);
@@ -544,6 +549,17 @@ const onDelete = async (id) => {
             placeholder="Enter email address"
             aria-label="Email"
             required
+          />
+        </div>
+        <div className="field">
+          <label className="label">Additional Email Address</label>
+          <input
+            className="input"
+            type="email"
+            value={additionalEmail}
+            onChange={(e) => setAdditionalEmail(e.target.value)}
+            placeholder="Enter additional email address"
+            aria-label="Additional Email"
           />
         </div>
         <div className="field">

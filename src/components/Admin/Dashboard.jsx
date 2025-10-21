@@ -287,6 +287,10 @@ export default function Dashboard({ counts, schedules, onView, onViewSchedule })
           <span className="stat-num">{counts.schedules}</span>
           <span className="stat-label">Schedules</span>
         </div>
+        <div className="stat" onClick={() => setSelectedModule("groups")} style={{ cursor: "pointer" }}>
+          <span className="stat-num">{counts.groups}</span>
+          <span className="stat-label">Groups</span>
+        </div>
         <div className="stat" style={{ position: 'relative', cursor: 'pointer' }} onClick={() => setShowNotificationMenu(!showNotificationMenu)}>
           <span className="stat-num">{counts.notifications || 0}</span>
           <span className="stat-label">Notifications</span>
@@ -315,6 +319,14 @@ export default function Dashboard({ counts, schedules, onView, onViewSchedule })
 
       {selectedModule === "schedules" && (
         <SchedulesTable schedules={schedules} onBack={() => setSelectedModule(null)} onViewSchedule={onViewSchedule} />
+      )}
+
+      {selectedModule === "groups" && (
+        <div>
+          <h2 style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white', padding: '12px 20px', borderRadius: '16px', boxShadow: '0 8px 24px rgba(0, 242, 254, 0.18)', textAlign: 'center', fontSize: '1.5em', fontWeight: '600', marginBottom: '20px' }}>Groups Table</h2>
+          <button onClick={() => setSelectedModule(null)} style={{ backgroundColor: '#00008B', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>Back</button>
+          <p>Groups functionality will be implemented here.</p>
+        </div>
       )}
 
       {selectedModule === "leave" && (

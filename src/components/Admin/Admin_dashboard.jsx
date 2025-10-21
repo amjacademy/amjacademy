@@ -7,6 +7,7 @@ import Dashboard from "./Dashboard.jsx"
 import User_enrollment from "./User_enrollment.jsx"
 import Announcements from "./Announcements.jsx"
 import Class_arrangement from "./Class_arrangement.jsx"
+import GroupArrangement from "./group_arrangement.jsx"
 import Notification from "./Notification.jsx"
 import { HiAnnotation } from "react-icons/hi"
 import axios from "axios";
@@ -41,6 +42,8 @@ export default function Admin_Dashboard() {
   // Schedules
   const [schedules, setSchedules] = useLocalStorage("admin_schedules", [])
   const [notifications, setNotifications] = useLocalStorage("admin_notifications", [])
+  // Groups
+  const [groups, setGroups] = useLocalStorage("admin_groups", [])
 
   const [activeTab, setActiveTab] = useState("dashboard")
   const [editingRow, setEditingRow] = useState(null)
@@ -56,6 +59,7 @@ export default function Admin_Dashboard() {
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [showNotificationSubmenu, setShowNotificationSubmenu] = useState(false)
   const [apiCounts, setApiCounts] = useState({})
+  const [loading, setLoading] = useState(true)
 
   // Get username from localStorage
   const username = localStorage.getItem('admin_username') || 'Admin'
@@ -102,8 +106,10 @@ export default function Admin_Dashboard() {
       try {
         const res = await axios.get("https://amjacademy-working.onrender.com/api/arrangements/getdetails");
         setSchedules(res.data);
+        setLoading(false);
       } catch (err) {
         console.error("Error fetching schedules:", err);
+        setLoading(false);
       }
     };
     fetchSchedules();
@@ -126,6 +132,7 @@ export default function Admin_Dashboard() {
     { id: "announcements", label: "Announcements", icon: "📢" },
     { id: "notifications", label: "Notifications", icon: "🔔" },
     { id: "class-arrangement", label: "Class Arrangement", icon: "📅" },
+    { id: "group-arrangement", label: "Group Arrangement", icon: "🧑‍🤝‍🧑" },
   ]
 
   const toggleSidebar = () => {
@@ -139,6 +146,7 @@ export default function Admin_Dashboard() {
     announcements: announcements.length,
     schedules: schedules.length,
     notifications: notifications.length,
+    groups: groups.length,
   }
 
   const renderContent = () => {
@@ -172,6 +180,8 @@ export default function Admin_Dashboard() {
             setSchedules={setSchedules}
           />
         )
+      case "group-arrangement":
+        return <GroupArrangement />
       case "dashboard":
       default:
         return <Dashboard counts={counts} schedules={schedules} onView={(row) => { setActiveTab("enrollment"); setEditingRow(row); }} onViewSchedule={() => setActiveTab("class-arrangement")} />
@@ -302,7 +312,16 @@ const handleLogout = async () => {
         </aside>
 
         {/* Main Content */}
-        <main className="main-content">{renderContent()}</main>
+        <main className="main-content">
+          {loading ? (
+            <div className="loading-container">
+              <div className="loading-spinner"></div>
+              <p>Loading...</p>
+            </div>
+          ) : (
+            renderContent()
+          )}
+        </main>
       </div>
 
       {/* Sidebar Overlay */}
