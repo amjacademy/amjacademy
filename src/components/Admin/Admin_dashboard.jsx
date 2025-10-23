@@ -199,7 +199,7 @@ const handleLogout = async () => {
     localStorage.clear();
 
     // redirect to login page
-    window.location.href = "/AdminLogin";
+    navigate("/AdminLogin", { replace: true });
   } catch (err) {
     console.error("Logout error:", err);
   }

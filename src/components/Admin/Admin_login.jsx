@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import "./Admin_login.css"
 
@@ -11,6 +11,23 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false)
 
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("https://amjacademy-working.onrender.com/api/admin/check-auth", {
+          credentials: "include",
+        });
+        const data = await res.json();
+        if (data.success) {
+          navigate("/admin-dashboard", { replace: true });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    checkAuth();
+  }, [navigate]);
 
   const onChange = (e) => {
     const { name, value } = e.target
@@ -43,7 +60,7 @@ export default function AdminLogin() {
     const data = await res.json()
 
     if (res.ok && data.success) {
-      navigate("/admin-dashboard")
+      navigate("/admin-dashboard", { replace: true })
     } else {
       console.log("Login failed:", data.message)
       setErrors({ username: "", password: data.message || "Invalid username or password" })

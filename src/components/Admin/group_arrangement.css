@@ -356,6 +356,106 @@
   transform: translateY(-2px);
 }
 
+/* Schedule Section */
+.schedule-section {
+  background: linear-gradient(135deg, #f5f7ff, #f0f4ff);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 20px 0;
+  border-left: 4px solid #667eea;
+}
+
+.schedule-section h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 16px 0;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-row:last-child {
+  margin-bottom: 0;
+}
+
+/* Schedule Info in Cards */
+.schedule-info {
+  background: linear-gradient(135deg, #f5f7ff, #f0f4ff);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 12px 0;
+  border-left: 3px solid #667eea;
+}
+
+.schedule-info h4 {
+  font-size: 12px;
+  font-weight: 600;
+  color: #667eea;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Sessions Timeline */
+.sessions-timeline {
+  background: linear-gradient(135deg, #fff5f7, #ffe8ed);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 12px 0;
+  border-left: 3px solid #ff6b6b;
+}
+
+.sessions-timeline h4 {
+  font-size: 12px;
+  font-weight: 600;
+  color: #ff6b6b;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.session-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  border: 1px solid #ffe0e0;
+}
+
+.session-item.more {
+  justify-content: center;
+  color: #999;
+  font-style: italic;
+}
+
+.session-date {
+  font-weight: 600;
+  color: #333;
+}
+
+.session-time {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .form-card {
@@ -395,6 +495,10 @@
   .delete-btn {
     width: 100%;
   }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 480px) {
@@ -423,5 +527,16 @@
 
   .students-list {
     max-height: 100px;
+  }
+
+  .schedule-section {
+    padding: 12px;
+    margin: 16px 0;
+  }
+
+  .session-item {
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
   }
 }
