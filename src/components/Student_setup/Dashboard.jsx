@@ -1,6 +1,7 @@
 "use client"
 import axios from "axios";
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom";
 import "./Dashboard.css"
 import Profile from "./Profile.jsx"
 import Message from "./Message.jsx"
@@ -12,6 +13,7 @@ import PunctualityReport from "./punctuality-repot.jsx"
 import LeaveModal from "../common/LeaveModal.jsx"
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const userType="Student";
   const userId=localStorage.getItem('user_id');
 
@@ -561,7 +563,7 @@ const isLastMinuteCancelEnabled = (classTime) => {
         </div>
         <div className="header-center">
           <nav className="header-nav">
-            <a href="#" className="nav-link" onClick={() => window.location.href = '/'}>
+            <a href="#" className="nav-link" onClick={() => navigate('/')}>
               HOME
             </a>
             <a
@@ -692,7 +694,10 @@ const isLastMinuteCancelEnabled = (classTime) => {
               </button>
               <button className="btn-confirm" onClick={() => {
                 localStorage.removeItem('username');
-                window.location.href = '/';
+                localStorage.removeItem('user_id');
+                localStorage.removeItem('userType');
+                setShowLogoutModal(false);
+                window.location.href = '/login';
               }}>
                 OK
               </button>

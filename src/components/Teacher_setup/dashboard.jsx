@@ -1,6 +1,7 @@
 "use client"
 import axios from "axios";
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom";
 import "./Dashboard.css"
 import Profile from "./Profile.jsx"
 import Message from "./Message.jsx"
@@ -530,7 +531,7 @@ const isLastMinuteCancelEnabled = (classTime) => {
         </div>
         <div className="header-center">
           <nav className="header-nav">
-            <a href="#" className="nav-link" onClick={() => window.location.href = '/'}>
+            <a href="#" className="nav-link" onClick={() => navigate('/')}>
               HOME
             </a>
             <a

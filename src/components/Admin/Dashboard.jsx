@@ -224,7 +224,7 @@ function TeachersTable({ teachers, onBack, onView }) {
   );
 }
 
-export default function Dashboard({ counts, schedules, onView, onViewSchedule }) {
+export default function Dashboard({ counts, schedules, onView, onViewSchedule, onViewGroups }) {
   const [selectedModule, setSelectedModule] = useState(null);
   const [showNotificationMenu, setShowNotificationMenu] = useState(false);
 
@@ -232,6 +232,7 @@ export default function Dashboard({ counts, schedules, onView, onViewSchedule })
   const [students, setStudents] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
+  const [arrangements, setArrangements] = useState([]);
 
   // Fetch students and teachers data when needed
   useEffect(() => {
@@ -255,6 +256,16 @@ export default function Dashboard({ counts, schedules, onView, onViewSchedule })
     }
   }, [selectedModule]);
 
+  // Fetch arrangements for groups
+  useEffect(() => {
+    if (selectedModule === "groups") {
+      const saved = localStorage.getItem("groupArrangements");
+      if (saved) {
+        setArrangements(JSON.parse(saved));
+      }
+    }
+  }, [selectedModule]);
+
   const handleBack = () => {
     setSelectedModule(null);
   };
@@ -262,6 +273,12 @@ export default function Dashboard({ counts, schedules, onView, onViewSchedule })
   const handleView = (row) => {
     if (onView) {
       onView(row);
+    }
+  };
+
+  const handleViewGroups = () => {
+    if (onViewGroups) {
+      onViewGroups();
     }
   };
 
@@ -311,8 +328,6 @@ export default function Dashboard({ counts, schedules, onView, onViewSchedule })
         <TeachersTable teachers={teachers} onBack={() => setSelectedModule(null)} onView={handleView} />
       )}
 
-
-
       {selectedModule === "announcements" && (
         <AnnouncementsTable onBack={() => setSelectedModule(null)} />
       )}
@@ -325,7 +340,100 @@ export default function Dashboard({ counts, schedules, onView, onViewSchedule })
         <div>
           <h2 style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white', padding: '12px 20px', borderRadius: '16px', boxShadow: '0 8px 24px rgba(0, 242, 254, 0.18)', textAlign: 'center', fontSize: '1.5em', fontWeight: '600', marginBottom: '20px' }}>Groups Table</h2>
           <button onClick={() => setSelectedModule(null)} style={{ backgroundColor: '#00008B', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>Back</button>
-          <p>Groups functionality will be implemented here.</p>
+          <div className="arrangements-list">
+            {arrangements.length === 0 ? (
+              <div className="empty-state">
+                <p>No group arrangements yet. Create one to get started!</p>
+              </div>
+            ) : (
+              <div className="arrangements-grid">
+                {arrangements.map((arrangement) => (
+                  <div key={arrangement.id} className="arrangement-card">
+                    <div className="card-header">
+                      <h3>{arrangement.groupName}</h3>
+                    </div>
+
+                    <div className="card-content">
+                      <div className="info-item">
+                        <span className="label">Students:</span>
+                        <span className="value">{arrangement.students.length} students</span>
+                      </div>
+
+                      <div className="students-list">
+                        {arrangement.students.map((student) => (
+                          <div key={student} className="student-item">
+                            👤 {student}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="info-item">
+                        <span className="label">Class Link:</span>
+                        <a href={arrangement.classLink} target="_blank" rel="noopener noreferrer" className="class-link">
+                          Join Class →
+                        </a>
+                      </div>
+
+                      <div className="schedule-info">
+                        <h4>Schedule</h4>
+                        <div className="info-item">
+                          <span className="label">Sessions per Week:</span>
+                          <span className="value">{arrangement.sessionForWeek}</span>
+                        </div>
+                        <div className="info-item">
+                          <span className="label">Days:</span>
+                          <span className="value">
+                            {arrangement.sessionForWeek === "2 days"
+                              ? `${arrangement.day}, ${arrangement.secondDay}`
+                              : arrangement.day}
+                          </span>
+                        </div>
+                        <div className="info-item">
+                          <span className="label">Time:</span>
+                          <span className="value">{`${arrangement.hour}:${arrangement.minute} ${arrangement.ampm}`}</span>
+                        </div>
+                        <div className="info-item">
+                          <span className="label">Total Sessions:</span>
+                          <span className="value">{arrangement.sessions?.length || 0}</span>
+                        </div>
+                      </div>
+
+                      {arrangement.sessions && arrangement.sessions.length > 0 && (
+                        <div className="sessions-timeline">
+                          <h4>Upcoming Sessions</h4>
+                          <div className="sessions-list">
+                            {arrangement.sessions.slice(0, 3).map((session) => (
+                              <div key={session.sessionNumber} className="session-item">
+                                <span className="session-date">{session.date}</span>
+                                <span className="session-time">{session.time}</span>
+                              </div>
+                            ))}
+                            {arrangement.sessions.length > 3 && (
+                              <div className="session-item more">+{arrangement.sessions.length - 3} more sessions</div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="info-item">
+                        <span className="label">Created:</span>
+                        <span className="value">{arrangement.createdAt}</span>
+                      </div>
+                    </div>
+
+                    <div className="card-actions">
+                      <button className="edit-btn" onClick={() => handleViewGroups()}>
+                        ✏️ Edit
+                      </button>
+                      <button className="delete-btn" onClick={() => handleViewGroups()}>
+                        🗑️ Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 

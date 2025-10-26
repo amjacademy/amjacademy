@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './header.css';
 
 const Header = () => {
+  const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -19,7 +21,7 @@ const Header = () => {
       element.scrollIntoView({ behavior: 'smooth' });
     } else {
       // If element not found, navigate to home page and then scroll
-      window.location.href = '/';
+      navigate('/');
       setTimeout(() => {
         const targetElement = document.getElementById(sectionId);
         if (targetElement) {

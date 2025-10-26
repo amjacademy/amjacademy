@@ -26,15 +26,18 @@ const GroupArrangement = () => {
   const [teachers, setTeachers] = useState([])
   const [loading, setLoading] = useState(false)
 
+  // Filter states
+  const [studentFilter, setStudentFilter] = useState("")
+
   const availableStudents = [
-    "Ajay Kumar",
-    "Priya Singh",
-    "Rahul Patel",
-    "Neha Sharma",
-    "Vikram Desai",
-    "Ananya Gupta",
-    "Rohan Verma",
-    "Divya Nair",
+    { id: "AMJS0001", name: "Ajay Kumar" },
+    { id: "AMJS0002", name: "Priya Singh" },
+    { id: "AMJS0003", name: "Rahul Patel" },
+    { id: "AMJS0004", name: "Neha Sharma" },
+    { id: "AMJS0005", name: "Vikram Desai" },
+    { id: "AMJS0006", name: "Ananya Gupta" },
+    { id: "AMJS0007", name: "Rohan Verma" },
+    { id: "AMJS0008", name: "Divya Nair" },
   ]
 
   const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -374,22 +377,33 @@ const GroupArrangement = () => {
               </div>
 
               <div className="form-group">
+                <input
+                  type="text"
+                  placeholder="Search students by ID or name..."
+                  value={studentFilter}
+                  onChange={(e) => setStudentFilter(e.target.value)}
+                  className="student-filter-input"
+                />
                 <label>Add Students *</label>
                 <div className="student-input-group">
                   <select
                     multiple
                     size="5"
-                    value={formData.students}
                     onChange={(e) => {
                       const selectedOptions = Array.from(e.target.selectedOptions, (option) => option.value)
                       setFormData({ ...formData, students: selectedOptions })
                     }}
                   >
-                    {availableStudents.map((student) => (
-                      <option key={student} value={student}>
-                        {student}
-                      </option>
-                    ))}
+                    {availableStudents
+                      .filter((student) =>
+                        student.id.toLowerCase().includes(studentFilter.toLowerCase()) ||
+                        student.name.toLowerCase().includes(studentFilter.toLowerCase())
+                      )
+                      .map((student) => (
+                        <option key={student.id} value={student.id} selected={formData.students.includes(student.id)}>
+                          {student.id} - {student.name}
+                        </option>
+                      ))}
                   </select>
                 </div>
 
@@ -397,23 +411,26 @@ const GroupArrangement = () => {
                   <div className="selected-students">
                     <p className="students-label">Selected Students ({formData.students.length}):</p>
                     <div className="student-tags">
-                      {formData.students.map((student) => (
-                        <div key={student} className="student-tag">
-                          <span>{student}</span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setFormData({
-                                ...formData,
-                                students: formData.students.filter((s) => s !== student),
-                              })
-                            }}
-                            className="remove-tag"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
+                      {formData.students.map((studentId) => {
+                        const student = availableStudents.find(s => s.id === studentId)
+                        return (
+                          <div key={studentId} className="student-tag">
+                            <span>{student ? `${student.id} - ${student.name}` : studentId}</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFormData({
+                                  ...formData,
+                                  students: formData.students.filter((s) => s !== studentId),
+                                })
+                              }}
+                              className="remove-tag"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        )
+                      })}
                     </div>
                   </div>
                 )}
@@ -557,11 +574,14 @@ const GroupArrangement = () => {
                   </div>
 
                   <div className="students-list">
-                    {arrangement.students.map((student) => (
-                      <div key={student} className="student-item">
-                        👤 {student}
-                      </div>
-                    ))}
+                    {arrangement.students.map((studentId) => {
+                      const student = availableStudents.find(s => s.id === studentId)
+                      return (
+                        <div key={studentId} className="student-item">
+                          👤 {student ? `${student.id} - ${student.name}` : studentId}
+                        </div>
+                      )
+                    })}
                   </div>
 
                   <div className="info-item">

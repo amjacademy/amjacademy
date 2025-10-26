@@ -1,9 +1,10 @@
 import React from 'react';
 import { FaFacebookF, FaInstagram, FaYoutube, FaLinkedinIn } from "react-icons/fa";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './footer.css';
 
 const Footer = () => {
+  const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
 
   const scrollToSection = (sectionId) => {
@@ -12,7 +13,7 @@ const Footer = () => {
       element.scrollIntoView({ behavior: 'smooth' });
     } else {
       // If element not found, navigate to home page and then scroll
-      window.location.href = '/';
+      navigate('/');
       setTimeout(() => {
         const targetElement = document.getElementById(sectionId);
         if (targetElement) {

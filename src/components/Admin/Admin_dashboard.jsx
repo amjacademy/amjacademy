@@ -139,6 +139,13 @@ export default function Admin_Dashboard() {
     setSidebarOpen(!sidebarOpen)
   }
 
+  const getNextTab = (currentTab) => {
+    const tabOrder = ["dashboard", "enrollment", "announcements", "notifications", "class-arrangement", "group-arrangement"]
+    const currentIndex = tabOrder.indexOf(currentTab)
+    const nextIndex = (currentIndex + 1) % tabOrder.length
+    return tabOrder[nextIndex]
+  }
+
   // Derived counts
   const counts = {
     students: students.length,
@@ -184,7 +191,7 @@ export default function Admin_Dashboard() {
         return <GroupArrangement />
       case "dashboard":
       default:
-        return <Dashboard counts={counts} schedules={schedules} onView={(row) => { setActiveTab("enrollment"); setEditingRow(row); }} onViewSchedule={() => setActiveTab("class-arrangement")} />
+        return <Dashboard counts={counts} schedules={schedules} onView={(row) => { setActiveTab("enrollment"); setEditingRow(row); }} onViewSchedule={() => setActiveTab("class-arrangement")} onViewGroups={() => setActiveTab("group-arrangement")} />
     }
   }
 const handleLogout = async () => {
@@ -210,6 +217,8 @@ const handleLogout = async () => {
       {/* Header */}
       <header className="dashboard-header">
         <div className="header-left">
+          <button className="back-btn" onClick={() => { setActiveTab("dashboard"); window.scrollTo(0, 0); }}>← Back</button>
+          <button className="forward-btn" onClick={() => { setActiveTab(getNextTab(activeTab)); window.scrollTo(0, 0); }}>Forward →</button>
           <button className="menu-toggle" onClick={toggleSidebar}>
             <span></span>
             <span></span>
