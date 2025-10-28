@@ -353,20 +353,27 @@ const handleLogout = async () => {
   className="btn-confirm"
   onClick={async () => {
     try {
-      // Call logout endpoint
+      // Call backend logout
       const res = await fetch("https://amjacademy-working.onrender.com/api/admin/logout", {
         method: "POST",
-        credentials: "include", // important for cookie-based auth
+        credentials: "include", // send cookies
       });
 
       const data = await res.json();
       console.log("Logout response:", data);
 
-      // Clear client-side data
-      localStorage.removeItem("username");
+      if (data.success) {
+        // Clear all possible client data
+        localStorage.removeItem("username");
+        sessionStorage.clear();
 
-      // Redirect to home or login
-      window.location.href = "/";
+        // Wait a tiny bit to ensure cookie is fully removed
+        await new Promise((r) => setTimeout(r, 300));
+
+        // Force full page reload (not cached)
+        window.location.href = "/";
+        window.location.reload(true);
+      }
     } catch (err) {
       console.error("Logout failed:", err);
     }
@@ -374,6 +381,7 @@ const handleLogout = async () => {
 >
   OK
 </button>
+
               {/* <button className="btn-confirm" onClick={handleLogout()}>
                 OK
               </button> */}

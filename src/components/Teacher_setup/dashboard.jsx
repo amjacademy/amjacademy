@@ -241,10 +241,10 @@ const handleLeaveSubmit = async (leaveData) => {
 };
 
 
-// Utility function to check if join button should be enabled
-const isJoinEnabled = (classDate, classTime) => {
+ // Utility function to check if join button should be enabled
+const isJoinEnabled = (classTime) => {
   const now = new Date(); // current user local time
-  const classDateTime = new Date(`${classDate}T${classTime}`); // Combine date and time
+  const classDateTime = new Date(classTime); // UTC timestamp from DB converted to local
 
   // 5 minutes before to 15 minutes after
   const fiveMinutesBefore = new Date(classDateTime.getTime() - 5 * 60 * 1000);
@@ -290,23 +290,24 @@ const handleJoinClass = async (classItem) => {
   }
 };
 
-// LEAVE button: Enabled until 1 hour before class start, then disabled
-const isLeaveEnabled = (classDate, classTime) => {
+// LEAVE button: 5 hours before class until 15 minutes before class
+const isLeaveEnabled = (classTime) => {
   const now = new Date();
-  const classDateTime = new Date(`${classDate}T${classTime}`);
-  const oneHourBefore = new Date(classDateTime.getTime() - 1 * 60 * 60 * 1000); // 1 hour before
+  const classStart = new Date(classTime);
+  const fiveHoursBefore = new Date(classStart.getTime() - 5 * 60 * 60 * 1000); // 5 hours before
+  const fifteenMinutesBefore = new Date(classStart.getTime() - 15 * 60 * 1000); // 15 minutes before
 
-  return now < oneHourBefore;
+  return now >= fiveHoursBefore && now < fifteenMinutesBefore;
 };
 
-// LMC button: Enabled after Leave button disables (1 hour before class), disabled when Join button enables (5 minutes before class)
-const isLastMinuteCancelEnabled = (classDate, classTime) => {
+// LMC button: 15 minutes before class until 15 minutes after
+const isLastMinuteCancelEnabled = (classTime) => {
   const now = new Date();
-  const classDateTime = new Date(`${classDate}T${classTime}`);
-  const oneHourBefore = new Date(classDateTime.getTime() - 1 * 60 * 60 * 1000); // 1 hour before
-  const fiveMinutesBefore = new Date(classDateTime.getTime() - 5 * 60 * 1000); // 5 minutes before
+  const classStart = new Date(classTime);
+  const fifteenMinutesBefore = new Date(classStart.getTime() - 15 * 60 * 1000); // 15 minutes before
+  const fifteenMinutesAfter = new Date(classStart.getTime() + 15 * 60 * 1000); // 15 minutes after
 
-  return now >= oneHourBefore && now < fiveMinutesBefore;
+  return now >= fifteenMinutesBefore && now <= fifteenMinutesAfter;
 };
 
 
@@ -454,7 +455,7 @@ const isLastMinuteCancelEnabled = (classDate, classTime) => {
                 </div>
               ))}
 
-              <p>Student ID: {classItem.student_id}</p>
+              <p>Class ID: {classItem.class_id}</p>
               <p>Plan: {classItem.plan}</p>
               <p>Duration: {classItem.duration}</p>
             </div>

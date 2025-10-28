@@ -11,16 +11,13 @@ export default function ProtectedRoute({ children }) {
       try {
         const res = await fetch("https://amjacademy-working.onrender.com/api/admin/check-auth", {
           method: "GET",
-          credentials: "include",
+          credentials: "include", // 🧠 send cookies
         });
 
-        if (!res.ok) {
-          navigate("/AdminLogin");
-          return;
-        }
-
         const data = await res.json();
-        if (data.success) {
+        console.log("Check-auth response:", data);
+
+        if (res.ok && data.success) {
           setIsAuth(true);
         } else {
           navigate("/AdminLogin");
