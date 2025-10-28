@@ -3,9 +3,7 @@ const jwt = require("jsonwebtoken");
 const router = express.Router();
 
 const SESSION_DURATION = parseInt(process.env.SESSION_DURATION_MIN || "172800"); // minutes
-const JWT_SECRET = process.env.JWT_SECRET || "admin_jwt_secret";
-
-// Admin Login
+const ADMIN_JWT = process.env.ADMIN_JWT_SECRET ;
 // Admin Login
 exports.Login = async (req, res) => {
   const { username, password } = req.body;
@@ -15,7 +13,7 @@ exports.Login = async (req, res) => {
   }
 
   if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
-    const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: "172800m" });
+    const token = jwt.sign({ user:username}, ADMIN_JWT, { expiresIn: "172800m" });
 
    /*  res.clearCookie("adminToken", {
   path: "/",
@@ -69,7 +67,7 @@ exports.checkAuth = (req, res) => {
 
     if (!token) return res.status(401).json({ success: false, message: "Not logged in" });
 
-    jwt.verify(token, JWT_SECRET, (err, decoded) => {
+    jwt.verify(token, ADMIN_JWT, (err, decoded) => {
       if (err) return res.status(401).json({ success: false, message: "Token expired" });
 
       res.json({ success: true, username: decoded.username });

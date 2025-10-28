@@ -21,8 +21,64 @@ import Admin_Dashboard from './components/Admin/Admin_dashboard';
 import './App.css';
 import { useNavigate } from "react-router-dom";
 import ProtectedRoute from "./components/Admin/ProtectedRoute";
+import { motion } from "framer-motion";
 // Home Page Component
 function HomePage({ onOpenRegistration }) {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true); // splash loading state
+
+useEffect(() => {
+  const checkPersistentLogin = async () => {
+    try {
+      const res = await fetch("https://amjacademy-working.onrender.com/api/users/verifylogin", {
+        method: "GET",
+        credentials: "include", // ✅ include cookies
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        // ✅ backend already sends correct redirect path
+        navigate(data.redirect);
+      } else {
+        navigate("/"); // redirect to login if invalid
+      }
+    } catch (err) {
+      console.error("Error verifying login:", err);
+      navigate("/");
+    } finally {
+      setLoading(false); // ✅ hide splash
+    }
+  };
+
+  checkPersistentLogin();
+}, [navigate]);
+
+
+  // ✅ Show splash logo while checking login
+  if (loading) {
+    return (
+      <div className="splash-container">
+        <motion.img
+          src="/images/amj-logo.png"
+          alt="Loading..."
+          className="splash-logo"
+          initial={{ opacity: 1, scale: 0.7 }}
+          animate={{
+            opacity: 1,
+            scale: [1, 1.1, 1],
+            y: [0, -10, 0],
+          }}
+          transition={{
+            duration: 1.5,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <>
       <Header />

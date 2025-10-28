@@ -6,6 +6,7 @@ import "./Login.css"
 
 const LoginForm = () => {
   const API_BASE = "https://amjacademy-working.onrender.com/api/users";
+ /*  const API_BASE = "http://localhost:5000/api/users"; */
   const [userType, setUserType] = useState("Student");
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -83,6 +84,7 @@ const LoginForm = () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...formData }),
+      credentials: "include", // ← THIS IS MANDATORY
     });
     const data = await res.json();
     if (data.success) {

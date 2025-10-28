@@ -4,8 +4,9 @@ const { sendOtp } = require("../controllers/userloginController");
 const { verifyOtp } = require("../controllers/userloginController");
 const { Login } = require("../controllers/userloginController");
 const { Logout } = require("../controllers/userloginController");
-const { userAuth } = require("../controllers/userloginController");
 const { checkAuth } = require("../controllers/userloginController");
+const { verifyLogin } = require("../controllers/userloginController");
+const {userAuth} = require("../utils/authController");
 const router = express.Router();
 
 router.post("/sendotp", sendOtp);
@@ -20,5 +21,5 @@ router.get("/userauth", userAuth);
 
 router.get("/checkauth", checkAuth);
 
-
+router.get("/verifylogin", verifyLogin);
 module.exports = router;

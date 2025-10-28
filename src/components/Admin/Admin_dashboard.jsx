@@ -349,9 +349,34 @@ const handleLogout = async () => {
               <button className="btn-cancel" onClick={() => setShowLogoutModal(false)}>
                 Cancel
               </button>
-              <button className="btn-confirm" onClick={handleLogout()}>
+               <button
+  className="btn-confirm"
+  onClick={async () => {
+    try {
+      // Call logout endpoint
+      const res = await fetch("https://amjacademy-working.onrender.com/api/admin/logout", {
+        method: "POST",
+        credentials: "include", // important for cookie-based auth
+      });
+
+      const data = await res.json();
+      console.log("Logout response:", data);
+
+      // Clear client-side data
+      localStorage.removeItem("username");
+
+      // Redirect to home or login
+      window.location.href = "/";
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+  }}
+>
+  OK
+</button>
+              {/* <button className="btn-confirm" onClick={handleLogout()}>
                 OK
-              </button>
+              </button> */}
             </div>
           </div>
         </div>

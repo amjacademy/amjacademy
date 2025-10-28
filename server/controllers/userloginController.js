@@ -5,7 +5,8 @@ const { Resend } = require("resend");
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // JWT Secret
-const JWT_SECRET = process.env.USER_JWT_SECRET || "user_jwt_secret";
+const USER_JWT = process.env.USER_JWT_SECRET ;
+
 
 // In-memory OTP store: { "email": { otp, expiresAt, verified } }
 const otpStore = {};
@@ -135,18 +136,28 @@ exports.Login = async (req, res) => {
     if (!isMatch)
       return res.status(401).json({ success: false, message: "Invalid credentials" });
 
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "45m" });
+    const token = jwt.sign(
+  { id: user.id, email: user.email, role: user.role }, // <-- add role here
+  USER_JWT,
+  { expiresIn: "30d" });
 
     delete otpStore[email];
     /* console.log("OTP record deleted after login"); */
 
-    res.cookie("userToken", token, {
+   /*  res.cookie("userToken", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 45 * 60 * 1000,
-    });
+    }); */
 
+  res.cookie("userToken", token, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production", // true in prod, false in dev
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  path: "/",
+  maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+});
     return res.json({ success: true, message: "Login successful", id: user.id });
   } catch (err) {
     console.error("Login server error:", err);
@@ -192,3 +203,98 @@ exports.Logout = (req, res) => {
   });
   res.json({ success: true, message: "Logged out successfully" });
 };    
+
+// Step 4: Verify Login (Persistent Login Check)
+exports.verifyLogin = async (req, res) => {
+  try {
+    const adminToken = req.cookies?.adminToken;
+    const userToken = req.cookies?.userToken;
+
+    // 1️⃣ Admin token check (no database verification)
+    if (adminToken) {
+      try {
+        const decodedAdmin = jwt.verify(adminToken, process.env.ADMIN_JWT_SECRET);
+
+        return res.status(200).json({
+          success: true,
+          role: "admin",
+          redirect: "/admin-dashboard",
+          user: { username: decodedAdmin.user  },
+        });
+      } catch (err) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid or expired admin token",
+        });
+      }
+    }
+
+    // 2️⃣ User token check (Student / Teacher)
+    if (userToken) {
+      try {
+        const decodedUser = jwt.verify(userToken, process.env.USER_JWT_SECRET);
+        const { id, role } = decodedUser;
+
+        if (!id || !role) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid user token payload",
+          });
+        }
+
+        // Both Student & Teacher are in 'enrollments' table
+        const { data: user, error } = await supabase
+          .from("enrollments")
+          .select("id, username, email, role")
+          .eq("id", id)
+          .single();
+
+        if (error || !user) {
+          return res.status(404).json({
+            success: false,
+            message: "User not found",
+          });
+        }
+
+        // Redirect based on role
+        const redirectPath =
+          role === "Student"
+            ? "/student-dashboard"
+            : role === "Teacher"
+            ? "/teacher-dashboard"
+            : null;
+
+        if (!redirectPath) {
+          return res.status(401).json({
+            success: false,
+            message: "Unauthorized: Invalid role",
+          });
+        }
+
+        return res.status(200).json({
+          success: true,
+          role,
+          redirect: redirectPath,
+          user,
+        });
+      } catch (err) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid or expired user token",
+        });
+      }
+    }
+
+    // 3️⃣ Neither adminToken nor userToken found
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized: No valid token found",
+    });
+  } catch (err) {
+    console.error("verifyLogin error:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error during verification",
+    });
+  }
+};

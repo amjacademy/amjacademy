@@ -246,9 +246,9 @@ const handleLeaveSubmit = async (leaveData) => {
 
 
  // Utility function to check if join button should be enabled
-const isJoinEnabled = (classTime) => {
+const isJoinEnabled = (classDate, classTime) => {
   const now = new Date(); // current user local time
-  const classDateTime = new Date(classTime); // UTC timestamp from DB converted to local
+  const classDateTime = new Date(`${classDate}T${classTime}`); // Combine date and time
 
   // 5 minutes before to 15 minutes after
   const fiveMinutesBefore = new Date(classDateTime.getTime() - 5 * 60 * 1000);
@@ -294,24 +294,25 @@ const handleJoinClass = async (classItem) => {
   }
 };
 
-// LEAVE button: 5 hours before class until 15 minutes before class
-const isLeaveEnabled = (classTime) => {
+// LEAVE button: 5 hours before class until 1 hour before join enables (i.e., 1 hour + 5 min before class)
+const isLeaveEnabled = (classDate, classTime) => {
   const now = new Date();
-  const classStart = new Date(classTime);
+  const classStart = new Date(`${classDate}T${classTime}`);
   const fiveHoursBefore = new Date(classStart.getTime() - 5 * 60 * 60 * 1000); // 5 hours before
-  const fifteenMinutesBefore = new Date(classStart.getTime() - 15 * 60 * 1000); // 15 minutes before
+  const fiveMinutesBefore = new Date(classStart.getTime() - 5 * 60 * 1000); // 5 minutes before
+  const oneHourBeforeJoin = new Date(fiveMinutesBefore.getTime() - 1 * 60 * 60 * 1000); // 1 hour before join enables
 
-  return now >= fiveHoursBefore && now < fifteenMinutesBefore;
+  return now >= fiveHoursBefore && now < oneHourBeforeJoin;
 };
 
-// LMC button: 15 minutes before class until 15 minutes after
-const isLastMinuteCancelEnabled = (classTime) => {
+// LMC button: 1 hour before class until 5 minutes before
+const isLastMinuteCancelEnabled = (classDate, classTime) => {
   const now = new Date();
-  const classStart = new Date(classTime);
-  const fifteenMinutesBefore = new Date(classStart.getTime() - 15 * 60 * 1000); // 15 minutes before
-  const fifteenMinutesAfter = new Date(classStart.getTime() + 15 * 60 * 1000); // 15 minutes after
+  const classStart = new Date(`${classDate}T${classTime}`);
+  const oneHourBefore = new Date(classStart.getTime() - 1 * 60 * 60 * 1000); // 1 hour before
+  const fiveMinutesBefore = new Date(classStart.getTime() - 5 * 60 * 1000); // 5 minutes before
 
-  return now >= fifteenMinutesBefore && now <= fifteenMinutesAfter;
+  return now >= oneHourBefore && now < fiveMinutesBefore;
 };
 
 
@@ -455,7 +456,7 @@ const isLastMinuteCancelEnabled = (classTime) => {
           });
           setShowLeaveModal(true);
         }}
-        disabled={!isLeaveEnabled(classItem.time)}
+        disabled={!isLeaveEnabled(classItem.date, classItem.time)}
       >
         LEAVE
       </button>
@@ -469,7 +470,7 @@ const isLastMinuteCancelEnabled = (classTime) => {
           });
           setShowLeaveModal(true);
         }}
-        disabled={!isLastMinuteCancelEnabled(classItem.time)}
+        disabled={!isLastMinuteCancelEnabled(classItem.date, classItem.time)}
       >
         LAST MINUTE CANCEL
       </button>
@@ -692,15 +693,31 @@ const isLastMinuteCancelEnabled = (classTime) => {
               <button className="btn-cancel" onClick={() => setShowLogoutModal(false)}>
                 Cancel
               </button>
-              <button className="btn-confirm" onClick={() => {
-                localStorage.removeItem('username');
-                localStorage.removeItem('user_id');
-                localStorage.removeItem('userType');
-                setShowLogoutModal(false);
-                window.location.href = '/login';
-              }}>
-                OK
-              </button>
+              <button
+  className="btn-confirm"
+  onClick={async () => {
+    try {
+      // Call logout endpoint
+      const res = await fetch("https://amjacademy-working.onrender.com/api/users/logout", {
+        method: "POST",
+        credentials: "include", // important for cookie-based auth
+      });
+
+      const data = await res.json();
+      console.log("Logout response:", data);
+
+      // Clear client-side data
+      localStorage.removeItem("username");
+
+      // Redirect to home or login
+      window.location.href = "/";
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+  }}
+>
+  OK
+</button>
             </div>
           </div>
         </div>
