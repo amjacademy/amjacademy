@@ -31,6 +31,7 @@ const Dashboard = () => {
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [selectedLeaveClass, setSelectedLeaveClass] = useState(null);
   const [ongoingClass, setOngoingClass] = useState(null);
+  const [classesToShow, setClassesToShow] = useState(5); // Show 5 classes initially
 
 const formatTime = (timeStr) => {
   if (!timeStr) return "";
@@ -97,8 +98,7 @@ const handleCloseAnnouncement = () => {
   localStorage.setItem("announcementClosed", "true")
 } 
   const [studentId]=useState(1);
-  
-useEffect(() => {
+
   const fetchUpcomingClasses = async () => {
     try {
       setLoading(true);
@@ -136,6 +136,7 @@ useEffect(() => {
           status: cls.status || "not started", // default
           link: cls.link,
           class_id: cls.class_id,
+          teacher_id: cls.teacher_id,
           rescheduled: cls.rescheduled,
         }));
         // SORT: most recent upcoming class first
@@ -162,6 +163,7 @@ classes.sort((a, b) => {
     }
   };
 
+useEffect(() => {
   fetchUpcomingClasses();
   /* const interval = setInterval(fetchUpcomingClasses, 15000);
 
@@ -294,15 +296,13 @@ const handleJoinClass = async (classItem) => {
   }
 };
 
-// LEAVE button: 5 hours before class until 1 hour before join enables (i.e., 1 hour + 5 min before class)
+// LEAVE button: always enabled except disabled 1 hour before class
 const isLeaveEnabled = (classDate, classTime) => {
   const now = new Date();
   const classStart = new Date(`${classDate}T${classTime}`);
-  const fiveHoursBefore = new Date(classStart.getTime() - 5 * 60 * 60 * 1000); // 5 hours before
-  const fiveMinutesBefore = new Date(classStart.getTime() - 5 * 60 * 1000); // 5 minutes before
-  const oneHourBeforeJoin = new Date(fiveMinutesBefore.getTime() - 1 * 60 * 60 * 1000); // 1 hour before join enables
+  const oneHourBefore = new Date(classStart.getTime() - 1 * 60 * 60 * 1000); // 1 hour before
 
-  return now >= fiveHoursBefore && now < oneHourBeforeJoin;
+  return now < oneHourBefore;
 };
 
 // LMC button: 1 hour before class until 5 minutes before
@@ -406,7 +406,7 @@ const isLastMinuteCancelEnabled = (classDate, classTime) => {
           <h2>UPCOMING CLASSES</h2>
         </div>
         <div className="classes-list">
-          {upcomingClasses.map((classItem) => (
+          {upcomingClasses.slice(0, classesToShow).map((classItem) => (
             <div
               key={classItem.id}
               className={`class-card-horizontal ${classItem.rescheduled ? "rescheduled-card" : ""}`}
@@ -432,7 +432,7 @@ const isLastMinuteCancelEnabled = (classDate, classTime) => {
                 <div className="class-details">
                   <p>Teacher Name: {classItem.teachers.join(", ")}</p>
                   <p>Level: {classItem.level}</p>
-                  <p>Class ID: {classItem.class_id}</p>
+                  <p>Teacher ID: {classItem.teacher_id}</p>
                   <p>Plan: {classItem.plan}</p>
                   <p>Duration: {classItem.duration}</p>
                 </div>
@@ -446,7 +446,7 @@ const isLastMinuteCancelEnabled = (classDate, classTime) => {
                   JOIN CLASS
                 </button>
 
-                
+
       <button
         className="leave-class-btn"
         onClick={() => {
@@ -477,6 +477,13 @@ const isLastMinuteCancelEnabled = (classDate, classTime) => {
               </div>
             </div>
           ))}
+        </div>
+        <div className="reload-section">
+          {upcomingClasses.length > classesToShow && (
+            <button className="view-more-btn" onClick={() => setClassesToShow(prev => prev + 5)}>
+              VIEW MORE
+            </button>
+          )}
         </div>
       </section>
 

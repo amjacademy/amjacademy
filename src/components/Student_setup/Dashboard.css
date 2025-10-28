@@ -811,10 +811,20 @@ body {
   box-shadow: 0 6px 20px rgba(0, 206, 201, 0.4);
 }
 
+/* Reload Section */
+.reload-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+  padding: 10px;
+}
+
 /* View More Section */
 .view-more {
   text-align: center;
-  margin-top: 24px;
+  margin: 40px 0;
+  padding: 20px 0;
 }
 
 .view-more-btn {
