@@ -298,20 +298,19 @@ const handleJoinClass = async (classItem) => {
 const isLeaveEnabled = (classTime) => {
   const now = new Date();
   const classStart = new Date(classTime);
-  const fiveHoursBefore = new Date(classStart.getTime() - 5 * 60 * 60 * 1000); // 5 hours before
-  const fifteenMinutesBefore = new Date(classStart.getTime() - 15 * 60 * 1000); // 15 minutes before
+  const oneHourBeforeJoin = new Date(classStart.getTime() - (60 + 5) * 60 * 1000); // 1h5m before class
 
-  return now >= fiveHoursBefore && now < fifteenMinutesBefore;
+  return now < oneHourBeforeJoin;
 };
 
 // LMC button: 15 minutes before class until 15 minutes after
 const isLastMinuteCancelEnabled = (classTime) => {
   const now = new Date();
   const classStart = new Date(classTime);
-  const fifteenMinutesBefore = new Date(classStart.getTime() - 15 * 60 * 1000); // 15 minutes before
-  const fifteenMinutesAfter = new Date(classStart.getTime() + 15 * 60 * 1000); // 15 minutes after
+  const lmcStart = new Date(classStart.getTime() - (65 * 60 * 1000)); // 1h5m before
+  const joinEnableTime = new Date(classStart.getTime() - (5 * 60 * 1000)); // 5m before
 
-  return now >= fifteenMinutesBefore && now <= fifteenMinutesAfter;
+  return now >= lmcStart && now < joinEnableTime;
 };
 
 
