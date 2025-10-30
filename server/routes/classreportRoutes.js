@@ -1,9 +1,10 @@
 const express = require("express");
 const { supabase } = require("../config/supabaseClient");
+const {userAuth, roleAuth } = require("../utils/authController");
 const router = express.Router();
 
 // ✅ Fetch classes for a specific user (student1_id or student2_id)
-router.get("/fetchclasses", async (req, res) => {
+router.get("/fetchclasses",userAuth, roleAuth(["Student"]), async (req, res) => {
   try {
     const { user_id, status, subject, startDate, endDate } = req.query;
 
@@ -63,7 +64,7 @@ router.get("/fetchclasses", async (req, res) => {
 
 
 
-router.get("/", async (req, res) => {
+router.get("/",userAuth, roleAuth(["Student"]), async (req, res) => {
   const { subject, startDate, endDate } = req.query;
   let query = supabase.from("arrangements").select("*");
 

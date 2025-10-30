@@ -1,10 +1,11 @@
 
 const express = require("express");
 const { supabase } = require("../config/supabaseClient");
+const { adminAuth } = require("../utils/authController");
 const router = express.Router();
 
 // CREATE arrangement
-router.post("/create", async (req, res) => {
+router.post("/create",adminAuth, async (req, res) => {
   try {
   const { batch_type, student1_id, student2_id, teacher_id, day, date, time, link, rescheduled } = req.body;
 
@@ -48,14 +49,14 @@ router.post("/create", async (req, res) => {
 });
 
 // GET all arrangements
-router.get("/getdetails", async (req, res) => {
+router.get("/getdetails",adminAuth, async (req, res) => {
   const { data, error } = await supabase.from("arrangements").select("*");
   if (error) return res.status(400).json({ error: error.message });
   res.json(data);
 });
 
 // UPDATE arrangement
-router.put("/update/:id", async (req, res) => {
+router.put("/update/:id",adminAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const { batch_type, student1_id, student2_id, teacher_id, day, date, time, link, rescheduled } = req.body;
@@ -84,7 +85,7 @@ router.put("/update/:id", async (req, res) => {
 });
 
 // DELETE arrangement
-router.delete("/delete/:id", async (req, res) => {
+router.delete("/delete/:id",adminAuth, async (req, res) => {
   const { id } = req.params;
   const { error } = await supabase.from("arrangements").delete().eq("id", id);
   if (error) return res.status(400).json({ error: error.message });
@@ -92,7 +93,7 @@ router.delete("/delete/:id", async (req, res) => {
 });
 
 // GET /api/users
-router.get("/fetchusers", async (req, res) => {
+router.get("/fetchusers",adminAuth, async (req, res) => {
   try {
     // Fetch Students
    // Fetch Students (exclude password, phoneNumber, age)
