@@ -47,7 +47,9 @@ const ClassReport = () => {
       });
 
       const response = await fetch(
-        `https://amjacademy-working.onrender.com/api/classreport/fetchclasses?${queryParams}`
+        `https://amjacademy-working.onrender.com/api/classreport/fetchclasses?${queryParams}`, {
+  credentials: "include", // ✅ add this line
+}
       );
       const data = await response.json();
 

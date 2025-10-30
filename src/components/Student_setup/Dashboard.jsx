@@ -45,7 +45,9 @@ const formatTime = (timeStr) => {
 useEffect(() => {
   const fetchAnnouncements = async () => {
     try {
-      const res = await fetch("https://amjacademy-working.onrender.com/api/student/fetchannouncements?");
+      const res = await fetch("https://amjacademy-working.onrender.com/api/student/fetchannouncements?", {
+  credentials: "include", // ✅ add this line
+});
       if (!res.ok) throw new Error("Failed to fetch announcements");
 
       const data = await res.json();
@@ -224,6 +226,7 @@ const handleLeaveSubmit = async (leaveData) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
+  credentials: "include", // ✅ add this line
     });
 
     const data = await response.json();
@@ -273,7 +276,8 @@ const handleJoinClass = async (classItem) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ class_id: classItem.class_id, status: "ongoing",
-        user_id: userId }),
+        user_id: userId }), 
+  credentials: "include", // ✅ add this line
     });
 
     const data = await response.json();

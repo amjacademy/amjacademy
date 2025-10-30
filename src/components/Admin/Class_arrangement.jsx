@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios"; // make sure axios is installed
-import "./Class_arrangement.css"
+import "./Class_arrangement.css";
 
 function EmptyState({ title, subtitle }) {
   return (
@@ -8,37 +8,37 @@ function EmptyState({ title, subtitle }) {
       <h4 className="empty-title">{title}</h4>
       <p className="empty-subtitle">{subtitle}</p>
     </div>
-  )
+  );
 }
 
-export default function Class_arrangement({  schedules, setSchedules }) {
-  const [classType, setClassType] = useState("Piano")
-  const [batchType, setBatchType] = useState("individual")
-  const [studentId, setStudentId] = useState("")
-  const [secondStudentId, setSecondStudentId] = useState("")
-  const [teacherId, setTeacherId] = useState("")
-  const [day, setDay] = useState("")
-  const [date, setDate] = useState("")
-  const [time, setTime] = useState("")
-  const [hour, setHour] = useState("")
-  const [minute, setMinute] = useState("")
-  const [ampm, setAmpm] = useState("AM")
-  const [link, setLink] = useState("")
-  const [error, setError] = useState("")
-  const [rescheduleChecked, setRescheduleChecked] = useState(false)
-  const [scheduleFor, setScheduleFor] = useState("12")
-  const [sessionDates, setSessionDates] = useState([""])
-  const [sessionForWeek, setSessionForWeek] = useState("1 day")
-  const [secondDay, setSecondDay] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [deletingIds, setDeletingIds] = useState(new Set())
-  const [isSelecting, setIsSelecting] = useState(false)
-  const [selectedIds, setSelectedIds] = useState(new Set())
+export default function Class_arrangement({ schedules, setSchedules }) {
+  const [classType, setClassType] = useState("Piano");
+  const [batchType, setBatchType] = useState("individual");
+  const [studentId, setStudentId] = useState("");
+  const [secondStudentId, setSecondStudentId] = useState("");
+  const [teacherId, setTeacherId] = useState("");
+  const [day, setDay] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [hour, setHour] = useState("");
+  const [minute, setMinute] = useState("");
+  const [ampm, setAmpm] = useState("AM");
+  const [link, setLink] = useState("");
+  const [error, setError] = useState("");
+  const [rescheduleChecked, setRescheduleChecked] = useState(false);
+  const [scheduleFor, setScheduleFor] = useState("12");
+  const [sessionDates, setSessionDates] = useState([""]);
+  const [sessionForWeek, setSessionForWeek] = useState("1 day");
+  const [secondDay, setSecondDay] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [deletingIds, setDeletingIds] = useState(new Set());
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
 
   // Filter states
-  const [studentFilter, setStudentFilter] = useState("")
-  const [teacherFilter, setTeacherFilter] = useState("")
-  const [dateFilter, setDateFilter] = useState("")
+  const [studentFilter, setStudentFilter] = useState("");
+  const [teacherFilter, setTeacherFilter] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
 
   // Session mapping (1 day/week and 2 days/week)
   const sessionMap = {
@@ -47,15 +47,23 @@ export default function Class_arrangement({  schedules, setSchedules }) {
   };
 
   // students / teachers lists
-  const [students, setStudents] = useState([])
-  const [teachers, setTeachers] = useState([])
+  const [students, setStudents] = useState([]);
+  const [teachers, setTeachers] = useState([]);
 
   // New states for editing
-  const [isEditing, setIsEditing] = useState(false)
-  const [editingId, setEditingId] = useState(null)
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   // Utility helpers
-  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const daysOfWeek = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
 
   const getSessions = (val) => {
     const num = parseInt(val, 10);
@@ -92,23 +100,28 @@ export default function Class_arrangement({  schedules, setSchedules }) {
     const diff = (targetDayIndex - startDayIndex + 7) % 7;
     const targetDate = new Date(start);
     targetDate.setDate(start.getDate() + diff);
-    return targetDate.toISOString().split('T')[0];
+    return targetDate.toISOString().split("T")[0];
   };
 
   const convertTo24 = (h, m, ap) => {
-    if (!h || !m) return ""
-    let hh = parseInt(h, 10)
-    if (ap === "PM" && hh !== 12) hh += 12
-    if (ap === "AM" && hh === 12) hh = 0
-    return `${hh.toString().padStart(2,'0')}:${m.padStart(2,'0')}`
-  }
+    if (!h || !m) return "";
+    let hh = parseInt(h, 10);
+    if (ap === "PM" && hh !== 12) hh += 12;
+    if (ap === "AM" && hh === 12) hh = 0;
+    return `${hh.toString().padStart(2, "0")}:${m.padStart(2, "0")}`;
+  };
 
   // Fetch schedules (initial)
   useEffect(() => {
     const fetchSchedules = async () => {
       try {
-        const res = await axios.get("https://amjacademy-working.onrender.com/api/arrangements/getdetails"); 
-        setSchedules(res.data);  // assume backend sends [{...}, {...}]
+        const res = await axios.get(
+          "https://amjacademy-working.onrender.com/api/arrangements/getdetails",
+          {
+            withCredentials: true, // important to send cookies
+          }
+        );
+        setSchedules(res.data); // assume backend sends [{...}, {...}]
       } catch (err) {
         console.error("Error fetching schedules:", err);
       }
@@ -125,7 +138,12 @@ export default function Class_arrangement({  schedules, setSchedules }) {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const { data } = await axios.get("https://amjacademy-working.onrender.com/api/arrangements/fetchusers");
+        const { data } = await axios.get(
+          "https://amjacademy-working.onrender.com/api/arrangements/fetchusers",
+          {
+            withCredentials: true, // important to send cookies
+          }
+        );
         setStudents(data.students);
         setTeachers(data.teachers);
       } catch (err) {
@@ -140,7 +158,12 @@ export default function Class_arrangement({  schedules, setSchedules }) {
     const options = sessionMap[sessionForWeek].map(String);
     if (!options.includes(scheduleFor)) {
       // choose a reasonable default: prefer 12 for 1-day, 24 for 2-days if available
-      const preferred = sessionForWeek === "1 day" ? "12" : (options.includes("24") ? "24" : options[0]);
+      const preferred =
+        sessionForWeek === "1 day"
+          ? "12"
+          : options.includes("24")
+          ? "24"
+          : options[0];
       setScheduleFor(preferred);
     }
     // Recompute end date if possible (below effect will handle)
@@ -150,7 +173,7 @@ export default function Class_arrangement({  schedules, setSchedules }) {
   // Auto-calculate end date based on chosen days and schedule count
   useEffect(() => {
     // Need at least one chosen day
-    const hasDay = sessionForWeek === "2 days" ? (day && secondDay) : day;
+    const hasDay = sessionForWeek === "2 days" ? day && secondDay : day;
     if (!hasDay || !scheduleFor) return;
 
     const sessions = getSessions(scheduleFor);
@@ -164,7 +187,7 @@ export default function Class_arrangement({  schedules, setSchedules }) {
     // get the next occurrences (including today if same)
     const nextDates = candidates
       .filter(Boolean)
-      .map(d => getNextOccurrenceIncludingToday(today, d));
+      .map((d) => getNextOccurrenceIncludingToday(today, d));
 
     // pick the earliest of nextDates as startDate
     let startDate = nextDates.reduce((a, b) => (a < b ? a : b), nextDates[0]);
@@ -189,7 +212,18 @@ export default function Class_arrangement({  schedules, setSchedules }) {
 
     const isDual = batchType === "dual";
 
-    if (!studentId || !teacherId || !day || !date || !hour || !minute || !ampm || !link || (isDual && !secondStudentId) || (sessionForWeek === "2 days" && !secondDay)) {
+    if (
+      !studentId ||
+      !teacherId ||
+      !day ||
+      !date ||
+      !hour ||
+      !minute ||
+      !ampm ||
+      !link ||
+      (isDual && !secondStudentId) ||
+      (sessionForWeek === "2 days" && !secondDay)
+    ) {
       setError("Please fill all required fields.");
       setLoading(false);
       return;
@@ -200,7 +234,9 @@ export default function Class_arrangement({  schedules, setSchedules }) {
       let h = parseInt(hourVal, 10);
       if (ampmVal === "PM" && h !== 12) h += 12;
       if (ampmVal === "AM" && h === 12) h = 0;
-      return `${h.toString().padStart(2, "0")}:${minuteVal.toString().padStart(2, "0")}`;
+      return `${h.toString().padStart(2, "0")}:${minuteVal
+        .toString()
+        .padStart(2, "0")}`;
     };
     const time24 = convertTo24Local(hour, minute, ampm);
 
@@ -227,7 +263,10 @@ export default function Class_arrangement({  schedules, setSchedules }) {
 
       for (const chosenDayName of chosenDays) {
         // find the date in this week matching chosenDayName
-        const scheduledDate = getDateForDay(weekBase.toISOString().split('T')[0], chosenDayName);
+        const scheduledDate = getDateForDay(
+          weekBase.toISOString().split("T")[0],
+          chosenDayName
+        );
         scheduleDates.push({ date: scheduledDate, day: chosenDayName });
       }
     }
@@ -236,7 +275,9 @@ export default function Class_arrangement({  schedules, setSchedules }) {
     const trimmedScheduleDates = scheduleDates.slice(0, sessions);
 
     // Check for conflicts across all new schedules
-    const newStudents = isDual ? [studentId, secondStudentId].filter(Boolean) : [studentId];
+    const newStudents = isDual
+      ? [studentId, secondStudentId].filter(Boolean)
+      : [studentId];
     const conflict = trimmedScheduleDates.some(({ date: schedDate }) => {
       const localDateTimeStr = `${schedDate}T${time24}:00`;
       const newScheduleTime = new Date(localDateTimeStr).getTime();
@@ -248,12 +289,13 @@ export default function Class_arrangement({  schedules, setSchedules }) {
           if (s.teacher_id === teacherId && s.id !== editingId) return true;
 
           // Students conflict
-          const existingStudents = s.batch_type === "dual"
-            ? [s.student1_id, s.student2_id].filter(Boolean)
-            : [s.student1_id];
+          const existingStudents =
+            s.batch_type === "dual"
+              ? [s.student1_id, s.student2_id].filter(Boolean)
+              : [s.student1_id];
 
           if (s.id !== editingId) {
-            return existingStudents.some(id => newStudents.includes(id));
+            return existingStudents.some((id) => newStudents.includes(id));
           }
         }
         return false;
@@ -261,7 +303,9 @@ export default function Class_arrangement({  schedules, setSchedules }) {
     });
 
     if (conflict) {
-      setError("Conflict: This student or teacher already has a schedule at the same time.");
+      setError(
+        "Conflict: This student or teacher already has a schedule at the same time."
+      );
       setLoading(false);
       return;
     }
@@ -284,26 +328,35 @@ export default function Class_arrangement({  schedules, setSchedules }) {
           date: schedDate,
           time: utcTime,
           link,
-          rescheduled: rescheduleChecked
+          rescheduled: rescheduleChecked,
         };
 
-        if (isEditing && i === 0) { // Only update for the first one if editing
+        if (isEditing && i === 0) {
+          // Only update for the first one if editing
           const res = await axios.put(
             `https://amjacademy-working.onrender.com/api/arrangements/update/${editingId}`,
-            scheduleData
+            scheduleData,
+            {
+              withCredentials: true, // important to send cookies
+            }
           );
           newSchedules.push(res.data);
         } else if (!isEditing) {
           const res = await axios.post(
             "https://amjacademy-working.onrender.com/api/arrangements/create",
-            scheduleData
+            scheduleData,
+            {
+              withCredentials: true, // important to send cookies
+            }
           );
           newSchedules.push(res.data);
         }
       }
 
       if (isEditing) {
-        setSchedules(schedules.map(s => s.id === editingId ? newSchedules[0] : s));
+        setSchedules(
+          schedules.map((s) => (s.id === editingId ? newSchedules[0] : s))
+        );
       } else {
         setSchedules([...schedules, ...newSchedules]);
       }
@@ -317,17 +370,22 @@ export default function Class_arrangement({  schedules, setSchedules }) {
   };
 
   const onDelete = async (id) => {
-    setDeletingIds(prev => new Set(prev).add(id));
+    setDeletingIds((prev) => new Set(prev).add(id));
     try {
-      await axios.delete(`https://amjacademy-working.onrender.com/api/arrangements/delete/${id}`);
-      setSchedules(schedules.filter(s => s.id !== id));
+      await axios.delete(
+        `https://amjacademy-working.onrender.com/api/arrangements/delete/${id}`,
+        {
+          withCredentials: true, // important to send cookies
+        }
+      );
+      setSchedules(schedules.filter((s) => s.id !== id));
       if (isEditing && editingId === id) {
         resetForm();
       }
     } catch (err) {
       console.error("Error deleting schedule:", err);
     } finally {
-      setDeletingIds(prev => {
+      setDeletingIds((prev) => {
         const newSet = new Set(prev);
         newSet.delete(id);
         return newSet;
@@ -340,11 +398,20 @@ export default function Class_arrangement({  schedules, setSchedules }) {
     if (idsToDelete.length === 0) return;
 
     // Add all selected to deletingIds
-    setDeletingIds(prev => new Set([...prev, ...idsToDelete]));
+    setDeletingIds((prev) => new Set([...prev, ...idsToDelete]));
 
     try {
-      await Promise.all(idsToDelete.map(id => axios.delete(`https://amjacademy-working.onrender.com/api/arrangements/delete/${id}`)));
-      setSchedules(schedules.filter(s => !idsToDelete.includes(s.id)));
+      await Promise.all(
+        idsToDelete.map((id) =>
+          axios.delete(
+            `https://amjacademy-working.onrender.com/api/arrangements/delete/${id}`,
+            {
+              withCredentials: true, // important to send cookies
+            }
+          )
+        )
+      );
+      setSchedules(schedules.filter((s) => !idsToDelete.includes(s.id)));
       setSelectedIds(new Set());
       setIsSelecting(false);
       if (isEditing && idsToDelete.includes(editingId)) {
@@ -353,16 +420,16 @@ export default function Class_arrangement({  schedules, setSchedules }) {
     } catch (err) {
       console.error("Error deleting selected schedules:", err);
     } finally {
-      setDeletingIds(prev => {
+      setDeletingIds((prev) => {
         const newSet = new Set(prev);
-        idsToDelete.forEach(id => newSet.delete(id));
+        idsToDelete.forEach((id) => newSet.delete(id));
         return newSet;
       });
     }
   };
 
   const toggleSelect = (id) => {
-    setSelectedIds(prev => {
+    setSelectedIds((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(id)) {
         newSet.delete(id);
@@ -377,7 +444,7 @@ export default function Class_arrangement({  schedules, setSchedules }) {
     if (selectedIds.size === schedules.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(schedules.map(s => s.id)));
+      setSelectedIds(new Set(schedules.map((s) => s.id)));
     }
   };
 
@@ -393,7 +460,7 @@ export default function Class_arrangement({  schedules, setSchedules }) {
     // Attempt to detect whether the schedule is single or multi day by checking sessionMap and existing data:
     setDay(schedule.day);
     setDate(schedule.date);
-    const [hh, mm, ...rest] = schedule.time.split(':');
+    const [hh, mm, ...rest] = schedule.time.split(":");
     let hour12 = parseInt(hh, 10);
     let ampmVal = "AM";
     if (hour12 >= 12) {
@@ -432,14 +499,14 @@ export default function Class_arrangement({  schedules, setSchedules }) {
   };
 
   const lookupStudentName = (id) => {
-    const found = students.find((x) => x.id === id)
-    return found?.name || id
-  }
+    const found = students.find((x) => x.id === id);
+    return found?.name || id;
+  };
 
   const lookupTeacherName = (id) => {
-    const found = teachers.find((x) => x.id === id)
-    return found?.name || id
-  }
+    const found = teachers.find((x) => x.id === id);
+    return found?.name || id;
+  };
 
   return (
     <section className="card card--pad">
@@ -449,7 +516,12 @@ export default function Class_arrangement({  schedules, setSchedules }) {
         </div>
         <div className="section-actions">
           <label>
-            <input type="checkbox" checked={rescheduleChecked} onChange={(e) => setRescheduleChecked(e.target.checked)} /> Reschedule Class
+            <input
+              type="checkbox"
+              checked={rescheduleChecked}
+              onChange={(e) => setRescheduleChecked(e.target.checked)}
+            />{" "}
+            Reschedule Class
           </label>
         </div>
       </header>
@@ -461,9 +533,9 @@ export default function Class_arrangement({  schedules, setSchedules }) {
             className="input"
             value={classType}
             onChange={(e) => {
-              setClassType(e.target.value)
-              setStudentId("")
-              setSecondStudentId("")
+              setClassType(e.target.value);
+              setStudentId("");
+              setSecondStudentId("");
             }}
           >
             <option value="Piano">Piano</option>
@@ -477,9 +549,9 @@ export default function Class_arrangement({  schedules, setSchedules }) {
             className="input"
             value={batchType}
             onChange={(e) => {
-              setBatchType(e.target.value)
-              setStudentId("")
-              setSecondStudentId("")
+              setBatchType(e.target.value);
+              setStudentId("");
+              setSecondStudentId("");
             }}
           >
             <option value="individual">Individual</option>
@@ -531,8 +603,11 @@ export default function Class_arrangement({  schedules, setSchedules }) {
                   </option>
                 ))}
             </select>
-            {students.filter((s) => s.batchtype === "individual").length === 0 && (
-              <small className="hint">No individual students enrolled yet.</small>
+            {students.filter((s) => s.batchtype === "individual").length ===
+              0 && (
+              <small className="hint">
+                No individual students enrolled yet.
+              </small>
             )}
           </div>
         )}
@@ -545,8 +620,8 @@ export default function Class_arrangement({  schedules, setSchedules }) {
                 className="input"
                 value={studentId}
                 onChange={(e) => {
-                  setStudentId(e.target.value)
-                  setSecondStudentId("")
+                  setStudentId(e.target.value);
+                  setSecondStudentId("");
                 }}
               >
                 <option value="">-- Choose First Student --</option>
@@ -650,7 +725,15 @@ export default function Class_arrangement({  schedules, setSchedules }) {
         </div>
         <div className="field">
           <label className="label">Time</label>
-          <div className="time-inputs" style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
+          <div
+            className="time-inputs"
+            style={{
+              display: "flex",
+              gap: "0.5rem",
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
+          >
             <input
               type="number"
               className="input"
@@ -659,9 +742,12 @@ export default function Class_arrangement({  schedules, setSchedules }) {
               placeholder="HH"
               value={hour}
               onChange={(e) => {
-                const val = e.target.value
-                if (/^\d*$/.test(val) && (val === "" || (parseInt(val) >= 1 && parseInt(val) <= 12))) {
-                  setHour(val)
+                const val = e.target.value;
+                if (
+                  /^\d*$/.test(val) &&
+                  (val === "" || (parseInt(val) >= 1 && parseInt(val) <= 12))
+                ) {
+                  setHour(val);
                 }
               }}
               aria-label="Hour"
@@ -676,9 +762,12 @@ export default function Class_arrangement({  schedules, setSchedules }) {
               placeholder="MM"
               value={minute}
               onChange={(e) => {
-                const val = e.target.value
-                if (/^\d*$/.test(val) && (val === "" || (parseInt(val) >= 0 && parseInt(val) <= 59))) {
-                  setMinute(val)
+                const val = e.target.value;
+                if (
+                  /^\d*$/.test(val) &&
+                  (val === "" || (parseInt(val) >= 0 && parseInt(val) <= 59))
+                ) {
+                  setMinute(val);
                 }
               }}
               aria-label="Minute"
@@ -708,10 +797,20 @@ export default function Class_arrangement({  schedules, setSchedules }) {
         </div>
         <div className="field form-actions">
           <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? "Adding..." : (isEditing ? "Update Schedule" : "Add to Schedule")}
+            {loading
+              ? "Adding..."
+              : isEditing
+              ? "Update Schedule"
+              : "Add to Schedule"}
           </button>
           {isEditing && (
-            <button type="button" className="btn btn-secondary" onClick={resetForm} style={{ marginLeft: "1rem" }} disabled={loading}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={resetForm}
+              style={{ marginLeft: "1rem" }}
+              disabled={loading}
+            >
               Cancel
             </button>
           )}
@@ -726,35 +825,61 @@ export default function Class_arrangement({  schedules, setSchedules }) {
       {/* Small hint / preview */}
       <div style={{ marginTop: 12 }}>
         <p className="hint">
-          Selected: <strong>{sessionForWeek}</strong> per week → <strong>{scheduleFor}</strong> sessions.{" "}
-          Ending (calculated) date: <strong>{date || "select day(s)"}</strong>
+          Selected: <strong>{sessionForWeek}</strong> per week →{" "}
+          <strong>{scheduleFor}</strong> sessions. Ending (calculated) date:{" "}
+          <strong>{date || "select day(s)"}</strong>
         </p>
       </div>
 
       {/* Select Button */}
-      <div style={{ marginTop: 12, marginBottom: 12, display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+      <div
+        style={{
+          marginTop: 12,
+          marginBottom: 12,
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "0.5rem",
+          alignItems: "center",
+        }}
+      >
         <button
-          className={`btn ${isSelecting ? 'btn-secondary' : 'btn-primary'}`}
+          className={`btn ${isSelecting ? "btn-secondary" : "btn-primary"}`}
           onClick={() => setIsSelecting(!isSelecting)}
-          style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', minWidth: 'auto' }}
+          style={{
+            padding: "0.5rem 1rem",
+            fontSize: "0.875rem",
+            minWidth: "auto",
+          }}
         >
-          {isSelecting ? 'Cancel' : 'Select'}
+          {isSelecting ? "Cancel" : "Select"}
         </button>
         {isSelecting && (
           <>
             <button
               className="btn btn-outline"
               onClick={selectAll}
-              style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', minWidth: 'auto' }}
+              style={{
+                padding: "0.5rem 1rem",
+                fontSize: "0.875rem",
+                minWidth: "auto",
+              }}
             >
-              {selectedIds.size === schedules.length ? 'Deselect All' : 'Select All'}
+              {selectedIds.size === schedules.length
+                ? "Deselect All"
+                : "Select All"}
             </button>
             {selectedIds.size > 0 && (
               <button
                 className="btn btn-danger"
                 onClick={onDeleteSelected}
-                disabled={Array.from(selectedIds).some(id => deletingIds.has(id))}
-                style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', minWidth: 'auto' }}
+                disabled={Array.from(selectedIds).some((id) =>
+                  deletingIds.has(id)
+                )}
+                style={{
+                  padding: "0.5rem 1rem",
+                  fontSize: "0.875rem",
+                  minWidth: "auto",
+                }}
               >
                 Delete ({selectedIds.size})
               </button>
@@ -764,14 +889,23 @@ export default function Class_arrangement({  schedules, setSchedules }) {
       </div>
 
       {/* Filter Inputs */}
-      <div style={{ marginTop: 12, marginBottom: 12, display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+      <div
+        style={{
+          marginTop: 12,
+          marginBottom: 12,
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "0.5rem",
+          alignItems: "center",
+        }}
+      >
         <input
           type="text"
           placeholder="Search Student"
           value={studentFilter}
           onChange={(e) => setStudentFilter(e.target.value)}
           className="input"
-          style={{ minWidth: '150px', flex: '1 1 auto' }}
+          style={{ minWidth: "150px", flex: "1 1 auto" }}
         />
         <input
           type="text"
@@ -779,7 +913,7 @@ export default function Class_arrangement({  schedules, setSchedules }) {
           value={teacherFilter}
           onChange={(e) => setTeacherFilter(e.target.value)}
           className="input"
-          style={{ minWidth: '150px', flex: '1 1 auto' }}
+          style={{ minWidth: "150px", flex: "1 1 auto" }}
         />
         <input
           type="date"
@@ -787,13 +921,16 @@ export default function Class_arrangement({  schedules, setSchedules }) {
           value={dateFilter}
           onChange={(e) => setDateFilter(e.target.value)}
           className="input"
-          style={{ minWidth: '150px', flex: '1 1 auto' }}
+          style={{ minWidth: "150px", flex: "1 1 auto" }}
         />
       </div>
 
       <div className="table-wrap">
         {schedules.length === 0 ? (
-          <EmptyState title="No scheduled classes" subtitle="Create a schedule using the form above." />
+          <EmptyState
+            title="No scheduled classes"
+            subtitle="Create a schedule using the form above."
+          />
         ) : (
           <table className="table">
             <thead>
@@ -808,83 +945,122 @@ export default function Class_arrangement({  schedules, setSchedules }) {
               </tr>
             </thead>
             <tbody>
-               {[...schedules].filter(s => {
-                 // Class type filter
-                 if ((s.class_type || "Piano") !== classType) return false;
+              {[...schedules]
+                .filter((s) => {
+                  // Class type filter
+                  if ((s.class_type || "Piano") !== classType) return false;
 
-                 // Student filter
-                 const studentName = s.batch_type === "dual"
-                   ? `${lookupStudentName(s.student1_id)} & ${lookupStudentName(s.student2_id)}`
-                   : lookupStudentName(s.student1_id);
-                 if (studentFilter && !studentName.toLowerCase().includes(studentFilter.toLowerCase())) return false;
+                  // Student filter
+                  const studentName =
+                    s.batch_type === "dual"
+                      ? `${lookupStudentName(
+                          s.student1_id
+                        )} & ${lookupStudentName(s.student2_id)}`
+                      : lookupStudentName(s.student1_id);
+                  if (
+                    studentFilter &&
+                    !studentName
+                      .toLowerCase()
+                      .includes(studentFilter.toLowerCase())
+                  )
+                    return false;
 
-                 // Teacher filter
-                 const teacherName = lookupTeacherName(s.teacher_id);
-                 if (teacherFilter && !teacherName.toLowerCase().includes(teacherFilter.toLowerCase())) return false;
+                  // Teacher filter
+                  const teacherName = lookupTeacherName(s.teacher_id);
+                  if (
+                    teacherFilter &&
+                    !teacherName
+                      .toLowerCase()
+                      .includes(teacherFilter.toLowerCase())
+                  )
+                    return false;
 
-                 // Date filter
-                 if (dateFilter && s.date !== dateFilter) return false;
+                  // Date filter
+                  if (dateFilter && s.date !== dateFilter) return false;
 
-                 return true;
-               }).sort((a, b) => {
-                 const dateA = new Date(a.date);
-                 const dateB = new Date(b.date);
-                 if (dateA.getTime() !== dateB.getTime()) {
-                   return dateA - dateB;
-                 }
-                 const timeA = new Date(a.time);
-                 const timeB = new Date(b.time);
-                 return timeA - timeB;
-               }).map((s) => (
-                <tr key={s.id} onClick={() => isSelecting && toggleSelect(s.id)} style={{ cursor: isSelecting ? 'pointer' : 'default' }}>
-                  {isSelecting && (
-                    <td onClick={(e) => e.stopPropagation()}>
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.has(s.id)}
-                        onChange={() => toggleSelect(s.id)}
-                        disabled={deletingIds.has(s.id)}
-                      />
+                  return true;
+                })
+                .sort((a, b) => {
+                  const dateA = new Date(a.date);
+                  const dateB = new Date(b.date);
+                  if (dateA.getTime() !== dateB.getTime()) {
+                    return dateA - dateB;
+                  }
+                  const timeA = new Date(a.time);
+                  const timeB = new Date(b.time);
+                  return timeA - timeB;
+                })
+                .map((s) => (
+                  <tr
+                    key={s.id}
+                    onClick={() => isSelecting && toggleSelect(s.id)}
+                    style={{ cursor: isSelecting ? "pointer" : "default" }}
+                  >
+                    {isSelecting && (
+                      <td onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(s.id)}
+                          onChange={() => toggleSelect(s.id)}
+                          disabled={deletingIds.has(s.id)}
+                        />
+                      </td>
+                    )}
+                    <td>
+                      {s.batch_type === "dual"
+                        ? `${lookupStudentName(
+                            s.student1_id
+                          )} & ${lookupStudentName(s.student2_id)}`
+                        : lookupStudentName(s.student1_id)}
                     </td>
-                  )}
-                  <td>
-                    {s.batch_type === "dual"
-                      ? `${lookupStudentName(s.student1_id)} & ${lookupStudentName(s.student2_id)}`
-                      : lookupStudentName(s.student1_id)}
-                  </td>
-                  <td>{lookupTeacherName(s.teacher_id)}</td>
-                  <td>
-                    {s.date}{" "}
-                    {new Date(s.time).toLocaleTimeString(undefined, {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: true,
-                    })}
-                  </td>
+                    <td>{lookupTeacherName(s.teacher_id)}</td>
+                    <td>
+                      {s.date}{" "}
+                      {new Date(s.time).toLocaleTimeString(undefined, {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
+                      })}
+                    </td>
 
-                  <td className="truncate">
-                    <a href={s.link} target="_blank" rel="noreferrer" className="link">
-                      {s.link}
-                    </a>
-                  </td>
+                    <td className="truncate">
+                      <a
+                        href={s.link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="link"
+                      >
+                        {s.link}
+                      </a>
+                    </td>
 
-                  <td>{s.class_type || "Piano"}</td>
+                    <td>{s.class_type || "Piano"}</td>
 
-                  <td className="col-actions" onClick={(e) => e.stopPropagation()}>
-                    <button className="btn btn-primary" onClick={() => onEdit(s)}>
-                      Edit
-                    </button>
-                    <button className="btn btn-danger" onClick={() => onDelete(s.id)} style={{ marginLeft: "0.5rem" }} disabled={deletingIds.has(s.id)}>
-                      {deletingIds.has(s.id) ? "Deleting..." : "Delete"}
-                    </button>
-                  </td>
-
-                </tr>
-              ))}
+                    <td
+                      className="col-actions"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        className="btn btn-primary"
+                        onClick={() => onEdit(s)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="btn btn-danger"
+                        onClick={() => onDelete(s.id)}
+                        style={{ marginLeft: "0.5rem" }}
+                        disabled={deletingIds.has(s.id)}
+                      >
+                        {deletingIds.has(s.id) ? "Deleting..." : "Delete"}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         )}
       </div>
     </section>
-  )
+  );
 }

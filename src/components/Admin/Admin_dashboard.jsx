@@ -1,52 +1,59 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import "./Admin_dashboard.css"
-import Footer from "../Footer/footer.jsx"
-import Dashboard from "./Dashboard.jsx"
-import User_enrollment from "./User_enrollment.jsx"
-import Announcements from "./Announcements.jsx"
-import Class_arrangement from "./Class_arrangement.jsx"
-import GroupArrangement from "./group_arrangement.jsx"
-import Notification from "./Notification.jsx"
-import { HiAnnotation } from "react-icons/hi"
+import { useEffect, useState } from "react";
+import "./Admin_dashboard.css";
+import Footer from "../Footer/footer.jsx";
+import Dashboard from "./Dashboard.jsx";
+import User_enrollment from "./User_enrollment.jsx";
+import Announcements from "./Announcements.jsx";
+import Class_arrangement from "./Class_arrangement.jsx";
+import GroupArrangement from "./group_arrangement.jsx";
+import Notification from "./Notification.jsx";
+import { HiAnnotation } from "react-icons/hi";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 
 function useLocalStorage(key, initialValue) {
   const [state, setState] = useState(() => {
     try {
-      const raw = typeof window !== "undefined" ? window.localStorage.getItem(key) : null
-      return raw ? JSON.parse(raw) : initialValue
+      const raw =
+        typeof window !== "undefined" ? window.localStorage.getItem(key) : null;
+      return raw ? JSON.parse(raw) : initialValue;
     } catch {
-      return initialValue
+      return initialValue;
     }
-  })
-  
+  });
+
   useEffect(() => {
     try {
-      window.localStorage.setItem(key, JSON.stringify(state))
+      window.localStorage.setItem(key, JSON.stringify(state));
     } catch {}
-  }, [key, state])
-  return [state, setState]
+  }, [key, state]);
+  return [state, setState];
 }
 
 export default function Admin_Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
   // Enrollment data
-  const [students, setStudents] = useLocalStorage("admin_students", [])
-  const [teachers, setTeachers] = useLocalStorage("admin_teachers", [])
+  const [students, setStudents] = useLocalStorage("admin_students", []);
+  const [teachers, setTeachers] = useLocalStorage("admin_teachers", []);
   // Announcements
-  const [announcements, setAnnouncements] = useLocalStorage("announcements", [])
+  const [announcements, setAnnouncements] = useLocalStorage(
+    "announcements",
+    []
+  );
   // Schedules
-  const [schedules, setSchedules] = useLocalStorage("admin_schedules", [])
-  const [notifications, setNotifications] = useLocalStorage("admin_notifications", [])
+  const [schedules, setSchedules] = useLocalStorage("admin_schedules", []);
+  const [notifications, setNotifications] = useLocalStorage(
+    "admin_notifications",
+    []
+  );
   // Groups
-  const [groups, setGroups] = useLocalStorage("admin_groups", [])
+  const [groups, setGroups] = useLocalStorage("admin_groups", []);
 
-  const [activeTab, setActiveTab] = useState("dashboard")
-  const [editingRow, setEditingRow] = useState(null)
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [editingRow, setEditingRow] = useState(null);
 
   // Check for editingRow in location state
   useEffect(() => {
@@ -55,21 +62,24 @@ export default function Admin_Dashboard() {
       setEditingRow(location.state.editingRow);
     }
   }, [location.state]);
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [showLogoutModal, setShowLogoutModal] = useState(false)
-  const [showNotificationSubmenu, setShowNotificationSubmenu] = useState(false)
-  const [apiCounts, setApiCounts] = useState({})
-  const [loading, setLoading] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showNotificationSubmenu, setShowNotificationSubmenu] = useState(false);
+  const [apiCounts, setApiCounts] = useState({});
+  const [loading, setLoading] = useState(true);
 
   // Get username from localStorage
-  const username = localStorage.getItem('admin_username') || 'Admin'
+  const username = localStorage.getItem("admin_username") || "Admin";
 
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const res = await axios.get("https://amjacademy-working.onrender.com/api/admin/check-auth", {
-          withCredentials: true // important to send cookies
-        });
+        const res = await axios.get(
+          "https://amjacademy-working.onrender.com/api/admin/check-auth",
+          {
+            withCredentials: true, // important to send cookies
+          }
+        );
 
         if (!res.data.success) {
           alert("Session expired. Please login again.");
@@ -91,7 +101,12 @@ export default function Admin_Dashboard() {
   useEffect(() => {
     const fetchCounts = async () => {
       try {
-        const res = await fetch("https://amjacademy-working.onrender.com/api/counts");
+        const res = await fetch(
+          "https://amjacademy-working.onrender.com/api/counts",
+          {
+            credentials: "include", // ✅ add this line // important to send cookies
+          }
+        );
         const data = await res.json();
         setApiCounts(data);
       } catch (err) {
@@ -104,7 +119,12 @@ export default function Admin_Dashboard() {
   useEffect(() => {
     const fetchSchedules = async () => {
       try {
-        const res = await axios.get("https://amjacademy-working.onrender.com/api/arrangements/getdetails");
+        const res = await axios.get(
+          "https://amjacademy-working.onrender.com/api/arrangements/getdetails",
+          {
+            withCredentials: true, // important to send cookies
+          }
+        );
         setSchedules(res.data);
         setLoading(false);
       } catch (err) {
@@ -117,14 +137,14 @@ export default function Admin_Dashboard() {
 
   // Get first and last letter of username
   const getInitials = (name) => {
-    const trimmedName = name.trim()
-    if (trimmedName.length === 0) return 'A'
-    const firstLetter = trimmedName[0].toUpperCase()
-    const lastLetter = trimmedName[trimmedName.length - 1].toUpperCase()
-    return firstLetter + lastLetter
-  }
+    const trimmedName = name.trim();
+    if (trimmedName.length === 0) return "A";
+    const firstLetter = trimmedName[0].toUpperCase();
+    const lastLetter = trimmedName[trimmedName.length - 1].toUpperCase();
+    return firstLetter + lastLetter;
+  };
 
-  const initials = getInitials(username)
+  const initials = getInitials(username);
 
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: "🏠" },
@@ -133,18 +153,25 @@ export default function Admin_Dashboard() {
     { id: "notifications", label: "Notifications", icon: "🔔" },
     { id: "class-arrangement", label: "Class Arrangement", icon: "📅" },
     { id: "group-arrangement", label: "Group Arrangement", icon: "🧑‍🤝‍🧑" },
-  ]
+  ];
 
   const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen)
-  }
+    setSidebarOpen(!sidebarOpen);
+  };
 
   const getNextTab = (currentTab) => {
-    const tabOrder = ["dashboard", "enrollment", "announcements", "notifications", "class-arrangement", "group-arrangement"]
-    const currentIndex = tabOrder.indexOf(currentTab)
-    const nextIndex = (currentIndex + 1) % tabOrder.length
-    return tabOrder[nextIndex]
-  }
+    const tabOrder = [
+      "dashboard",
+      "enrollment",
+      "announcements",
+      "notifications",
+      "class-arrangement",
+      "group-arrangement",
+    ];
+    const currentIndex = tabOrder.indexOf(currentTab);
+    const nextIndex = (currentIndex + 1) % tabOrder.length;
+    return tabOrder[nextIndex];
+  };
 
   // Derived counts
   const counts = {
@@ -154,7 +181,7 @@ export default function Admin_Dashboard() {
     schedules: schedules.length,
     notifications: notifications.length,
     groups: groups.length,
-  }
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -167,17 +194,32 @@ export default function Admin_Dashboard() {
             setTeachers={setTeachers}
             editingRow={editingRow}
           />
-        )
+        );
       case "announcements":
         return (
-          <Announcements announcements={announcements} setAnnouncements={setAnnouncements} />
-        )
+          <Announcements
+            announcements={announcements}
+            setAnnouncements={setAnnouncements}
+          />
+        );
       case "notifications":
-        return <Notification userType="admin" />
+        return <Notification userType="admin" />;
       case "leave":
-        return <Notification userType="admin" filterKind="Leave Request" filterRole="student" />
+        return (
+          <Notification
+            userType="admin"
+            filterKind="Leave Request"
+            filterRole="student"
+          />
+        );
       case "last_minute_cancel":
-        return <Notification userType="admin" filterKind="Last Minute Cancellation" filterRole="student" />
+        return (
+          <Notification
+            userType="admin"
+            filterKind="Last Minute Cancellation"
+            filterRole="student"
+          />
+        );
       case "class-arrangement":
         return (
           <Class_arrangement
@@ -186,55 +228,97 @@ export default function Admin_Dashboard() {
             schedules={schedules}
             setSchedules={setSchedules}
           />
-        )
+        );
       case "group-arrangement":
-        return <GroupArrangement />
+        return <GroupArrangement />;
       case "dashboard":
       default:
-        return <Dashboard counts={counts} schedules={schedules} onView={(row) => { setActiveTab("enrollment"); setEditingRow(row); }} onViewSchedule={() => setActiveTab("class-arrangement")} onViewGroups={() => setActiveTab("group-arrangement")} />
+        return (
+          <Dashboard
+            counts={counts}
+            schedules={schedules}
+            onView={(row) => {
+              setActiveTab("enrollment");
+              setEditingRow(row);
+            }}
+            onViewSchedule={() => setActiveTab("class-arrangement")}
+            onViewGroups={() => setActiveTab("group-arrangement")}
+          />
+        );
     }
-  }
-const handleLogout = async () => {
-  try {
-    // call backend logout to clear cookie
-    await fetch("https://amjacademy-working.onrender.com/api/admin/logout", {
-      method: "POST",
-      credentials: "include", // important for cookies
-    });
+  };
+  const handleLogout = async () => {
+    try {
+      // call backend logout to clear cookie
+      await fetch("https://amjacademy-working.onrender.com/api/admin/logout", {
+        method: "POST",
+        credentials: "include", // important for cookies
+      });
 
-    // clear all localStorage
-    localStorage.clear();
+      // clear all localStorage
+      localStorage.clear();
 
-    // redirect to login page
-    navigate("/AdminLogin", { replace: true });
-  } catch (err) {
-    console.error("Logout error:", err);
-  }
-};
+      // redirect to login page
+      navigate("/AdminLogin", { replace: true });
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+  };
 
   return (
     <div className="dashboard-container">
       {/* Header */}
       <header className="dashboard-header">
         <div className="header-left">
-          <button className="back-btn" onClick={() => { setActiveTab("dashboard"); window.scrollTo(0, 0); }}>← Back</button>
-          <button className="forward-btn" onClick={() => { setActiveTab(getNextTab(activeTab)); window.scrollTo(0, 0); }}>Forward →</button>
+          <button
+            className="back-btn"
+            onClick={() => {
+              setActiveTab("dashboard");
+              window.scrollTo(0, 0);
+            }}
+          >
+            ← Back
+          </button>
+          <button
+            className="forward-btn"
+            onClick={() => {
+              setActiveTab(getNextTab(activeTab));
+              window.scrollTo(0, 0);
+            }}
+          >
+            Forward →
+          </button>
           <button className="menu-toggle" onClick={toggleSidebar}>
             <span></span>
             <span></span>
             <span></span>
           </button>
           <div className="logo">
-            <img src="images/amj-logo.png" alt="AMJ Academy Logo" className="logo-image" />
+            <img
+              src="images/amj-logo.png"
+              alt="AMJ Academy Logo"
+              className="logo-image"
+            />
             <span className="logo-text">AMJ Academy</span>
           </div>
         </div>
         <div className="header-center">
           <nav className="header-nav">
-            <a href="#" className="nav-link" onClick={() => window.location.href = '/'}>
+            <a
+              href="#"
+              className="nav-link"
+              onClick={() => (window.location.href = "/")}
+            >
               HOME
             </a>
-            <a href="#" className="nav-link active" onClick={() => { setActiveTab("dashboard"); window.scrollTo(0, 0); }}>
+            <a
+              href="#"
+              className="nav-link active"
+              onClick={() => {
+                setActiveTab("dashboard");
+                window.scrollTo(0, 0);
+              }}
+            >
               DASHBOARD
             </a>
           </nav>
@@ -258,28 +342,73 @@ const handleLogout = async () => {
               {menuItems.map((item) => (
                 <div key={item.id} className="nav-item-container">
                   {item.id === "notifications" ? (
-                    <div style={{ position: 'relative' }}>
+                    <div style={{ position: "relative" }}>
                       <button
-                        className={`nav-item ${activeTab === item.id ? "active" : ""}`}
-                        onClick={() => setShowNotificationSubmenu(!showNotificationSubmenu)}
+                        className={`nav-item ${
+                          activeTab === item.id ? "active" : ""
+                        }`}
+                        onClick={() =>
+                          setShowNotificationSubmenu(!showNotificationSubmenu)
+                        }
                       >
                         <span className="nav-icon">{item.icon}</span>
                         <span className="nav-label">{item.label}</span>
-                        {item.id === "notifications" && apiCounts.notifications > 0 && (
-                          <span className="nav-badge">({apiCounts.notifications })</span>
-                        )}
+                        {item.id === "notifications" &&
+                          apiCounts.notifications > 0 && (
+                            <span className="nav-badge">
+                              ({apiCounts.notifications})
+                            </span>
+                          )}
                       </button>
                       {showNotificationSubmenu && (
-                        <div style={{ position: 'absolute', top: '100%', left: 0, backgroundColor: '#f8f9fa', border: '1px solid #dee2e6', borderRadius: '4px', zIndex: 1000, minWidth: '200px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: "100%",
+                            left: 0,
+                            backgroundColor: "#f8f9fa",
+                            border: "1px solid #dee2e6",
+                            borderRadius: "4px",
+                            zIndex: 1000,
+                            minWidth: "200px",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                          }}
+                        >
                           <button
-                            onClick={() => { setActiveTab("leave"); setShowNotificationSubmenu(false); setSidebarOpen(false); window.scrollTo(0, 0); }}
-                            style={{ display: 'block', width: '100%', padding: '8px 12px', border: 'none', background: 'none', textAlign: 'left', cursor: 'pointer' }}
+                            onClick={() => {
+                              setActiveTab("leave");
+                              setShowNotificationSubmenu(false);
+                              setSidebarOpen(false);
+                              window.scrollTo(0, 0);
+                            }}
+                            style={{
+                              display: "block",
+                              width: "100%",
+                              padding: "8px 12px",
+                              border: "none",
+                              background: "none",
+                              textAlign: "left",
+                              cursor: "pointer",
+                            }}
                           >
                             Leave
                           </button>
                           <button
-                            onClick={() => { setActiveTab("last_minute_cancel"); setShowNotificationSubmenu(false); setSidebarOpen(false); window.scrollTo(0, 0); }}
-                            style={{ display: 'block', width: '100%', padding: '8px 12px', border: 'none', background: 'none', textAlign: 'left', cursor: 'pointer' }}
+                            onClick={() => {
+                              setActiveTab("last_minute_cancel");
+                              setShowNotificationSubmenu(false);
+                              setSidebarOpen(false);
+                              window.scrollTo(0, 0);
+                            }}
+                            style={{
+                              display: "block",
+                              width: "100%",
+                              padding: "8px 12px",
+                              border: "none",
+                              background: "none",
+                              textAlign: "left",
+                              cursor: "pointer",
+                            }}
                           >
                             Last Minute Cancel
                           </button>
@@ -288,18 +417,23 @@ const handleLogout = async () => {
                     </div>
                   ) : (
                     <button
-                      className={`nav-item ${activeTab === item.id ? "active" : ""}`}
+                      className={`nav-item ${
+                        activeTab === item.id ? "active" : ""
+                      }`}
                       onClick={() => {
-                        setActiveTab(item.id)
-                        setSidebarOpen(false)
-                        window.scrollTo(0, 0)
+                        setActiveTab(item.id);
+                        setSidebarOpen(false);
+                        window.scrollTo(0, 0);
                       }}
                     >
                       <span className="nav-icon">{item.icon}</span>
                       <span className="nav-label">{item.label}</span>
-                      {item.id === "notifications" && apiCounts.notifications > 0 && (
-                        <span className="nav-badge">({apiCounts.notifications })</span>
-                      )}
+                      {item.id === "notifications" &&
+                        apiCounts.notifications > 0 && (
+                          <span className="nav-badge">
+                            ({apiCounts.notifications})
+                          </span>
+                        )}
                     </button>
                   )}
                 </div>
@@ -334,7 +468,12 @@ const handleLogout = async () => {
       </div>
 
       {/* Sidebar Overlay */}
-      {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>}
+      {sidebarOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={() => setSidebarOpen(false)}
+        ></div>
+      )}
 
       {/* Footer */}
       <Footer />
@@ -346,40 +485,46 @@ const handleLogout = async () => {
             <h3>Confirm Logout</h3>
             <p>Are you sure you want to logout?</p>
             <div className="modal-buttons">
-              <button className="btn-cancel" onClick={() => setShowLogoutModal(false)}>
+              <button
+                className="btn-cancel"
+                onClick={() => setShowLogoutModal(false)}
+              >
                 Cancel
               </button>
-               <button
-  className="btn-confirm"
-  onClick={async () => {
-    try {
-      // Call backend logout
-      const res = await fetch("https://amjacademy-working.onrender.com/api/admin/logout", {
-        method: "POST",
-        credentials: "include", // send cookies
-      });
+              <button
+                className="btn-confirm"
+                onClick={async () => {
+                  try {
+                    // Call backend logout
+                    const res = await fetch(
+                      "https://amjacademy-working.onrender.com/api/admin/logout",
+                      {
+                        method: "POST",
+                        credentials: "include", // send cookies
+                      }
+                    );
 
-      const data = await res.json();
-      console.log("Logout response:", data);
+                    const data = await res.json();
+                    console.log("Logout response:", data);
 
-      if (data.success) {
-        // Clear all possible client data
-        localStorage.removeItem("username");
-        sessionStorage.clear();
+                    if (data.success) {
+                      // Clear all possible client data
+                      localStorage.removeItem("username");
+                      sessionStorage.clear();
 
-        // Wait a tiny bit to ensure cookie is fully removed
-        await new Promise((r) => setTimeout(r, 300));
+                      // Wait a tiny bit to ensure cookie is fully removed
+                      await new Promise((r) => setTimeout(r, 300));
 
-        // Force full page reload (not cached)
-        navigate("/");
-      }
-    } catch (err) {
-      console.error("Logout failed:", err);
-    }
-  }}
->
-  OK
-</button>
+                      // Force full page reload (not cached)
+                      navigate("/");
+                    }
+                  } catch (err) {
+                    console.error("Logout failed:", err);
+                  }
+                }}
+              >
+                OK
+              </button>
 
               {/* <button className="btn-confirm" onClick={handleLogout()}>
                 OK
@@ -389,5 +534,5 @@ const handleLogout = async () => {
         </div>
       )}
     </div>
-  )
+  );
 }
