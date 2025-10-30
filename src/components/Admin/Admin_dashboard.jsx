@@ -371,8 +371,7 @@ const handleLogout = async () => {
         await new Promise((r) => setTimeout(r, 300));
 
         // Force full page reload (not cached)
-        window.location.href = "/";
-        window.location.reload(true);
+        navigate("/");
       }
     } catch (err) {
       console.error("Logout failed:", err);

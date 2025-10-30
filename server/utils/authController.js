@@ -18,7 +18,7 @@ exports.userAuth = (req, res, next) => {
 
 // Middleware to protect admin routes
 exports.adminAuth = (req, res, next) => {
-  console.log("Cookies received:", req.cookies); // 🧠 Debug
+  console.log("Admin Cookies received:", req.cookies); // 🧠 Debug
   const token = req.cookies.adminToken;
   if (!token) return res.status(401).json({ success: false, message: "No token provided" });
   try {

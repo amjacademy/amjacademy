@@ -153,8 +153,8 @@ exports.Login = async (req, res) => {
 
   res.cookie("userToken", token, {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production", // true in prod, false in dev
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  secure: process.env.NODE_ENV === "production", // ✅ true only in production
+  sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
   path: "/",
   maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
 });
@@ -198,10 +198,10 @@ exports.checkAuth = (req, res) => {
 exports.Logout = (req, res) => {
   res.clearCookie("userToken", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+  secure: process.env.NODE_ENV === "production", // ✅ true only in production
+  sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
   });
-  res.json({ success: true, message: "Logged out successfully" });
+  res.json({ success: true, message: "User Logged out successfully" });
 };    
 
 // Step 4: Verify Login (Persistent Login Check)

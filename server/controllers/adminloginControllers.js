@@ -29,8 +29,9 @@ exports.Login = async (req, res) => {
   secure: process.env.NODE_ENV === "production", // only secure in production
   sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
    // allow cross-origin
+  path: "/",
   maxAge: 172800 * 60 * 1000, // 4 months
-  path: "/",             // ensure cookie is available everywhere
+               // ensure cookie is available everywhere
 });
 
 
@@ -38,7 +39,7 @@ exports.Login = async (req, res) => {
 
     return res.json({
       success: true,
-      message: "Login successful",
+      message: "Admin Login successful",
       expiresIn: 172800 * 60, // 4months*seconds
     });
   }
@@ -52,7 +53,7 @@ exports.adminAuth = (req, res, next) => {
   const token = req.cookies.adminToken;
   if (!token) return res.status(401).json({ success: false, message: "No token provided" });
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, ADMIN_JWT);
     req.admin = decoded;
     next();
   } catch (err) {
@@ -81,11 +82,11 @@ exports.checkAuth = (req, res) => {
 // Logout controller
 exports.Logout = async (req, res) => {
   res.clearCookie("adminToken", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production", // ✅ true only in production
+  sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
   });
-  res.json({ success: true, message: "Logged out successfully" });
+  res.json({ success: true, message: "Admin Logged out successfully" });
 };
 
 ;
