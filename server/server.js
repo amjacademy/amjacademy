@@ -22,7 +22,7 @@ const uploadRoute = require("./routes/cloudinaryRoutes");
 const arrangementsRoutes = require("./routes/arrangementRoutes");
 const memoryStorage = multer.memoryStorage(); // keep files in memory
 const upload = multer({ memoryStorage });
-const { adminAuth } = require("../utils/authController");
+const { adminAuth } = require("./utils/authController");
 const app = express();
 // Replace your current CORS middleware with:
 const allowedOrigins = ['http://localhost:5173', 'https://amjacademy.in'];
