@@ -25,7 +25,7 @@ import { motion } from "framer-motion";
 // Home Page Component
 function HomePage({ onOpenRegistration }) {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true); // splash loading state
+  /* const [loading, setLoading] = useState(true); // splash loading state
 
 useEffect(() => {
   const checkPersistentLogin = async () => {
@@ -77,7 +77,7 @@ useEffect(() => {
         />
       </div>
     );
-  }
+  } */
 
   return (
     <>
@@ -171,31 +171,6 @@ function AdminPage() {
 function App() {
   const [isScreenshotAttempt, setIsScreenshotAttempt] = useState(false);
   
-
-  /* useEffect(() => {
-    const checkLogin = async () => {
-      try {
-        const res = await fetch("http://localhost:5000/api/admin/check-auth", {
-          credentials: "include", // important to send cookies
-        });
-        const data = await res.json();
-
-        if (data.success) {
-          navigate("/admin-dashboard"); 
-          setLoading(false);// token valid → redirect
-        } else {
-          navigate("/AdminLogin"); 
-          setLoading(false);// no token → show login
-        }
-      } catch (err) {
-        console.error(err);
-        navigate("/");
-        setLoading(false);
-      } 
-    };
-
-    checkLogin();
-  }, []); */
 
   useEffect(() => {
     const handleKeyDown = (e) => {
