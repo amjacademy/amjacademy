@@ -25,7 +25,7 @@ import { motion } from "framer-motion";
 // Home Page Component
 function HomePage({ onOpenRegistration }) {
   const navigate = useNavigate();
-  /* const [loading, setLoading] = useState(true); // splash loading state
+  const [loading, setLoading] = useState(true); // splash loading state
 
 useEffect(() => {
   const checkPersistentLogin = async () => {
@@ -77,7 +77,7 @@ useEffect(() => {
         />
       </div>
     );
-  } */
+  } 
 
   return (
     <>
