@@ -249,20 +249,32 @@ export default function Admin_Dashboard() {
   };
   const handleLogout = async () => {
     try {
-      // call backend logout to clear cookie
-      await fetch("https://amjacademy-working.onrender.com/api/admin/logout", {
-        method: "POST",
-        credentials: "include", // important for cookies
-      });
+         // Call backend logout
+                        const res = await fetch(
+                      "https://amjacademy-working.onrender.com/api/admin/logout",
+                      {
+                        method: "POST",
+                        credentials: "include", // send cookies
+                      }
+                    );
 
-      // clear all localStorage
-      localStorage.clear();
+                    const data = await res.json();
+                    console.log("Logout response:", data);
 
-      // redirect to login page
-      navigate("/AdminLogin", { replace: true });
-    } catch (err) {
-      console.error("Logout error:", err);
-    }
+                    if (data.success) {
+                      // Clear all possible client data
+                      localStorage.removeItem("username");
+                      sessionStorage.clear();
+
+                      // Wait a tiny bit to ensure cookie is fully removed
+                      await new Promise((r) => setTimeout(r, 300));
+
+                      // Force full page reload (not cached)
+                      navigate("/");
+                    }
+                  } catch (err) {
+                    console.error("Logout failed:", err);
+                  }
   };
 
   return (
@@ -307,7 +319,7 @@ export default function Admin_Dashboard() {
             <a
               href="#"
               className="nav-link"
-              onClick={() => (window.location.href = "/")}
+              onClick={handleLogout}
             >
               HOME
             </a>
@@ -493,35 +505,7 @@ export default function Admin_Dashboard() {
               </button>
               <button
                 className="btn-confirm"
-                onClick={async () => {
-                  try {
-                    // Call backend logout
-                    const res = await fetch(
-                      "https://amjacademy-working.onrender.com/api/admin/logout",
-                      {
-                        method: "POST",
-                        credentials: "include", // send cookies
-                      }
-                    );
-
-                    const data = await res.json();
-                    console.log("Logout response:", data);
-
-                    if (data.success) {
-                      // Clear all possible client data
-                      localStorage.removeItem("username");
-                      sessionStorage.clear();
-
-                      // Wait a tiny bit to ensure cookie is fully removed
-                      await new Promise((r) => setTimeout(r, 300));
-
-                      // Force full page reload (not cached)
-                      navigate("/");
-                    }
-                  } catch (err) {
-                    console.error("Logout failed:", err);
-                  }
-                }}
+                onClick={handleLogout}
               >
                 OK
               </button>

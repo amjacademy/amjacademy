@@ -12,6 +12,59 @@ export default function Announcements() {
   const [ampm, setAmpm] = useState("AM");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Function to validate date and time
+  const validateDateTime = (selectedDate, selectedHour, selectedMinute, selectedAmpm) => {
+    let hour24 = parseInt(selectedHour);
+    if (selectedAmpm === 'PM' && hour24 !== 12) {
+      hour24 += 12;
+    } else if (selectedAmpm === 'AM' && hour24 === 12) {
+      hour24 = 0;
+    }
+    const selectedTime = `${hour24.toString().padStart(2, '0')}:${selectedMinute}`;
+    const selectedDateTime = new Date(`${selectedDate}T${selectedTime}`);
+    const now = new Date();
+
+    if (selectedDateTime <= now) {
+      setError("Cannot select past date and time. Please choose a future date and time.");
+      // Reset to current date and time
+      const current = new Date();
+      setDate(current.toISOString().split('T')[0]);
+      const currentHour = current.getHours();
+      setHour((currentHour % 12 || 12).toString());
+      setMinute(current.getMinutes().toString().padStart(2, '0'));
+      setAmpm(currentHour >= 12 ? 'PM' : 'AM');
+      return false;
+    } else {
+      setError("");
+      return true;
+    }
+  };
+
+  // Handlers for date and time changes with validation
+  const handleDateChange = (e) => {
+    const newDate = e.target.value;
+    setDate(newDate);
+    validateDateTime(newDate, hour, minute, ampm);
+  };
+
+  const handleHourChange = (e) => {
+    const newHour = e.target.value;
+    setHour(newHour);
+    validateDateTime(date, newHour, minute, ampm);
+  };
+
+  const handleMinuteChange = (e) => {
+    const newMinute = e.target.value;
+    setMinute(newMinute);
+    validateDateTime(date, hour, newMinute, ampm);
+  };
+
+  const handleAmpmChange = (e) => {
+    const newAmpm = e.target.value;
+    setAmpm(newAmpm);
+    validateDateTime(date, hour, minute, newAmpm);
+  };
   
 
   // Fetch announcements from backend
@@ -44,6 +97,29 @@ useEffect(() => { fetchAnnouncements(); }, [receiver]);
 
     if (!title || !message || !date || !hour || !minute || !ampm) {
       setError("Please fill in title, message, date, and time.");
+      return;
+    }
+
+    // Validate date and time is not in the past
+    let selectedHour = parseInt(hour);
+    if (ampm === 'PM' && selectedHour !== 12) {
+      selectedHour += 12;
+    } else if (ampm === 'AM' && selectedHour === 12) {
+      selectedHour = 0;
+    }
+    const selectedTime = `${selectedHour.toString().padStart(2, '0')}:${minute}`;
+    const selectedDateTime = new Date(`${date}T${selectedTime}`);
+    const now = new Date();
+
+    if (selectedDateTime <= now) {
+      setError("Cannot schedule announcement in the past. Please select a future date and time.");
+      // Reset to current date and time
+      const current = new Date();
+      setDate(current.toISOString().split('T')[0]);
+      const currentHour = current.getHours();
+      setHour((currentHour % 12 || 12).toString());
+      setMinute(current.getMinutes().toString().padStart(2, '0'));
+      setAmpm(currentHour >= 12 ? 'PM' : 'AM');
       return;
     }
 
@@ -157,7 +233,7 @@ fetchAnnouncements();
             className="input"
             type="date"
             value={date}
-            onChange={(e) => setDate(e.target.value)}
+            onChange={handleDateChange}
             aria-label="Announcement date"
             required
           />
@@ -168,7 +244,7 @@ fetchAnnouncements();
             <select
               className="input time-select"
               value={hour}
-              onChange={(e) => setHour(e.target.value)}
+              onChange={handleHourChange}
               aria-label="Hour"
             >
               {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
@@ -181,7 +257,7 @@ fetchAnnouncements();
             <select
               className="input time-select"
               value={minute}
-              onChange={(e) => setMinute(e.target.value)}
+              onChange={handleMinuteChange}
               aria-label="Minute"
             >
               {Array.from({ length: 60 }, (_, i) => i).map((m) => (
@@ -193,7 +269,7 @@ fetchAnnouncements();
             <select
               className="input time-select"
               value={ampm}
-              onChange={(e) => setAmpm(e.target.value)}
+              onChange={handleAmpmChange}
               aria-label="AM/PM"
             >
               <option value="AM">AM</option>
