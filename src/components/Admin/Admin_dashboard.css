@@ -553,6 +553,15 @@
   box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
 }
 
+.btn-text {
+  display: inline;
+}
+
+.arrow {
+  font-weight: bold;
+  font-size: 16px;
+}
+
 .menu-toggle {
   display: none;
   flex-direction: column;

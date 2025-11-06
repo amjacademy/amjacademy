@@ -1,40 +1,205 @@
 const { supabase } = require("../config/supabaseClient");
 
 async function getEnrollments() {
-  const { data, error } = await supabase.from("enrollments").select("*");
-  return { data, error };
+  try {
+    // Fetch from all tables
+    const { data: users, error: userError } = await supabase.from("users").select("*");
+    if (userError) throw userError;
+
+    const { data: students, error: studentError } = await supabase.from("students").select("*");
+    if (studentError) throw studentError;
+
+    const { data: teachers, error: teacherError } = await supabase.from("teachers").select("*");
+    if (teacherError) throw teacherError;
+
+    // Merge users with their specific table
+    const mergedData = users.map((user) => {
+      const role = user.role?.toLowerCase();
+      if (role === "student") {
+        const student = students.find((s) => s.id === user.id);
+        return {
+          ...user,
+          image: student?.profile || null,
+          batchtype: student?.batch_type || null,
+          plan: student?.plan || null,
+          level: student?.level || null,
+        };
+      } else if (role === "teacher") {
+        const teacher = teachers.find((t) => t.id === user.id);
+        return {
+          ...user,
+          experiencelevel: teacher?.exp_lvl || null,
+          image: teacher?.profile || null,
+        };
+      }
+      return user;
+    });
+
+    return { data: mergedData, error: null };
+  } catch (err) {
+    console.error("Error fetching enrollments:", err);
+    return { data: null, error: err };
+  }
 }
 
-async function createEnrollment(enrollment) {
-  const cleanEnrollment = {
-    ...enrollment,
-    image: enrollment.image || null, // Default to null if missing
+async function createUser(userPayload) {
+  try {
+    const {
+      id,
+      role,
+      name,
+      age,
+      profession,
+      phone,
+      email,
+      additionalEmail,
+      image,
+      password,
+      username,
+      batchtype,
+      plan,
+      level,
+      experiencelevel,
+    } = userPayload;
+
+    // Insert into users
+    const cleanUser = {
+      id,
+      role: role.toLowerCase(),
+      name,
+      age,
+      profession,
+      phone_number: phone || null,
+      email,
+      additional_email: additionalEmail || null,
+      username,
+      password,
+    };
+
+    const { data: userData, error: userError } = await supabase
+      .from("users")
+      .insert([cleanUser])
+      .select();
+
+    if (userError) throw userError;
+
+    // Insert into role-specific table
+    if (role.toLowerCase() === "student") {
+      const studentData = {
+        id,
+        batch_type: batchtype || null,
+        plan: plan || null,
+        level: level || null,
+        profile: image || null,
+        total_attended_classes: 0,
+        progress: 0,
+        achievements: null,
+        enrolled_subjects: null,
+      };
+      const { error: studentError } = await supabase.from("students").insert([studentData]);
+      if (studentError) throw studentError;
+    }
+
+   if (role.toLowerCase() === "teacher") {
+  const teacherData = { 
+    id, 
+    exp_lvl: experiencelevel || null,
+    profile: image || null // ✅ FIXED: Store profile image link for teachers
   };
-
-  const { data, error } = await supabase
-    .from("enrollments")
-    .insert([cleanEnrollment])
-    .select();
-
-  return { data, error };
+  const { error: teacherError } = await supabase.from("teachers").insert([teacherData]);
+  if (teacherError) throw teacherError;
 }
 
+
+    return { success: true, message: "User created successfully", user: userData?.[0] || null };
+  } catch (err) {
+    console.error("❌ Error creating user:", err);
+    return { success: false, message: err.message };
+  }
+}
 
 async function deleteEnrollment(id) {
-  const { data, error } = await supabase
-    .from("enrollments")
-    .delete()
-    .eq("id", id);
-  return { data, error };
+  try {
+    // Delete from specific subtable first
+    await supabase.from("students").delete().eq("id", id);
+    await supabase.from("teachers").delete().eq("id", id);
+    // Then delete from main users table
+    const { data, error } = await supabase.from("users").delete().eq("id", id);
+    if (error) throw error;
+    return { data, error: null };
+  } catch (err) {
+    console.error("Error deleting enrollment:", err);
+    return { data: null, error: err };
+  }
 }
 
 async function updateEnrollment(id, updates) {
-  const { data, error } = await supabase
-    .from("enrollments")
-    .update(updates)
-    .eq("id", id)
-    .maybeSingle();
-  return { data, error };
+  try {
+    const role = updates.role?.toLowerCase();
+
+    // --- 1️⃣ Update common fields in users table ---
+    const userUpdates = {
+      name: updates.name,
+      age: updates.age,
+      profession: updates.profession,
+      phone_number: updates.phone,
+      email: updates.email,
+      additional_email: updates.additionalEmail,
+      username: updates.username,
+      password: updates.password,
+      role, // ensure role stays lowercase
+    };
+
+    const { data: userData, error: userError } = await supabase
+      .from("users")
+      .update(userUpdates)
+      .eq("id", id)
+      .select();
+
+    if (userError) throw userError;
+
+    // --- 2️⃣ Update student or teacher-specific table ---
+    if (role === "student") {
+      const studentUpdates = {
+        batch_type: updates.batchtype,
+        plan: updates.plan,
+        level: updates.level,
+        profile: updates.image,
+      };
+
+      const { error: studentError } = await supabase
+        .from("students")
+        .update(studentUpdates)
+        .eq("id", id);
+
+      if (studentError) throw studentError;
+    }
+
+    if (role === "teacher") {
+     const teacherUpdates = {
+    exp_lvl: updates.experiencelevel,
+    profile: updates.image || null, // ✅ add this line
+  };
+
+      const { error: teacherError } = await supabase
+        .from("teachers")
+        .update(teacherUpdates)
+        .eq("id", id);
+
+      if (teacherError) throw teacherError;
+    }
+
+    // --- 3️⃣ Return updated merged data ---
+    return {
+      success: true,
+      message: "User updated successfully",
+      data: userData?.[0] || null,
+    };
+  } catch (err) {
+    console.error("❌ Error updating enrollment:", err);
+    return { success: false, message: err.message, data: null };
+  }
 }
 
-module.exports = { getEnrollments, createEnrollment, deleteEnrollment, updateEnrollment };
+
+module.exports = { getEnrollments, createUser, deleteEnrollment, updateEnrollment };

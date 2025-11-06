@@ -289,7 +289,7 @@ export default function Admin_Dashboard() {
               window.scrollTo(0, 0);
             }}
           >
-            ← Back
+            <span className="arrow">←</span> <span className="btn-text"></span>
           </button>
           <button
             className="forward-btn"
@@ -298,7 +298,7 @@ export default function Admin_Dashboard() {
               window.scrollTo(0, 0);
             }}
           >
-            Forward →
+            <span className="btn-text"></span> <span className="arrow">→</span>
           </button>
           <button className="menu-toggle" onClick={toggleSidebar}>
             <span></span>

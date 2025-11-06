@@ -23,8 +23,8 @@ const fetchEnrollments = async () => {
       return;
     }
 
-    const studentsList = data.filter(item => item.role === "Student");
-    const teachersList = data.filter(item => item.role === "Teacher");
+    const studentsList = data.filter(item => item.role === "student");
+    const teachersList = data.filter(item => item.role === "teacher");
 
     setStudents(studentsList);
     setTeachers(teachersList);
@@ -43,9 +43,9 @@ useEffect(() => {
     setDisabled(true)
     setTimer(30)
     // Determine prefix based on role
-    const prefix = role === "Student" ? "AMJS" : "AMJT"
+    const prefix = role === "student" ? "AMJS" : "AMJT"
     // Get all existing IDs for the current role
-    const roleIds = (role === "Student" ? students : teachers).map(item => item.id)
+    const roleIds = (role === "student" ? students : teachers).map(item => item.id)
     // Extract numbers from the format (AMJSXXXXX or AMJTXXXXX)
     const numbers = roleIds
       .filter(id => id.startsWith(prefix))
@@ -175,20 +175,20 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
       setName(editingRow.name);
       setAge(editingRow.age);
       setProfession(editingRow.profession);
-      setPhone(editingRow.phone);
+      setPhone(editingRow.phone || editingRow.phone_number);
       setEmail(editingRow.email);
-      setAdditionalEmail(editingRow.additionalEmail || "");
+      setAdditionalEmail(editingRow.additionalEmail || editingRow.additional_email || "");
       setImage(editingRow.image);
       setPassword(editingRow.password);
       setUsername(editingRow.username);
       setBatchType(editingRow.batchtype || "individual");
-      setPlan(editingRow.plan || "Beginner");
-      setLevel(editingRow.level || "1");
+      setPlan(editingRow.plan || "3month");
+      setLevel(editingRow.level || "Beginner");
       setExperienceLevel(editingRow.experiencelevel || "");
       setRole(editingRow.role);
     }
   }, [editingRow]);
-  const [role, setRole] = useState("Student")
+  const [role, setRole] = useState("student")
   const [id, setId] = useState("")
   const [name, setName] = useState("")
   const [age, setAge] = useState("")
@@ -200,28 +200,13 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
   const [password, setPassword] = useState("")
   const [username, setUsername] = useState("")
   const [batchType, setBatchType] = useState("individual")
-  const [plan, setPlan] = useState("Beginner")
-  const [level, setLevel] = useState("1")
+  const [plan, setPlan] = useState("3month")
+  const [level, setLevel] = useState("Beginner")
   const [experienceLevel, setExperienceLevel] = useState("")
   const [query, setQuery] = useState("")
   const [error, setError] = useState("")
   const [editingId, setEditingId] = useState(null)
 
-const fetchEnrollments = async () => {
-    try {
-      const res = await fetch("https://amjacademy-working.onrender.com/api/enrollments/getall", {
-        method: "GET",
-        credentials: "include"
-      });
-      const data = await res.json();
-      const studentsList = data.filter(item => item.role === "Student");
-      const teachersList = data.filter(item => item.role === "Teacher");
-      setStudents(studentsList);
-      setTeachers(teachersList);
-    } catch (err) {
-      console.error("Error fetching enrollments:", err);
-    }
-  };
   const generatePassword = () => {
     if (!username) {
       alert("Generate username first")
@@ -268,8 +253,15 @@ const fetchEnrollments = async () => {
     }
   }, [name, editingId])
 
-  const list = role === "Student" ? students : teachers
-  const setList = role === "Student" ? setStudents : setTeachers
+  // Clear form fields when role changes, but only if not editing
+  useEffect(() => {
+    if (!editingId) {
+      resetForm();
+    }
+  }, [role])
+
+  const list = role === "student" ? students : teachers
+  const setList = role === "student" ? setStudents : setTeachers
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -288,7 +280,7 @@ const fetchEnrollments = async () => {
   setError("");
 
   // Validation
-  if (!id || !name || !age || !phone || !email || !password || !username || (!batchType && role === "Student") || (!plan && role === "Student") || (!level && role === "Student") || (role === "Teacher" && !experienceLevel)) {
+  if (!id || !name || !age || !phone || !email || !password || !username || (!batchType && role === "student") || (!plan && role === "student") || (!level && role === "student") || (role === "teacher" && !experienceLevel)) {
     setError("Please fill all required fields.");
     return;
   }
@@ -306,10 +298,10 @@ const fetchEnrollments = async () => {
       image,
       password,
       username,
-      batchtype: role === "Student" ? batchType : null,
-      plan: role === "Student" ? plan : null,
-      level: role === "Student" ? level : null,
-      experiencelevel: role === "Teacher" ? experienceLevel : null
+      batchtype: role === "student" ? batchType : null,
+      plan: role === "student" ? plan : null,
+      level: role === "student" ? level : null,
+      experiencelevel: role === "teacher" ? experienceLevel : null
     };
 
     try {
@@ -322,16 +314,26 @@ const fetchEnrollments = async () => {
 
       const data = await response.json();
       if (!response.ok) {
-        setError(data.error || "Something went wrong");
+        setError(data.error || "Failed to update user");
         return;
       }
 
-      // Update the list
-       // Directly update the list
-      setList(prevList => [...data, ...prevList]);
+     const updatedUser = data.updatedUser;
 
-      // Reset form
-      resetForm();
+    if (!updatedUser) {
+      console.warn("⚠️ No updated record returned from backend");
+      return;
+    }
+
+    // ✅ Update existing record in list
+    setList(prevList =>
+      prevList.map(item => (item.id === editingId ? { ...item, ...updatedUser } : item))
+    );
+
+    console.log("✅ Updated successfully:", updatedUser);
+
+    // Reset form
+    resetForm();
 
     } catch (error) {
       console.error(error);
@@ -357,10 +359,10 @@ const fetchEnrollments = async () => {
       image,
       password,
       username,
-      batchtype: role === "Student" ? batchType : null,
-      plan: role === "Student" ? plan : null,
-      level: role === "Student" ? level : null,
-      experiencelevel: role === "Teacher" ? experienceLevel : null
+      batchtype: role === "student" ? batchType : null,
+      plan: role === "student" ? plan : null,
+      level: role === "student" ? level : null,
+      experiencelevel: role === "teacher" ? experienceLevel : null
     };
 
     try {
@@ -378,12 +380,14 @@ const fetchEnrollments = async () => {
   setError(data.message || "Something went wrong");
   return;
 }
-
-      // Directly update the list
-      setList(prevList => [...data, ...prevList]);
-
-      // Reset form
-      resetForm();
+// ✅ data.user is the actual user record returned
+if (data.success && data.user) {
+  setList(prevList => [data.user, ...prevList]);
+} else {
+  // If no record returned, still handle gracefully
+  console.warn("No user record returned from server");
+}
+resetForm();
 
     } catch (err) {
   console.error("Error submitting enrollment:", err);
@@ -395,7 +399,7 @@ const fetchEnrollments = async () => {
 const resetForm = () => {
   setId(""); setName(""); setAge(""); setProfession(""); setPhone("");
   setEmail(""); setAdditionalEmail(""); setImage(""); setPassword(""); setUsername("");
-  setBatchType("individual"); setPlan("Beginner"); setLevel("1");
+  setBatchType("individual"); setPlan("3month"); setLevel("Beginner");
   setExperienceLevel(""); setEditingId(null);
 };
 
@@ -405,15 +409,15 @@ const onEdit = (row) => {
   setName(row.name);
   setAge(row.age);
   setProfession(row.profession);
-  setPhone(row.phone);
+  setPhone(row.phone || row.phone_number );
   setEmail(row.email);
-  setAdditionalEmail(row.additionalEmail || "");
+  setAdditionalEmail(row.additionalEmail || row.additional_email || "");
   setImage(row.image);
   setPassword(row.password);
   setUsername(row.username);
   setBatchType(row.batchtype || "individual");
-  setPlan(row.plan || "Beginner");
-  setLevel(row.level || "1");
+  setPlan(row.plan || "3month");
+  setLevel(row.level || "Beginner");
   setExperienceLevel(row.experiencelevel || "");
   setRole(row.role);
 };
@@ -424,17 +428,13 @@ const onDelete = async (id) => {
       method: "DELETE",
       credentials: "include"
     });
-
-    if (!response.ok) {
-      const errData = await response.json();
-      console.error("Delete failed:", errData.error);
-      return;
-    }
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message);
 
     // Update state
-    if (role === "Student") {
+    if (role === "student") {
       setStudents(students.filter(s => s.id !== id));
-    } else if (role === "Teacher") {
+    } else if (role === "teacher") {
       setTeachers(teachers.filter(t => t.id !== id));
     }
 
@@ -454,22 +454,22 @@ const onDelete = async (id) => {
           <span className="badge">{role}</span>
         </div>
         <div className="role-switch">
-          <label className={`switch ${role === "Student" ? "switch--active" : ""}`}>
+          <label className={`switch ${role === "student" ? "switch--active" : ""}`}>
             <input
               type="radio"
               name="role"
-              checked={role === "Student"}
-              onChange={() => setRole("Student")}
+              checked={role === "student"}
+              onChange={() => setRole("student")}
               aria-label="Student module"
             />
             Student
           </label>
-          <label className={`switch ${role === "Teacher" ? "switch--active" : ""}`}>
+          <label className={`switch ${role === "teacher" ? "switch--active" : ""}`}>
             <input
               type="radio"
               name="role"
-              checked={role === "Teacher"}
-              onChange={() => setRole("Teacher")}
+              checked={role === "teacher"}
+              onChange={() => setRole("teacher")}
               aria-label="Teacher module"
             />
             Teacher
@@ -595,7 +595,7 @@ const onDelete = async (id) => {
             </button>
           </div>
         </div>
-        {role === "Student" ? (
+        {role === "student" ? (
           <>
             <div className="field">
               <label className="label">Batch Type</label>
@@ -617,9 +617,9 @@ const onDelete = async (id) => {
               onChange={(e) => setPlan(e.target.value)}
               aria-label="Basic Plan"
             >
-              <option value="3 month">3 month</option>
-              <option value="6 month">6 month</option>
-              <option value="9 month">9 month</option>
+              <option value="3month">3 month</option>
+              <option value="6month">6 month</option>
+              <option value="9month">9 month</option>
             </select>
             </div>
             <div className="field">
@@ -710,7 +710,7 @@ const onDelete = async (id) => {
       <td>{row.name}</td>
       <td>{row.age}</td>
       <td>{row.profession || "—"}</td>
-      <td>{row.phone}</td>
+      <td>{row.phone_number}</td>
       <td className="col-actions">
         <button className="btn btn-secondary" onClick={() => onEdit(row)}>
           Edit

@@ -65,7 +65,6 @@ exports.adminAuth = (req, res, next) => {
 exports.checkAuth = (req, res) => {
   try {
     const token = req.cookies.adminToken; // read cookie
-
     if (!token) return res.status(401).json({ success: false, message: "Not logged in" });
 
     jwt.verify(token, ADMIN_JWT, (err, decoded) => {
