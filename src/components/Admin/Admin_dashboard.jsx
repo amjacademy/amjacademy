@@ -435,6 +435,7 @@ export default function Admin_Dashboard() {
                       onClick={() => {
                         setActiveTab(item.id);
                         setSidebarOpen(false);
+                        setShowNotificationSubmenu(false);
                         window.scrollTo(0, 0);
                       }}
                     >

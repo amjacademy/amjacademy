@@ -288,23 +288,23 @@ export default function Dashboard({ counts, schedules, onView, onViewSchedule, o
         <h1>DASHBOARD</h1>
       </div>
       <div className="stats-overview">
-        <div className="stat" onClick={() => setSelectedModule("students")} style={{ cursor: "pointer" }}>
+        <div className="stat" onClick={() => { setSelectedModule("students"); setShowNotificationMenu(false); }} style={{ cursor: "pointer" }}>
           <span className="stat-num">{counts.students}</span>
           <span className="stat-label">Students</span>
         </div>
-        <div className="stat" onClick={() => setSelectedModule("teachers")} style={{ cursor: "pointer" }}>
+        <div className="stat" onClick={() => { setSelectedModule("teachers"); setShowNotificationMenu(false); }} style={{ cursor: "pointer" }}>
           <span className="stat-num">{counts.teachers}</span>
           <span className="stat-label">Teachers</span>
         </div>
-        <div className="stat" onClick={() => setSelectedModule("announcements")} style={{ cursor: "pointer" }}>
+        <div className="stat" onClick={() => { setSelectedModule("announcements"); setShowNotificationMenu(false); }} style={{ cursor: "pointer" }}>
           <span className="stat-num">{counts.announcements}</span>
           <span className="stat-label">Announcements</span>
         </div>
-        <div className="stat" onClick={() => setSelectedModule("schedules")} style={{ cursor: "pointer" }}>
+        <div className="stat" onClick={() => { setSelectedModule("schedules"); setShowNotificationMenu(false); }} style={{ cursor: "pointer" }}>
           <span className="stat-num">{counts.schedules}</span>
           <span className="stat-label">Schedules</span>
         </div>
-        <div className="stat" onClick={() => setSelectedModule("groups")} style={{ cursor: "pointer" }}>
+        <div className="stat" onClick={() => { setSelectedModule("groups"); setShowNotificationMenu(false); }} style={{ cursor: "pointer" }}>
           <span className="stat-num">{counts.groups}</span>
           <span className="stat-label">Groups</span>
         </div>
