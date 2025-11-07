@@ -126,11 +126,11 @@ useEffect(() => { fetchAnnouncements(); }, [receiver]);
     setLoading(true);
 
     try {
-      const time = `${hour}:${minute} ${ampm}`;
+      const end_time = `${hour}:${minute} ${ampm}`;
       const res = await fetch("https://amjacademy-working.onrender.com/api/announcements/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ receiver, title, message, date, time }),
+        body: JSON.stringify({ receiver, title, message, date, end_time }),
         credentials: "include",
       });
 
@@ -306,6 +306,7 @@ fetchAnnouncements();
         <p className="annc-msg">{a.message}</p>
         <footer className="annc-foot">
           <time className="meta">{a.created_at ? new Date(a.created_at).toLocaleString() : "N/A"}</time>
+          <time className="meta">{a.end_time ? a.end_time : "N/A"}</time>
           {a.date && a.time && (
             <span className="meta">
               On {new Date(a.date).toLocaleDateString()} at {a.time}

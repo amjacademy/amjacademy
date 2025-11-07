@@ -3,27 +3,30 @@ const { supabase } = require("../config/supabaseClient");
 // 1️⃣ Send announcement
 exports.send = async (req, res) => {
   try {
-    const { title, message, receiver, duration, created_by } = req.body;
+    const { receiver, title, message, date, end_time } = req.body;
 
-    if (!title || !message || !receiver || !duration) {
+    // Validate required fields
+    if (!receiver || !title || !message || !date || !end_time) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
+    // Insert into Supabase announcements table
     const { data, error } = await supabase
       .from("announcements")
       .insert([
         {
+          receiver,   // e.g., "Students", "Teachers", "All"
           title,
           message,
-          receiver, // "Students", "Teachers", "All"
-          duration,
-          
+          date,
+          end_time,
         },
       ])
-      .select(); // return inserted row
+      .select(); // Return inserted row
 
     if (error) throw error;
 
+    // Respond with created announcement
     res.status(201).json({ success: true, announcement: data[0] });
   } catch (err) {
     console.error("Send Announcement Error:", err);
