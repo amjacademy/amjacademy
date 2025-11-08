@@ -97,6 +97,8 @@ app.use("/api/announcements", require("./routes/announcementRoutes"));
 
 app.use("/api/arrangements",require("./routes/arrangementRoutes"));
 
+app.use("/api/notifications", require("./routes/notificationRoutes"));
+
 
 //Login Route
 app.use("/api/users", require("./routes/userloginRoutes"));
