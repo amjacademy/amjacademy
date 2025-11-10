@@ -95,6 +95,8 @@ async function createUser(userPayload) {
         progress: 0,
         achievements: null,
         enrolled_subjects: null,
+        name,
+        profession: profession || null,
       };
       const { error: studentError } = await supabase.from("students").insert([studentData]);
       if (studentError) throw studentError;
@@ -102,9 +104,11 @@ async function createUser(userPayload) {
 
    if (role.toLowerCase() === "teacher") {
   const teacherData = { 
-    id, 
+    id,
+    name, 
     exp_lvl: experiencelevel || null,
-    profile: image || null // ✅ FIXED: Store profile image link for teachers
+    profile: image || null, // ✅ FIXED: Store profile image link for teachers
+    profession: profession || null,
   };
   const { error: teacherError } = await supabase.from("teachers").insert([teacherData]);
   if (teacherError) throw teacherError;

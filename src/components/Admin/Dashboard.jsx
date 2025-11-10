@@ -1,26 +1,41 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import User_enrollment from "./User_enrollment.jsx";
 import Notification from "./Notification.jsx";
 
-function AnnouncementsTable({ onBack }) {
-  const [announcements, setAnnouncements] = useState([]);
+const BASE = /* "http://localhost:5000" */"https://amjacademy-working.onrender.com";
+
+/* ---------- Announcements ---------- */
+function AnnouncementsTable({ onBack, preload = [] }) {
+  const [announcements, setAnnouncements] = useState(preload);
 
   useEffect(() => {
-    const fetchAnnouncements = async () => {
+    if (preload && preload.length) return; // already have data
+    (async () => {
       try {
-        const res = await fetch("https://amjacademy-working.onrender.com/api/announcements/getall", {
+        const res = await fetch(`${BASE}/api/announcements/receive`, {
           method: "GET",
           credentials: "include",
         });
         const data = await res.json();
-        setAnnouncements(data);
+        setAnnouncements(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Error fetching announcements:", err);
       }
-    };
-    fetchAnnouncements();
-  }, []);
+    })();
+  }, [preload]);
+
+  const fmt = (iso) => {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return String(iso);
+    return d.toLocaleString();
+  };
+
+  const duration = (row) => {
+    // your controller returns: { date, end_time }
+    // We’ll format “date → end_time” nicely.
+    if (!row?.date && !row?.end_time) return "—";
+    return `${fmt(row.date)} → ${fmt(row.end_time)}`;
+  };
 
   return (
     <div>
@@ -44,7 +59,7 @@ function AnnouncementsTable({ onBack }) {
                 <td>{a.title}</td>
                 <td>{a.message}</td>
                 <td>{a.receiver}</td>
-                <td>{a.duration}</td>
+                <td>{duration(a)}</td>
               </tr>
             ))}
           </tbody>
@@ -54,31 +69,33 @@ function AnnouncementsTable({ onBack }) {
   );
 }
 
+/* ---------- Schedules ---------- */
 function SchedulesTable({ schedules, onBack, onViewSchedule }) {
   const [students, setStudents] = useState([]);
   const [teachers, setTeachers] = useState([]);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    (async () => {
       try {
-        const res = await fetch("https://amjacademy-working.onrender.com/api/arrangements/fetchusers");
+        const res = await fetch(`${BASE}/api/arrangements/fetchusers`, {
+          credentials: "include",
+        });
         const data = await res.json();
-        setStudents(data.students);
-        setTeachers(data.teachers);
+        setStudents(data.students || []);
+        setTeachers(data.teachers || []);
       } catch (err) {
         console.error(err);
       }
-    };
-    fetchUsers();
+    })();
   }, []);
 
   const lookupStudentName = (id) => {
-    const found = students.find((x) => x.id === id);
+    const found = students.find((x) => String(x.id) === String(id));
     return found?.name || id;
   };
 
   const lookupTeacherName = (id) => {
-    const found = teachers.find((x) => x.id === id);
+    const found = teachers.find((x) => String(x.id) === String(id));
     return found?.name || id;
   };
 
@@ -94,10 +111,11 @@ function SchedulesTable({ schedules, onBack, onViewSchedule }) {
             <tr>
               <th>Student</th>
               <th>Teacher</th>
-              <th>Class Type</th>
+              <th>Subject</th>
+              <th>Batch</th>
               <th>Date</th>
               <th>Time</th>
-              <th>Actions</th>
+              <th>Link</th>
             </tr>
           </thead>
           <tbody>
@@ -109,6 +127,7 @@ function SchedulesTable({ schedules, onBack, onViewSchedule }) {
                     : lookupStudentName(s.student1_id)}
                 </td>
                 <td>{lookupTeacherName(s.teacher_id)}</td>
+                <td>{s.subject || "—"}</td>
                 <td>{s.batch_type === "dual" ? "Dual" : "Individual"}</td>
                 <td>{s.date}</td>
                 <td>
@@ -119,7 +138,11 @@ function SchedulesTable({ schedules, onBack, onViewSchedule }) {
                   })}
                 </td>
                 <td>
-                  <button onClick={() => onViewSchedule(s)} style={{ backgroundColor: '#007bff', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>View</button>
+                  {s.link ? (
+                    <a href={s.link} target="_blank" rel="noreferrer">Join</a>
+                  ) : (
+                    "—"
+                  )}
                 </td>
               </tr>
             ))}
@@ -130,6 +153,7 @@ function SchedulesTable({ schedules, onBack, onViewSchedule }) {
   );
 }
 
+/* ---------- Students ---------- */
 function StudentsTable({ students, onBack, onView }) {
   return (
     <div>
@@ -154,19 +178,19 @@ function StudentsTable({ students, onBack, onView }) {
             {students.map((row, index) => (
               <tr key={row.id || `${row.name}-${index}`}>
                 <td>
-                  {row.image ? (
-                    <img src={row.image || "/placeholder.svg"} alt={`${row.name} avatar`} className="avatar-sm" />
-                  ) : (
-                    <div className="avatar-sm avatar-sm--placeholder" aria-hidden="true" />
-                  )}
+                 {row.image ? (
+  <img src={row.image} alt={row.name} className="avatar-sm" />
+) : (
+  <div className="avatar-sm avatar-sm--placeholder" />
+)}
                 </td>
                 <td>{row.id}</td>
                 <td>{row.name}</td>
-                <td>{row.age}</td>
                 <td>{row.profession || "—"}</td>
-                <td>{row.phone}</td>
+                <td>{row.age || "—"}</td>
+                <td>{row.phone_number}</td>
                 <td>
-                  <button onClick={() => onView(row)} style={{ backgroundColor: '#007bff', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>View</button>
+                  <button onClick={() => onView?.(row)} style={{ backgroundColor: '#007bff', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>View</button>
                 </td>
               </tr>
             ))}
@@ -177,6 +201,7 @@ function StudentsTable({ students, onBack, onView }) {
   );
 }
 
+/* ---------- Teachers ---------- */
 function TeachersTable({ teachers, onBack, onView }) {
   return (
     <div>
@@ -213,7 +238,7 @@ function TeachersTable({ teachers, onBack, onView }) {
                 <td>{row.profession || "—"}</td>
                 <td>{row.phone}</td>
                 <td>
-                  <button onClick={() => onView(row)} style={{ backgroundColor: '#007bff', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>View</button>
+                  <button onClick={() => onView?.(row)} style={{ backgroundColor: '#007bff', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>View</button>
                 </td>
               </tr>
             ))}
@@ -224,63 +249,76 @@ function TeachersTable({ teachers, onBack, onView }) {
   );
 }
 
-export default function Dashboard({ counts, schedules, onView, onViewSchedule, onViewGroups }) {
+/* ---------- Dashboard Shell ---------- */
+export default function Dashboard({
+  counts,
+  schedules,
+  onView,
+  onViewSchedule,
+  onViewGroups,
+  preload = { students: [], teachers: [], announcements: [] },
+}) {
   const [selectedModule, setSelectedModule] = useState(null);
   const [showNotificationMenu, setShowNotificationMenu] = useState(false);
 
-  // State for students and teachers data to pass to User_enrollment
-  const [students, setStudents] = useState([]);
-  const [teachers, setTeachers] = useState([]);
-  const [announcements, setAnnouncements] = useState([]);
+  const [students, setStudents] = useState(preload.students || []);
+  const [teachers, setTeachers] = useState(preload.teachers || []);
+  const [announcements, setAnnouncements] = useState(preload.announcements || []);
   const [arrangements, setArrangements] = useState([]);
 
-  // Fetch students and teachers data when needed
+  // If user clicks students/teachers and we don’t yet have them, fetch
   useEffect(() => {
     if (selectedModule === "students" || selectedModule === "teachers") {
-      const fetchEnrollments = async () => {
+      if ((students?.length || 0) > 0 || (teachers?.length || 0) > 0) return;
+      (async () => {
         try {
-          const res = await fetch("https://amjacademy-working.onrender.com/api/enrollments/getall", {
+          const res = await fetch(`${BASE}/api/enrollments/getall`, {
             method: "GET",
             credentials: "include",
           });
           const data = await res.json();
-          const studentsList = data.filter(item => item.role === "Student");
-          const teachersList = data.filter(item => item.role === "Teacher");
+          const studentsList = (enrollData || []).filter(
+   (x) => (x.role || "").toLowerCase() === "student"
+ );
+ const teachersList = (enrollData || []).filter(
+   (x) => (x.role || "").toLowerCase() === "teacher"
+ );
           setStudents(studentsList);
           setTeachers(teachersList);
         } catch (err) {
           console.error("Error fetching enrollments:", err);
         }
-      };
-      fetchEnrollments();
+      })();
     }
-  }, [selectedModule]);
+  }, [selectedModule, students, teachers]);
 
-  // Fetch arrangements for groups
+  // Announcements fallback (if user opens it first & parent didn’t preload)
+  useEffect(() => {
+    if (selectedModule === "announcements" && announcements.length === 0) {
+      (async () => {
+        try {
+          const res = await fetch(`${BASE}/api/announcements/getall`, {
+            method: "GET",
+            credentials: "include",
+          });
+          const data = await res.json();
+          setAnnouncements(Array.isArray(data) ? data : []);
+        } catch (err) {
+          console.error("Error fetching announcements:", err);
+        }
+      })();
+    }
+  }, [selectedModule, announcements.length]);
+
+  // Groups (local storage)
   useEffect(() => {
     if (selectedModule === "groups") {
       const saved = localStorage.getItem("groupArrangements");
-      if (saved) {
-        setArrangements(JSON.parse(saved));
-      }
+      if (saved) setArrangements(JSON.parse(saved));
     }
   }, [selectedModule]);
 
-  const handleBack = () => {
-    setSelectedModule(null);
-  };
-
-  const handleView = (row) => {
-    if (onView) {
-      onView(row);
-    }
-  };
-
-  const handleViewGroups = () => {
-    if (onViewGroups) {
-      onViewGroups();
-    }
-  };
+  const handleBack = () => setSelectedModule(null);
 
   return (
     <>
@@ -321,25 +359,25 @@ export default function Dashboard({ counts, schedules, onView, onViewSchedule, o
       </div>
 
       {selectedModule === "students" && (
-        <StudentsTable students={students} onBack={() => setSelectedModule(null)} onView={handleView} />
+        <StudentsTable students={students} onBack={handleBack} onView={onView} />
       )}
 
       {selectedModule === "teachers" && (
-        <TeachersTable teachers={teachers} onBack={() => setSelectedModule(null)} onView={handleView} />
+        <TeachersTable teachers={teachers} onBack={handleBack} onView={onView} />
       )}
 
       {selectedModule === "announcements" && (
-        <AnnouncementsTable onBack={() => setSelectedModule(null)} />
+        <AnnouncementsTable onBack={handleBack} preload={announcements} />
       )}
 
       {selectedModule === "schedules" && (
-        <SchedulesTable schedules={schedules} onBack={() => setSelectedModule(null)} onViewSchedule={onViewSchedule} />
+        <SchedulesTable schedules={schedules} onBack={handleBack} onViewSchedule={onViewSchedule} />
       )}
 
       {selectedModule === "groups" && (
         <div>
           <h2 style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white', padding: '12px 20px', borderRadius: '16px', boxShadow: '0 8px 24px rgba(0, 242, 254, 0.18)', textAlign: 'center', fontSize: '1.5em', fontWeight: '600', marginBottom: '20px' }}>Groups Table</h2>
-          <button onClick={() => setSelectedModule(null)} style={{ backgroundColor: '#00008B', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>Back</button>
+          <button onClick={handleBack} style={{ backgroundColor: '#00008B', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>Back</button>
           <div className="arrangements-list">
             {arrangements.length === 0 ? (
               <div className="empty-state">
@@ -352,13 +390,11 @@ export default function Dashboard({ counts, schedules, onView, onViewSchedule, o
                     <div className="card-header">
                       <h3>{arrangement.groupName}</h3>
                     </div>
-
                     <div className="card-content">
                       <div className="info-item">
                         <span className="label">Students:</span>
                         <span className="value">{arrangement.students.length} students</span>
                       </div>
-
                       <div className="students-list">
                         {arrangement.students.map((student) => (
                           <div key={student} className="student-item">
@@ -366,14 +402,12 @@ export default function Dashboard({ counts, schedules, onView, onViewSchedule, o
                           </div>
                         ))}
                       </div>
-
                       <div className="info-item">
                         <span className="label">Class Link:</span>
                         <a href={arrangement.classLink} target="_blank" rel="noopener noreferrer" className="class-link">
                           Join Class →
                         </a>
                       </div>
-
                       <div className="schedule-info">
                         <h4>Schedule</h4>
                         <div className="info-item">
@@ -397,7 +431,6 @@ export default function Dashboard({ counts, schedules, onView, onViewSchedule, o
                           <span className="value">{arrangement.sessions?.length || 0}</span>
                         </div>
                       </div>
-
                       {arrangement.sessions && arrangement.sessions.length > 0 && (
                         <div className="sessions-timeline">
                           <h4>Upcoming Sessions</h4>
@@ -409,25 +442,19 @@ export default function Dashboard({ counts, schedules, onView, onViewSchedule, o
                               </div>
                             ))}
                             {arrangement.sessions.length > 3 && (
-                              <div className="session-item more">+{arrangement.sessions.length - 3} more sessions</div>
+                              <div className="session-item more">+{arrangement.sessions - 3} more sessions</div>
                             )}
                           </div>
                         </div>
                       )}
-
                       <div className="info-item">
                         <span className="label">Created:</span>
                         <span className="value">{arrangement.createdAt}</span>
                       </div>
                     </div>
-
                     <div className="card-actions">
-                      <button className="edit-btn" onClick={() => handleViewGroups()}>
-                        ✏️ Edit
-                      </button>
-                      <button className="delete-btn" onClick={() => handleViewGroups()}>
-                        🗑️ Delete
-                      </button>
+                      <button className="edit-btn" onClick={onViewGroups}>✏️ Edit</button>
+                      <button className="delete-btn" onClick={onViewGroups}>🗑️ Delete</button>
                     </div>
                   </div>
                 ))}
@@ -439,18 +466,17 @@ export default function Dashboard({ counts, schedules, onView, onViewSchedule, o
 
       {selectedModule === "leave" && (
         <div>
-          <button onClick={() => setSelectedModule(null)} style={{ backgroundColor: '#00008B', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', marginBottom: '10px', cursor: 'pointer' }}>Back</button>
+          <button onClick={handleBack} style={{ backgroundColor: '#00008B', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', marginBottom: '10px', cursor: 'pointer' }}>Back</button>
           <Notification userType="admin" filterKind="Leave Request" filterRole="student" />
         </div>
       )}
 
       {selectedModule === "last_minute_cancel" && (
         <div>
-          <button onClick={() => setSelectedModule(null)} style={{ backgroundColor: '#00008B', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', marginBottom: '10px', cursor: 'pointer' }}>Back</button>
+          <button onClick={handleBack} style={{ backgroundColor: '#00008B', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', marginBottom: '10px', cursor: 'pointer' }}>Back</button>
           <Notification userType="admin" filterKind="Last Minute Cancellation" filterRole="student" />
         </div>
       )}
-
     </>
   );
 }

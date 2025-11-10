@@ -9,7 +9,6 @@ import Announcements from "./Announcements.jsx";
 import Class_arrangement from "./Class_arrangement.jsx";
 import GroupArrangement from "./group_arrangement.jsx";
 import Notification from "./Notification.jsx";
-import { HiAnnotation } from "react-icons/hi";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -32,118 +31,121 @@ function useLocalStorage(key, initialValue) {
   return [state, setState];
 }
 
+const BASE = /* "http://localhost:5000" */"https://amjacademy-working.onrender.com";
+
 export default function Admin_Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
+
   // Enrollment data
   const [students, setStudents] = useLocalStorage("admin_students", []);
   const [teachers, setTeachers] = useLocalStorage("admin_teachers", []);
   // Announcements
-  const [announcements, setAnnouncements] = useLocalStorage(
-    "announcements",
-    []
-  );
+  const [announcements, setAnnouncements] = useLocalStorage("announcements", []);
   // Schedules
   const [schedules, setSchedules] = useLocalStorage("admin_schedules", []);
-  const [notifications, setNotifications] = useLocalStorage(
-    "admin_notifications",
-    []
-  );
-  // Groups
+  // Notifications (admin view)
+  const [notifications, setNotifications] = useLocalStorage("admin_notifications", []);
+  // Groups (local feature)
   const [groups, setGroups] = useLocalStorage("admin_groups", []);
 
   const [activeTab, setActiveTab] = useState("dashboard");
   const [editingRow, setEditingRow] = useState(null);
-
-  // Check for editingRow in location state
-  useEffect(() => {
-    if (location.state?.editingRow) {
-      setActiveTab("enrollment");
-      setEditingRow(location.state.editingRow);
-    }
-  }, [location.state]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showNotificationSubmenu, setShowNotificationSubmenu] = useState(false);
   const [apiCounts, setApiCounts] = useState({});
   const [loading, setLoading] = useState(true);
 
-  // Get username from localStorage
+  // pick editing row from router state
+  useEffect(() => {
+    if (location.state?.editingRow) {
+      setActiveTab("enrollment");
+      setEditingRow(location.state.editingRow);
+    }
+  }, [location.state]);
+
   const username = localStorage.getItem("admin_username") || "Admin";
 
+  // Session check
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const res = await axios.get(
-          "https://amjacademy-working.onrender.com/api/admin/check-auth",
-          {
-            withCredentials: true, // important to send cookies
-          }
-        );
-
+        const res = await axios.get(`${BASE}/api/admin/check-auth`, {
+          withCredentials: true,
+        });
         if (!res.data.success) {
           alert("Session expired. Please login again.");
           navigate("/AdminLogin");
         }
-      } catch (err) {
+      } catch {
         alert("Session expired. Please login again.");
         navigate("/AdminLogin");
       }
     };
-
     checkSession();
-
-    // Optional: periodic check every 1 min
-    const interval = setInterval(checkSession, 60 * 1000);
-    return () => clearInterval(interval);
+    const id = setInterval(checkSession, 60 * 1000);
+    return () => clearInterval(id);
   }, [navigate]);
 
+  // Fetch counts
   useEffect(() => {
-    const fetchCounts = async () => {
+    (async () => {
       try {
-        const res = await fetch(
-          "https://amjacademy-working.onrender.com/api/counts",
-          {
-            credentials: "include", // ✅ add this line // important to send cookies
-          }
-        );
+        const res = await fetch(`${BASE}/api/counts`, {
+          credentials: "include",
+        });
         const data = await res.json();
         setApiCounts(data);
       } catch (err) {
         console.error("Failed to fetch counts:", err);
       }
-    };
-    fetchCounts();
+    })();
   }, []);
 
+  // ✅ Fetch EVERYTHING needed for Dashboard tables
   useEffect(() => {
-    const fetchSchedules = async () => {
+    (async () => {
       try {
-        const res = await axios.get(
-          "https://amjacademy-working.onrender.com/api/arrangements/getdetails",
-          {
-            withCredentials: true, // important to send cookies
-          }
-        );
-        setSchedules(res.data);
-        setLoading(false);
+        setLoading(true);
+        const [enrollRes, annRes, schRes, notifRes] = await Promise.all([
+          fetch(`${BASE}/api/enrollments/getall`, { credentials: "include" }),
+          fetch(`${BASE}/api/announcements/receive`, { credentials: "include" }),
+          fetch(`${BASE}/api/arrangements/getdetails`, { credentials: "include" }),
+          fetch(`${BASE}/api/notifications`, { credentials: "include" }),
+        ]);
+
+        const [enrollData, annData, schData, notifData] = await Promise.all([
+          enrollRes.json(),
+          annRes.json(),
+          schRes.json(),
+          notifRes.json(),
+        ]);
+
+    const studentsList = (enrollData || []).filter(   (x) => (x.role || "").toLowerCase() === "student"
+ );
+const teachersList = (enrollData || []).filter(
+   (x) => (x.role || "").toLowerCase() === "teacher"
+ );
+
+        setStudents(studentsList);
+        setTeachers(teachersList);
+        setAnnouncements(Array.isArray(annData) ? annData : []);
+        setSchedules(Array.isArray(schData) ? schData : []);
+        setNotifications(Array.isArray(notifData) ? notifData : []);
       } catch (err) {
-        console.error("Error fetching schedules:", err);
+        console.error("Error preloading dashboard data:", err);
+      } finally {
         setLoading(false);
       }
-    };
-    fetchSchedules();
+    })();
   }, []);
 
-  // Get first and last letter of username
   const getInitials = (name) => {
-    const trimmedName = name.trim();
-    if (trimmedName.length === 0) return "A";
-    const firstLetter = trimmedName[0].toUpperCase();
-    const lastLetter = trimmedName[trimmedName.length - 1].toUpperCase();
-    return firstLetter + lastLetter;
+    const trimmed = (name || "").trim();
+    if (!trimmed) return "A";
+    return trimmed[0].toUpperCase() + trimmed[trimmed.length - 1].toUpperCase();
   };
-
   const initials = getInitials(username);
 
   const menuItems = [
@@ -155,12 +157,8 @@ export default function Admin_Dashboard() {
     { id: "group-arrangement", label: "Group Arrangement", icon: "🧑‍🤝‍🧑" },
   ];
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
-  const getNextTab = (currentTab) => {
-    const tabOrder = [
+  const getNextTab = (current) => {
+    const order = [
       "dashboard",
       "enrollment",
       "announcements",
@@ -168,12 +166,10 @@ export default function Admin_Dashboard() {
       "class-arrangement",
       "group-arrangement",
     ];
-    const currentIndex = tabOrder.indexOf(currentTab);
-    const nextIndex = (currentIndex + 1) % tabOrder.length;
-    return tabOrder[nextIndex];
+    const i = order.indexOf(current);
+    return order[(i + 1) % order.length];
   };
 
-  // Derived counts
   const counts = {
     students: students.length,
     teachers: teachers.length,
@@ -205,21 +201,9 @@ export default function Admin_Dashboard() {
       case "notifications":
         return <Notification userType="admin" />;
       case "leave":
-        return (
-          <Notification
-            userType="admin"
-            filterKind="Leave Request"
-            filterRole="student"
-          />
-        );
+        return <Notification userType="admin" filterKind="Leave Request" filterRole="student" />;
       case "last_minute_cancel":
-        return (
-          <Notification
-            userType="admin"
-            filterKind="Last Minute Cancellation"
-            filterRole="student"
-          />
-        );
+        return <Notification userType="admin" filterKind="Last Minute Cancellation" filterRole="student" />;
       case "class-arrangement":
         return (
           <Class_arrangement
@@ -237,6 +221,8 @@ export default function Admin_Dashboard() {
           <Dashboard
             counts={counts}
             schedules={schedules}
+            // pass data so the tables render immediately
+            preload={{ students, teachers, announcements }}
             onView={(row) => {
               setActiveTab("enrollment");
               setEditingRow(row);
@@ -247,34 +233,23 @@ export default function Admin_Dashboard() {
         );
     }
   };
+
   const handleLogout = async () => {
     try {
-         // Call backend logout
-                        const res = await fetch(
-                      "https://amjacademy-working.onrender.com/api/admin/logout",
-                      {
-                        method: "POST",
-                        credentials: "include", // send cookies
-                      }
-                    );
-
-                    const data = await res.json();
-                    console.log("Logout response:", data);
-
-                    if (data.success) {
-                      // Clear all possible client data
-                      localStorage.removeItem("username");
-                      sessionStorage.clear();
-
-                      // Wait a tiny bit to ensure cookie is fully removed
-                      await new Promise((r) => setTimeout(r, 300));
-
-                      // Force full page reload (not cached)
-                      navigate("/");
-                    }
-                  } catch (err) {
-                    console.error("Logout failed:", err);
-                  }
+      const res = await fetch(`${BASE}/api/admin/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (data.success) {
+        localStorage.removeItem("username");
+        sessionStorage.clear();
+        await new Promise((r) => setTimeout(r, 300));
+        navigate("/");
+      }
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
   };
 
   return (
@@ -289,7 +264,7 @@ export default function Admin_Dashboard() {
               window.scrollTo(0, 0);
             }}
           >
-            <span className="arrow">←</span> <span className="btn-text"></span>
+            <span className="arrow">←</span>
           </button>
           <button
             className="forward-btn"
@@ -298,31 +273,20 @@ export default function Admin_Dashboard() {
               window.scrollTo(0, 0);
             }}
           >
-            <span className="btn-text"></span> <span className="arrow">→</span>
+            <span className="arrow">→</span>
           </button>
-          <button className="menu-toggle" onClick={toggleSidebar}>
-            <span></span>
-            <span></span>
-            <span></span>
+          <button className="menu-toggle" onClick={() => setSidebarOpen((s) => !s)}>
+            <span></span><span></span><span></span>
           </button>
           <div className="logo">
-            <img
-              src="images/amj-logo.png"
-              alt="AMJ Academy Logo"
-              className="logo-image"
-            />
+            <img src="images/amj-logo.png" alt="AMJ Academy Logo" className="logo-image" />
             <span className="logo-text">AMJ Academy</span>
           </div>
         </div>
+
         <div className="header-center">
           <nav className="header-nav">
-            <a
-              href="#"
-              className="nav-link"
-              onClick={handleLogout}
-            >
-              HOME
-            </a>
+            <a href="#" className="nav-link" onClick={handleLogout}>HOME</a>
             <a
               href="#"
               className="nav-link active"
@@ -335,11 +299,10 @@ export default function Admin_Dashboard() {
             </a>
           </nav>
         </div>
+
         <div className="header-right">
           <div className="user-info">
-            <div className="user-avatar">
-              <span>{initials}</span>
-            </div>
+            <div className="user-avatar"><span>{initials}</span></div>
             <span className="user-name">{username}</span>
           </div>
           <button className="help-btn">NEED HELP?</button>
@@ -356,21 +319,14 @@ export default function Admin_Dashboard() {
                   {item.id === "notifications" ? (
                     <div style={{ position: "relative" }}>
                       <button
-                        className={`nav-item ${
-                          activeTab === item.id ? "active" : ""
-                        }`}
-                        onClick={() =>
-                          setShowNotificationSubmenu(!showNotificationSubmenu)
-                        }
+                        className={`nav-item ${activeTab === item.id ? "active" : ""}`}
+                        onClick={() => setShowNotificationSubmenu((v) => !v)}
                       >
                         <span className="nav-icon">{item.icon}</span>
                         <span className="nav-label">{item.label}</span>
-                        {item.id === "notifications" &&
-                          apiCounts.notifications > 0 && (
-                            <span className="nav-badge">
-                              ({apiCounts.notifications})
-                            </span>
-                          )}
+                        {apiCounts.notifications > 0 && (
+                          <span className="nav-badge">({apiCounts.notifications})</span>
+                        )}
                       </button>
                       {showNotificationSubmenu && (
                         <div
@@ -393,15 +349,7 @@ export default function Admin_Dashboard() {
                               setSidebarOpen(false);
                               window.scrollTo(0, 0);
                             }}
-                            style={{
-                              display: "block",
-                              width: "100%",
-                              padding: "8px 12px",
-                              border: "none",
-                              background: "none",
-                              textAlign: "left",
-                              cursor: "pointer",
-                            }}
+                            style={{ display: "block", width: "100%", padding: "8px 12px", border: "none", background: "none", textAlign: "left", cursor: "pointer" }}
                           >
                             Leave
                           </button>
@@ -412,15 +360,7 @@ export default function Admin_Dashboard() {
                               setSidebarOpen(false);
                               window.scrollTo(0, 0);
                             }}
-                            style={{
-                              display: "block",
-                              width: "100%",
-                              padding: "8px 12px",
-                              border: "none",
-                              background: "none",
-                              textAlign: "left",
-                              cursor: "pointer",
-                            }}
+                            style={{ display: "block", width: "100%", padding: "8px 12px", border: "none", background: "none", textAlign: "left", cursor: "pointer" }}
                           >
                             Last Minute Cancel
                           </button>
@@ -429,9 +369,7 @@ export default function Admin_Dashboard() {
                     </div>
                   ) : (
                     <button
-                      className={`nav-item ${
-                        activeTab === item.id ? "active" : ""
-                      }`}
+                      className={`nav-item ${activeTab === item.id ? "active" : ""}`}
                       onClick={() => {
                         setActiveTab(item.id);
                         setSidebarOpen(false);
@@ -441,12 +379,9 @@ export default function Admin_Dashboard() {
                     >
                       <span className="nav-icon">{item.icon}</span>
                       <span className="nav-label">{item.label}</span>
-                      {item.id === "notifications" &&
-                        apiCounts.notifications > 0 && (
-                          <span className="nav-badge">
-                            ({apiCounts.notifications})
-                          </span>
-                        )}
+                      {item.id === "notifications" && apiCounts.notifications > 0 && (
+                        <span className="nav-badge">({apiCounts.notifications})</span>
+                      )}
                     </button>
                   )}
                 </div>
@@ -480,40 +415,19 @@ export default function Admin_Dashboard() {
         </main>
       </div>
 
-      {/* Sidebar Overlay */}
-      {sidebarOpen && (
-        <div
-          className="sidebar-overlay"
-          onClick={() => setSidebarOpen(false)}
-        ></div>
-      )}
+      {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
 
-      {/* Footer */}
       <Footer />
 
-      {/* Logout Confirmation Modal */}
+      {/* Logout Modal */}
       {showLogoutModal && (
         <div className="logout-modal-overlay">
           <div className="logout-modal">
             <h3>Confirm Logout</h3>
             <p>Are you sure you want to logout?</p>
             <div className="modal-buttons">
-              <button
-                className="btn-cancel"
-                onClick={() => setShowLogoutModal(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="btn-confirm"
-                onClick={handleLogout}
-              >
-                OK
-              </button>
-
-              {/* <button className="btn-confirm" onClick={handleLogout()}>
-                OK
-              </button> */}
+              <button className="btn-cancel" onClick={() => setShowLogoutModal(false)}>Cancel</button>
+              <button className="btn-confirm" onClick={handleLogout}>OK</button>
             </div>
           </div>
         </div>

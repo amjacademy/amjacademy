@@ -121,6 +121,7 @@ export default function Class_arrangement({ schedules, setSchedules }) {
             withCredentials: true, // important to send cookies
           }
         );
+        /* console.log("Fetched schedules:", res.data); */
         setSchedules(res.data); // assume backend sends [{...}, {...}]
       } catch (err) {
         console.error("Error fetching schedules:", err);
@@ -134,24 +135,24 @@ export default function Class_arrangement({ schedules, setSchedules }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Fetch users (students & teachers)
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const { data } = await axios.get(
-          "https://amjacademy-working.onrender.com/api/arrangements/fetchusers",
-          {
-            withCredentials: true, // important to send cookies
-          }
-        );
-        setStudents(data.students);
-        setTeachers(data.teachers);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchUsers();
-  }, []);
+ useEffect(() => {
+  const fetchUsers = async () => {
+    try {
+      const { data } = await axios.get(
+        "https://amjacademy-working.onrender.com/api/arrangements/fetchusers",
+        { withCredentials: true }
+      );
+
+       // 👈 Check what’s returned
+      setStudents(data.students);
+      setTeachers(data.teachers);
+    } catch (err) {
+      console.error("❌ Fetch users error:", err);
+    }
+  };
+  fetchUsers();
+}, []);
+
 
   // When sessionForWeek changes, update scheduleFor to a sensible default from sessionMap
   useEffect(() => {
@@ -206,168 +207,171 @@ export default function Class_arrangement({ schedules, setSchedules }) {
 
   // onSubmit: create schedules
   const onSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+  e.preventDefault();
+  setError("");
+  setLoading(true);
 
-    const isDual = batchType === "dual";
+  const isDual = batchType === "dual";
 
-    if (
-      !studentId ||
-      !teacherId ||
-      !day ||
-      !date ||
-      !hour ||
-      !minute ||
-      !ampm ||
-      !link ||
-      (isDual && !secondStudentId) ||
-      (sessionForWeek === "2 days" && !secondDay)
-    ) {
-      setError("Please fill all required fields.");
-      setLoading(false);
-      return;
-    }
+  if (
+    !studentId ||
+    !teacherId ||
+    !day ||
+    !date ||
+    !hour ||
+    !minute ||
+    !ampm ||
+    !link ||
+    (isDual && !secondStudentId) ||
+    (sessionForWeek === "2 days" && !secondDay)
+  ) {
+    setError("Please fill all required fields.");
+    setLoading(false);
+    return;
+  }
 
-    // Convert form input to 24-hour format
-    const convertTo24Local = (hourVal, minuteVal, ampmVal) => {
-      let h = parseInt(hourVal, 10);
-      if (ampmVal === "PM" && h !== 12) h += 12;
-      if (ampmVal === "AM" && h === 12) h = 0;
-      return `${h.toString().padStart(2, "0")}:${minuteVal
-        .toString()
-        .padStart(2, "0")}`;
-    };
-    const time24 = convertTo24Local(hour, minute, ampm);
-
-    // Generate schedule dates
-    const sessions = getSessions(scheduleFor);
-    const scheduleDates = [];
-
-    // Compute daysPerWeek and totalWeeks
-    const daysPerWeek = sessionForWeek === "2 days" ? 2 : 1;
-    const totalWeeks = Math.ceil(sessions / daysPerWeek);
-
-    // Calculate start date from end-date (date state), but using week logic:
-    // endDate provided in form is the computed end date. Determine startDate as endDate - (totalWeeks - 1)*7
-    const endDateObj = new Date(date);
-    const startDateObj = new Date(endDateObj);
-    startDateObj.setDate(endDateObj.getDate() - (totalWeeks - 1) * 7);
-
-    // For each week, compute the date for each chosen weekday
-    const chosenDays = sessionForWeek === "2 days" ? [day, secondDay] : [day];
-
-    for (let week = 0; week < totalWeeks; week++) {
-      const weekBase = new Date(startDateObj);
-      weekBase.setDate(startDateObj.getDate() + week * 7); // beginning of this week base
-
-      for (const chosenDayName of chosenDays) {
-        // find the date in this week matching chosenDayName
-        const scheduledDate = getDateForDay(
-          weekBase.toISOString().split("T")[0],
-          chosenDayName
-        );
-        scheduleDates.push({ date: scheduledDate, day: chosenDayName });
-      }
-    }
-
-    // Trim overflows (if scheduleDates length > sessions, keep only first `sessions` entries)
-    const trimmedScheduleDates = scheduleDates.slice(0, sessions);
-
-    // Check for conflicts across all new schedules
-    const newStudents = isDual
-      ? [studentId, secondStudentId].filter(Boolean)
-      : [studentId];
-    const conflict = trimmedScheduleDates.some(({ date: schedDate }) => {
-      const localDateTimeStr = `${schedDate}T${time24}:00`;
-      const newScheduleTime = new Date(localDateTimeStr).getTime();
-
-      return schedules.some((s) => {
-        const existingTime = new Date(s.time).getTime();
-        if (s.date === schedDate && existingTime === newScheduleTime) {
-          // Teacher conflict
-          if (s.teacher_id === teacherId && s.id !== editingId) return true;
-
-          // Students conflict
-          const existingStudents =
-            s.batch_type === "dual"
-              ? [s.student1_id, s.student2_id].filter(Boolean)
-              : [s.student1_id];
-
-          if (s.id !== editingId) {
-            return existingStudents.some((id) => newStudents.includes(id));
-          }
-        }
-        return false;
-      });
-    });
-
-    if (conflict) {
-      setError(
-        "Conflict: This student or teacher already has a schedule at the same time."
-      );
-      setLoading(false);
-      return;
-    }
-
-    // Create schedules (POST for each date) or update first one if editing
-    const newSchedules = [];
-    try {
-      for (let i = 0; i < trimmedScheduleDates.length; i++) {
-        const { date: schedDate, day: schedDay } = trimmedScheduleDates[i];
-        const localDateTimeStr = `${schedDate}T${time24}:00`;
-        const utcTime = new Date(localDateTimeStr).toISOString();
-
-        const scheduleData = {
-          class_type: classType,
-          batch_type: batchType,
-          student1_id: studentId,
-          student2_id: isDual ? secondStudentId : null,
-          teacher_id: teacherId,
-          day: schedDay,
-          date: schedDate,
-          time: utcTime,
-          link,
-          rescheduled: rescheduleChecked,
-        };
-
-        if (isEditing && i === 0) {
-          // Only update for the first one if editing
-          const res = await axios.put(
-            `https://amjacademy-working.onrender.com/api/arrangements/update/${editingId}`,
-            scheduleData,
-            {
-              withCredentials: true, // important to send cookies
-            }
-          );
-          newSchedules.push(res.data);
-        } else if (!isEditing) {
-          const res = await axios.post(
-            "https://amjacademy-working.onrender.com/api/arrangements/create",
-            scheduleData,
-            {
-              withCredentials: true, // important to send cookies
-            }
-          );
-          newSchedules.push(res.data);
-        }
-      }
-
-      if (isEditing) {
-        setSchedules(
-          schedules.map((s) => (s.id === editingId ? newSchedules[0] : s))
-        );
-      } else {
-        setSchedules([...schedules, ...newSchedules]);
-      }
-      resetForm();
-      setLoading(false);
-    } catch (err) {
-      console.error("Error saving schedule:", err);
-      setError("Failed to save schedule.");
-      setLoading(false);
-    }
+  const convertTo24Local = (hourVal, minuteVal, ampmVal) => {
+    let h = parseInt(hourVal, 10);
+    if (ampmVal === "PM" && h !== 12) h += 12;
+    if (ampmVal === "AM" && h === 12) h = 0;
+    return `${h.toString().padStart(2, "0")}:${minuteVal
+      .toString()
+      .padStart(2, "0")}`;
   };
+  const time24 = convertTo24Local(hour, minute, ampm);
+
+  const sessions = getSessions(scheduleFor);
+  const scheduleDates = [];
+
+  const daysPerWeek = sessionForWeek === "2 days" ? 2 : 1;
+  const totalWeeks = Math.ceil(sessions / daysPerWeek);
+
+  const endDateObj = new Date(date);
+  const startDateObj = new Date(endDateObj);
+  startDateObj.setDate(endDateObj.getDate() - (totalWeeks - 1) * 7);
+
+  const chosenDays = sessionForWeek === "2 days" ? [day, secondDay] : [day];
+
+  for (let week = 0; week < totalWeeks; week++) {
+    const weekBase = new Date(startDateObj);
+    weekBase.setDate(startDateObj.getDate() + week * 7);
+
+    for (const chosenDayName of chosenDays) {
+      const scheduledDate = getDateForDay(
+        weekBase.toISOString().split("T")[0],
+        chosenDayName
+      );
+      scheduleDates.push({ date: scheduledDate, day: chosenDayName });
+    }
+  }
+
+  const trimmedScheduleDates = scheduleDates.slice(0, sessions);
+
+  const newStudents = isDual
+    ? [studentId, secondStudentId].filter(Boolean)
+    : [studentId];
+
+  // --- ✅ Smart Conflict Check ---
+  const conflict = trimmedScheduleDates.some(({ date: schedDate }) => {
+    const localDateTimeStr = `${schedDate}T${time24}:00`;
+    const newScheduleTime = new Date(localDateTimeStr).getTime();
+
+    return schedules.some((s) => {
+      const sameRecord = String(s.id) === String(editingId);
+
+      // 🧩 Same batch = same teacher + student1 + end_date → ignore conflicts
+      const sameBatch =
+        String(s.teacher_id) === String(teacherId) &&
+        String(s.student1_id) === String(studentId) &&
+        s.end_date === date;
+
+      if (sameRecord || sameBatch) return false;
+
+      const existingTime = new Date(s.time).getTime();
+      if (s.date === schedDate && existingTime === newScheduleTime) {
+        // Same teacher, same time/date → conflict
+        if (String(s.teacher_id) === String(teacherId)) return true;
+
+        // Same student(s), same time/date → conflict
+        const existingStudents =
+          s.batch_type === "dual"
+            ? [s.student1_id, s.student2_id].filter(Boolean).map(String)
+            : [String(s.student1_id)];
+
+        return existingStudents.some((id) =>
+          newStudents.map(String).includes(id)
+        );
+      }
+
+      return false;
+    });
+  });
+
+  if (conflict) {
+    setError("Conflict: This student or teacher already has a schedule at the same time.");
+    setLoading(false);
+    return;
+  }
+
+  const newSchedules = [];
+  try {
+    for (let i = 0; i < trimmedScheduleDates.length; i++) {
+      const { date: schedDate, day: schedDay } = trimmedScheduleDates[i];
+      const localDateTimeStr = `${schedDate}T${time24}:00`;
+      const utcTime = new Date(localDateTimeStr).toISOString();
+
+      const scheduleData = {
+        subject: classType,
+        batch_type: batchType,
+        student1_id: studentId,
+        student2_id: isDual ? secondStudentId : null,
+        teacher_id: teacherId,
+        day: schedDay,
+        date: schedDate,
+        time: utcTime,
+        link,
+        rescheduled: rescheduleChecked,
+        no_of_sessions_week: sessionForWeek === "2 days" ? 2 : 1,
+        no_of_sessions: sessions,
+        first_day: day,
+        second_day: sessionForWeek === "2 days" ? secondDay : null,
+        end_date: date,
+      };
+
+      if (isEditing && i === 0) {
+        const res = await axios.put(
+          `https://amjacademy-working.onrender.com/api/arrangements/update/${editingId}`,
+          scheduleData,
+          { withCredentials: true }
+        );
+        newSchedules.push(res.data);
+      } else if (!isEditing) {
+        const res = await axios.post(
+          "https://amjacademy-working.onrender.com/api/arrangements/create",
+          scheduleData,
+          { withCredentials: true }
+        );
+        newSchedules.push(res.data);
+      }
+    }
+
+    if (isEditing) {
+      setSchedules(
+        schedules.map((s) => (s.id === editingId ? newSchedules[0] : s))
+      );
+    } else {
+      setSchedules([...schedules, ...newSchedules]);
+    }
+
+    resetForm();
+    setLoading(false);
+  } catch (err) {
+    console.error("Error saving schedule:", err);
+    setError("Failed to save schedule.");
+    setLoading(false);
+  }
+};
+
 
   const onDelete = async (id) => {
     setDeletingIds((prev) => new Set(prev).add(id));
@@ -448,32 +452,57 @@ export default function Class_arrangement({ schedules, setSchedules }) {
     }
   };
 
-  const onEdit = (schedule) => {
+const onEdit = async (schedule) => {
+  try {
     setIsEditing(true);
     setEditingId(schedule.id);
-    setClassType(schedule.class_type || "Piano");
-    setBatchType(schedule.batch_type);
-    setStudentId(schedule.student1_id);
-    setSecondStudentId(schedule.student2_id || "");
-    setTeacherId(schedule.teacher_id);
+    setLoading(true);
 
-    // Attempt to detect whether the schedule is single or multi day by checking sessionMap and existing data:
-    setDay(schedule.day);
-    setDate(schedule.date);
-    const [hh, mm, ...rest] = schedule.time.split(":");
-    let hour12 = parseInt(hh, 10);
-    let ampmVal = "AM";
-    if (hour12 >= 12) {
-      ampmVal = "PM";
-      if (hour12 > 12) hour12 -= 12;
-    }
-    setHour(hour12.toString());
-    setMinute(mm);
-    setAmpm(ampmVal);
-    setLink(schedule.link);
-    setRescheduleChecked(schedule.rescheduled || false);
+    // ✅ Fetch the original record from backend
+    const res = await axios.get(
+      `https://amjacademy-working.onrender.com/api/arrangements/get/${schedule.id}`,
+      { withCredentials: true }
+    );
+    const fullRecord = res.data;
+
+    // ✅ Load exact DB values into UI
+    setBatchType(fullRecord.batch_type || "individual");
+    setStudentId(fullRecord.student1_id || "");
+    setSecondStudentId(fullRecord.student2_id || "");
+    setTeacherId(fullRecord.teacher_id || "");
+    setClassType(fullRecord.subject || "Keyboard");
+    setDay(fullRecord.first_day || fullRecord.day || "");
+    setSecondDay(fullRecord.second_day || "");
+    setDate(fullRecord.end_date || fullRecord.date || "");
+
+    // Handle time conversion from ISO
+    const localTime = new Date(fullRecord.time);
+    const hours = localTime.getHours();
+    const minutes = localTime.getMinutes();
+    const isPM = hours >= 12;
+    const formattedHour = hours % 12 === 0 ? 12 : hours % 12;
+    const formattedMinute = minutes.toString().padStart(2, "0");
+    setHour(formattedHour.toString());
+    setMinute(formattedMinute);
+    setAmpm(isPM ? "PM" : "AM");
+
+    setLink(fullRecord.link || "");
+    setRescheduleChecked(fullRecord.rescheduled || false);
+
+    // Restore session info
+    setSessionForWeek(fullRecord.no_of_sessions_week === 2 ? "2 days" : "1 day");
+    setScheduleFor(fullRecord.no_of_sessions?.toString() || "12");
+
     setError("");
-  };
+  } catch (err) {
+    console.error("❌ Error loading full record:", err);
+    setError("Unable to load original data from database.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   const resetForm = () => {
     setIsEditing(false);
@@ -538,8 +567,8 @@ export default function Class_arrangement({ schedules, setSchedules }) {
               setSecondStudentId("");
             }}
           >
-            <option value="Piano">Piano</option>
-            <option value="Keyboard">Keyboard</option>
+            <option value="piano">Piano</option>
+            <option value="keyboard">Keyboard</option>
           </select>
         </div>
 
@@ -596,14 +625,14 @@ export default function Class_arrangement({ schedules, setSchedules }) {
             >
               <option value="">-- Choose Student --</option>
               {students
-                .filter((s) => s.batchtype === "individual")
+                .filter((s) => s.batch_type === "individual")
                 .map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name} ({s.id})
                   </option>
                 ))}
             </select>
-            {students.filter((s) => s.batchtype === "individual").length ===
+            {students.filter((s) => s.batch_type === "individual").length ===
               0 && (
               <small className="hint">
                 No individual students enrolled yet.
@@ -626,7 +655,7 @@ export default function Class_arrangement({ schedules, setSchedules }) {
               >
                 <option value="">-- Choose First Student --</option>
                 {students
-                  .filter((s) => s.batchtype === "dual")
+                  .filter((s) => s.batch_type === "dual")
                   .map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name} ({s.id})
@@ -644,7 +673,7 @@ export default function Class_arrangement({ schedules, setSchedules }) {
               >
                 <option value="">-- Choose Second Student --</option>
                 {students
-                  .filter((s) => s.batchtype === "dual" && s.id !== studentId)
+                  .filter((s) => s.batch_type === "dual" && s.id !== studentId)
                   .map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name} ({s.id})
@@ -947,39 +976,43 @@ export default function Class_arrangement({ schedules, setSchedules }) {
             <tbody>
               {[...schedules]
                 .filter((s) => {
-                  // Class type filter
-                  if ((s.class_type || "Piano") !== classType) return false;
+  // Student filter
+  const studentName =
+    s.batch_type === "dual"
+      ? `${lookupStudentName(s.student1_id)} & ${lookupStudentName(s.student2_id)}`
+      : lookupStudentName(s.student1_id);
 
-                  // Student filter
-                  const studentName =
-                    s.batch_type === "dual"
-                      ? `${lookupStudentName(
-                          s.student1_id
-                        )} & ${lookupStudentName(s.student2_id)}`
-                      : lookupStudentName(s.student1_id);
-                  if (
-                    studentFilter &&
-                    !studentName
-                      .toLowerCase()
-                      .includes(studentFilter.toLowerCase())
-                  )
-                    return false;
+  if (
+    studentFilter &&
+    !studentName.toLowerCase().includes(studentFilter.toLowerCase())
+  ) {
+    return false;
+  }
 
-                  // Teacher filter
-                  const teacherName = lookupTeacherName(s.teacher_id);
-                  if (
-                    teacherFilter &&
-                    !teacherName
-                      .toLowerCase()
-                      .includes(teacherFilter.toLowerCase())
-                  )
-                    return false;
+  // Teacher filter
+  const teacherName = lookupTeacherName(s.teacher_id);
+  if (
+    teacherFilter &&
+    !teacherName.toLowerCase().includes(teacherFilter.toLowerCase())
+  ) {
+    return false;
+  }
 
-                  // Date filter
-                  if (dateFilter && s.date !== dateFilter) return false;
+  // ✅ Fixed Date filter for DATE + TIMESTAMPTZ combo
+  if (dateFilter) {
+    // Safely convert any format (ISO, plain date, timestamptz) into YYYY-MM-DD
+    const scheduleDate = new Date(s.date).toISOString().split("T")[0];
+    const filterDate = new Date(dateFilter).toISOString().split("T")[0];
+    if (scheduleDate !== filterDate) {
+      return false;
+    }
+  }
 
-                  return true;
-                })
+  // ✅ Show all by default (no subject/class filtering)
+  return true;
+})
+
+
                 .sort((a, b) => {
                   const dateA = new Date(a.date);
                   const dateB = new Date(b.date);
@@ -1034,7 +1067,7 @@ export default function Class_arrangement({ schedules, setSchedules }) {
                       </a>
                     </td>
 
-                    <td>{s.class_type || "Piano"}</td>
+                    <td>{s.subject || "Piano"}</td>
 
                     <td
                       className="col-actions"
