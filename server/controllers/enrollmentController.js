@@ -5,6 +5,7 @@ const {
   createUser,
   deleteEnrollment,
   updateEnrollment,
+  getEnrollmentById,
 } = require("../models/enrollmentModel");
 
 
@@ -149,5 +150,19 @@ exports.update = async (req, res) => {
       message: "Server error while updating enrollment",
       error: err.message,
     });
+  }
+};
+
+
+// ✅ Fetch Single Enrollment by ID
+exports.getById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { data, error } = await getEnrollmentById(id);
+    if (error) return res.status(400).json({ success: false, message: error.message });
+    res.status(200).json(data);
+  } catch (err) {
+    console.error("❌ Error in getById:", err);
+    res.status(500).json({ success: false, message: "Failed to fetch enrollment" });
   }
 };

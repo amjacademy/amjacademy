@@ -166,10 +166,12 @@ function EmptyState({ title, subtitle }) {
   )
 }
 
-export default function User_enrollment({ students, setStudents, teachers, setTeachers, editingRow }) {
+export default function User_enrollment({ students, setStudents, teachers, setTeachers, editingRow, setEditingRow }) {
   // If editingRow is passed, populate the form
+  /* console.log("Editing row:", editingRow); */
   useEffect(() => {
-    if (editingRow) {
+  if (editingRow) {
+    setTimeout(() => {
       setEditingId(editingRow.id);
       setId(editingRow.id);
       setName(editingRow.name);
@@ -186,8 +188,10 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
       setLevel(editingRow.level || "Beginner");
       setExperienceLevel(editingRow.experiencelevel || "");
       setRole(editingRow.role);
-    }
-  }, [editingRow]);
+    }, 50); // ⏱ short delay to ensure data is ready
+  }
+}, [editingRow]);
+
   const [role, setRole] = useState("student")
   const [id, setId] = useState("")
   const [name, setName] = useState("")
@@ -654,10 +658,20 @@ const onDelete = async (id) => {
           <button type="submit" className="btn btn-primary">
             {editingId ? "Update" : "Enroll"}
           </button>
-          {editingId && (
-            <button type="button" className="btn btn-secondary" onClick={resetForm}>
-              Cancel
-            </button>
+                    {editingId && (
+                      <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => {
+              resetForm();
+              if (typeof setEditingRow === "function") {
+                setEditingRow(null); // ✅ clear parent editing state
+              }
+            }}
+          >
+            Cancel
+          </button>
+
           )}
           {error ? (
             <p className="error" role="alert">

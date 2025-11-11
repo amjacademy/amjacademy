@@ -189,6 +189,7 @@ const teachersList = (enrollData || []).filter(
             teachers={teachers}
             setTeachers={setTeachers}
             editingRow={editingRow}
+            setEditingRow={setEditingRow} // ✅ pass setter down
           />
         );
       case "announcements":
@@ -221,11 +222,10 @@ const teachersList = (enrollData || []).filter(
           <Dashboard
             counts={counts}
             schedules={schedules}
-            // pass data so the tables render immediately
             preload={{ students, teachers, announcements }}
             onView={(row) => {
-              setActiveTab("enrollment");
               setEditingRow(row);
+              setActiveTab("enrollment");
             }}
             onViewSchedule={() => setActiveTab("class-arrangement")}
             onViewGroups={() => setActiveTab("group-arrangement")}

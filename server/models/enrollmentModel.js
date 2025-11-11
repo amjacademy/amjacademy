@@ -205,5 +205,43 @@ async function updateEnrollment(id, updates) {
   }
 }
 
+async function getEnrollmentById(id) {
+  try {
+    const { data: user, error: userError } = await supabase.from("users").select("*").eq("id", id).single();
+    if (userError) throw userError;
 
-module.exports = { getEnrollments, createUser, deleteEnrollment, updateEnrollment };
+    const role = user.role?.toLowerCase();
+    let extraData = {};
+
+    if (role === "student") {
+      const { data: student, error: sErr } = await supabase.from("students").select("*").eq("id", id).single();
+      if (sErr) throw sErr;
+      extraData = {
+        image: student?.profile || null,
+        batchtype: student?.batch_type || null,
+        plan: student?.plan || null,
+        level: student?.level || null,
+      };
+    } else if (role === "teacher") {
+      const { data: teacher, error: tErr } = await supabase.from("teachers").select("*").eq("id", id).single();
+      if (tErr) throw tErr;
+      extraData = {
+        experiencelevel: teacher?.exp_lvl || null,
+        image: teacher?.profile || null,
+      };
+    }
+
+    return { data: { ...user, ...extraData }, error: null };
+  } catch (err) {
+    console.error("Error fetching enrollment by ID:", err);
+    return { data: null, error: err };
+  }
+}
+
+module.exports = {
+  getEnrollments,
+  getEnrollmentById,
+  createUser,
+  deleteEnrollment,
+  updateEnrollment,
+};

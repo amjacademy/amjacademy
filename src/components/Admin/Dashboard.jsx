@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Notification from "./Notification.jsx";
 
 const BASE = /* "http://localhost:5000" */"https://amjacademy-working.onrender.com";
@@ -23,19 +24,28 @@ function AnnouncementsTable({ onBack, preload = [] }) {
     })();
   }, [preload]);
 
-  const fmt = (iso) => {
-    if (!iso) return "—";
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return String(iso);
-    return d.toLocaleString();
-  };
+// ✅ Format timestamp in 24-hour format
+const fmt = (iso) => {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso);
 
-  const duration = (row) => {
-    // your controller returns: { date, end_time }
-    // We’ll format “date → end_time” nicely.
-    if (!row?.date && !row?.end_time) return "—";
-    return `${fmt(row.date)} → ${fmt(row.end_time)}`;
-  };
+  // Format: YYYY-MM-DD HH:mm (24h)
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const hours = String(d.getHours()).padStart(2, "0");
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
+};
+
+// ✅ Show created_at as start and end_time as end
+const duration = (row) => {
+  if (!row?.created_at && !row?.end_time) return "—";
+  return `${fmt(row.created_at)} → ${fmt(row.end_time)}`;
+};
+
 
   return (
     <div>
@@ -253,8 +263,8 @@ function TeachersTable({ teachers, onBack, onView }) {
 export default function Dashboard({
   counts,
   schedules,
-  onView,
   onViewSchedule,
+  onView,             // ✅ add this
   onViewGroups,
   preload = { students: [], teachers: [], announcements: [] },
 }) {
@@ -265,58 +275,29 @@ export default function Dashboard({
   const [teachers, setTeachers] = useState(preload.teachers || []);
   const [announcements, setAnnouncements] = useState(preload.announcements || []);
   const [arrangements, setArrangements] = useState([]);
+  const navigate = useNavigate();
 
-  // If user clicks students/teachers and we don’t yet have them, fetch
-  useEffect(() => {
-    if (selectedModule === "students" || selectedModule === "teachers") {
-      if ((students?.length || 0) > 0 || (teachers?.length || 0) > 0) return;
-      (async () => {
-        try {
-          const res = await fetch(`${BASE}/api/enrollments/getall`, {
-            method: "GET",
-            credentials: "include",
-          });
-          const data = await res.json();
-          const studentsList = (enrollData || []).filter(
-   (x) => (x.role || "").toLowerCase() === "student"
- );
- const teachersList = (enrollData || []).filter(
-   (x) => (x.role || "").toLowerCase() === "teacher"
- );
-          setStudents(studentsList);
-          setTeachers(teachersList);
-        } catch (err) {
-          console.error("Error fetching enrollments:", err);
-        }
-      })();
+  // ✅ View logic for student/teacher
+  // ✅ Replace your handleView with this
+const handleView = async (user) => {
+  try {
+    const res = await fetch(`${BASE}/api/enrollments/get/${user.id}`, {
+      credentials: "include",
+    });
+    const data = await res.json();
+    if (data && data.id) {
+      // directly call parent handler to switch tab + pass user
+      if (typeof onView === "function") {
+        onView(data);
+      }
+    } else {
+      alert("User data not found.");
     }
-  }, [selectedModule, students, teachers]);
+  } catch (err) {
+    console.error("Error fetching user data:", err);
+  }
+};
 
-  // Announcements fallback (if user opens it first & parent didn’t preload)
-  useEffect(() => {
-    if (selectedModule === "announcements" && announcements.length === 0) {
-      (async () => {
-        try {
-          const res = await fetch(`${BASE}/api/announcements/getall`, {
-            method: "GET",
-            credentials: "include",
-          });
-          const data = await res.json();
-          setAnnouncements(Array.isArray(data) ? data : []);
-        } catch (err) {
-          console.error("Error fetching announcements:", err);
-        }
-      })();
-    }
-  }, [selectedModule, announcements.length]);
-
-  // Groups (local storage)
-  useEffect(() => {
-    if (selectedModule === "groups") {
-      const saved = localStorage.getItem("groupArrangements");
-      if (saved) setArrangements(JSON.parse(saved));
-    }
-  }, [selectedModule]);
 
   const handleBack = () => setSelectedModule(null);
 
@@ -325,155 +306,117 @@ export default function Dashboard({
       <div className="content-header1">
         <h1>DASHBOARD</h1>
       </div>
+
+      {/* Overview cards */}
       <div className="stats-overview">
-        <div className="stat" onClick={() => { setSelectedModule("students"); setShowNotificationMenu(false); }} style={{ cursor: "pointer" }}>
+        <div className="stat" onClick={() => setSelectedModule("students")}>
           <span className="stat-num">{counts.students}</span>
           <span className="stat-label">Students</span>
         </div>
-        <div className="stat" onClick={() => { setSelectedModule("teachers"); setShowNotificationMenu(false); }} style={{ cursor: "pointer" }}>
+        <div className="stat" onClick={() => setSelectedModule("teachers")}>
           <span className="stat-num">{counts.teachers}</span>
           <span className="stat-label">Teachers</span>
         </div>
-        <div className="stat" onClick={() => { setSelectedModule("announcements"); setShowNotificationMenu(false); }} style={{ cursor: "pointer" }}>
+        <div className="stat" onClick={() => setSelectedModule("announcements")}>
           <span className="stat-num">{counts.announcements}</span>
           <span className="stat-label">Announcements</span>
         </div>
-        <div className="stat" onClick={() => { setSelectedModule("schedules"); setShowNotificationMenu(false); }} style={{ cursor: "pointer" }}>
+        <div className="stat" onClick={() => setSelectedModule("schedules")}>
           <span className="stat-num">{counts.schedules}</span>
           <span className="stat-label">Schedules</span>
         </div>
-        <div className="stat" onClick={() => { setSelectedModule("groups"); setShowNotificationMenu(false); }} style={{ cursor: "pointer" }}>
+        <div className="stat" onClick={() => setSelectedModule("groups")}>
           <span className="stat-num">{counts.groups}</span>
           <span className="stat-label">Groups</span>
         </div>
-        <div className="stat" style={{ position: 'relative', cursor: 'pointer' }} onClick={() => setShowNotificationMenu(!showNotificationMenu)}>
+        <div
+          className="stat"
+          style={{ position: "relative", cursor: "pointer" }}
+          onClick={() => setShowNotificationMenu(!showNotificationMenu)}
+        >
           <span className="stat-num">{counts.notifications || 0}</span>
           <span className="stat-label">Notifications</span>
           {showNotificationMenu && (
-            <div style={{ position: 'absolute', top: '100%', left: 0, backgroundColor: 'white', border: '1px solid #ccc', borderRadius: '4px', zIndex: 1000, minWidth: '150px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-              <button onClick={(e) => { e.stopPropagation(); setSelectedModule("leave"); setShowNotificationMenu(false); }} style={{ display: 'block', width: '100%', padding: '8px 12px', border: 'none', background: 'none', textAlign: 'left', cursor: 'pointer' }}>Leave</button>
-              <button onClick={(e) => { e.stopPropagation(); setSelectedModule("last_minute_cancel"); setShowNotificationMenu(false); }} style={{ display: 'block', width: '100%', padding: '8px 12px', border: 'none', background: 'none', textAlign: 'left', cursor: 'pointer' }}>Last Minute Cancel</button>
+            <div
+              style={{
+                position: "absolute",
+                top: "100%",
+                left: 0,
+                backgroundColor: "white",
+                border: "1px solid #ccc",
+                borderRadius: "4px",
+                zIndex: 1000,
+                minWidth: "150px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              }}
+            >
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedModule("leave");
+                  setShowNotificationMenu(false);
+                }}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  padding: "8px 12px",
+                  border: "none",
+                  background: "none",
+                  textAlign: "left",
+                  cursor: "pointer",
+                }}
+              >
+                Leave
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedModule("last_minute_cancel");
+                  setShowNotificationMenu(false);
+                }}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  padding: "8px 12px",
+                  border: "none",
+                  background: "none",
+                  textAlign: "left",
+                  cursor: "pointer",
+                }}
+              >
+                Last Minute Cancel
+              </button>
             </div>
           )}
         </div>
       </div>
 
+      {/* Module Sections */}
       {selectedModule === "students" && (
-        <StudentsTable students={students} onBack={handleBack} onView={onView} />
+        <StudentsTable students={students} onBack={handleBack} onView={handleView} />
       )}
-
       {selectedModule === "teachers" && (
-        <TeachersTable teachers={teachers} onBack={handleBack} onView={onView} />
+        <TeachersTable teachers={teachers} onBack={handleBack} onView={handleView} />
       )}
-
       {selectedModule === "announcements" && (
         <AnnouncementsTable onBack={handleBack} preload={announcements} />
       )}
-
       {selectedModule === "schedules" && (
         <SchedulesTable schedules={schedules} onBack={handleBack} onViewSchedule={onViewSchedule} />
       )}
-
-      {selectedModule === "groups" && (
-        <div>
-          <h2 style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white', padding: '12px 20px', borderRadius: '16px', boxShadow: '0 8px 24px rgba(0, 242, 254, 0.18)', textAlign: 'center', fontSize: '1.5em', fontWeight: '600', marginBottom: '20px' }}>Groups Table</h2>
-          <button onClick={handleBack} style={{ backgroundColor: '#00008B', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>Back</button>
-          <div className="arrangements-list">
-            {arrangements.length === 0 ? (
-              <div className="empty-state">
-                <p>No group arrangements yet. Create one to get started!</p>
-              </div>
-            ) : (
-              <div className="arrangements-grid">
-                {arrangements.map((arrangement) => (
-                  <div key={arrangement.id} className="arrangement-card">
-                    <div className="card-header">
-                      <h3>{arrangement.groupName}</h3>
-                    </div>
-                    <div className="card-content">
-                      <div className="info-item">
-                        <span className="label">Students:</span>
-                        <span className="value">{arrangement.students.length} students</span>
-                      </div>
-                      <div className="students-list">
-                        {arrangement.students.map((student) => (
-                          <div key={student} className="student-item">
-                            👤 {student}
-                          </div>
-                        ))}
-                      </div>
-                      <div className="info-item">
-                        <span className="label">Class Link:</span>
-                        <a href={arrangement.classLink} target="_blank" rel="noopener noreferrer" className="class-link">
-                          Join Class →
-                        </a>
-                      </div>
-                      <div className="schedule-info">
-                        <h4>Schedule</h4>
-                        <div className="info-item">
-                          <span className="label">Sessions per Week:</span>
-                          <span className="value">{arrangement.sessionForWeek}</span>
-                        </div>
-                        <div className="info-item">
-                          <span className="label">Days:</span>
-                          <span className="value">
-                            {arrangement.sessionForWeek === "2 days"
-                              ? `${arrangement.day}, ${arrangement.secondDay}`
-                              : arrangement.day}
-                          </span>
-                        </div>
-                        <div className="info-item">
-                          <span className="label">Time:</span>
-                          <span className="value">{`${arrangement.hour}:${arrangement.minute} ${arrangement.ampm}`}</span>
-                        </div>
-                        <div className="info-item">
-                          <span className="label">Total Sessions:</span>
-                          <span className="value">{arrangement.sessions?.length || 0}</span>
-                        </div>
-                      </div>
-                      {arrangement.sessions && arrangement.sessions.length > 0 && (
-                        <div className="sessions-timeline">
-                          <h4>Upcoming Sessions</h4>
-                          <div className="sessions-list">
-                            {arrangement.sessions.slice(0, 3).map((session) => (
-                              <div key={session.sessionNumber} className="session-item">
-                                <span className="session-date">{session.date}</span>
-                                <span className="session-time">{session.time}</span>
-                              </div>
-                            ))}
-                            {arrangement.sessions.length > 3 && (
-                              <div className="session-item more">+{arrangement.sessions - 3} more sessions</div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                      <div className="info-item">
-                        <span className="label">Created:</span>
-                        <span className="value">{arrangement.createdAt}</span>
-                      </div>
-                    </div>
-                    <div className="card-actions">
-                      <button className="edit-btn" onClick={onViewGroups}>✏️ Edit</button>
-                      <button className="delete-btn" onClick={onViewGroups}>🗑️ Delete</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
       {selectedModule === "leave" && (
         <div>
-          <button onClick={handleBack} style={{ backgroundColor: '#00008B', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', marginBottom: '10px', cursor: 'pointer' }}>Back</button>
+          <button onClick={handleBack} className="btn btn-primary" style={{ marginBottom: "10px" }}>
+            Back
+          </button>
           <Notification userType="admin" filterKind="Leave Request" filterRole="student" />
         </div>
       )}
-
       {selectedModule === "last_minute_cancel" && (
         <div>
-          <button onClick={handleBack} style={{ backgroundColor: '#00008B', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', marginBottom: '10px', cursor: 'pointer' }}>Back</button>
+          <button onClick={handleBack} className="btn btn-primary" style={{ marginBottom: "10px" }}>
+            Back
+          </button>
           <Notification userType="admin" filterKind="Last Minute Cancellation" filterRole="student" />
         </div>
       )}
