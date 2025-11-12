@@ -6,11 +6,11 @@ const { supabase } = require("../config/supabaseClient");
 
 const {userAuth, roleAuth } = require("../utils/authController");
 
-router.get("/fetchannouncements",userAuth, roleAuth(["Student"]),  fetch);
-router.get("/upcoming-classes",userAuth, roleAuth(["Student"]),  fetchUpcomingClasses);
+router.get("/fetchannouncements",userAuth, roleAuth(["student"]),  fetch);
+router.get("/upcoming-classes",userAuth, roleAuth(["student"]),  fetchUpcomingClasses);
 
 // POST /api/actions/submit
-router.post("/actions/submit",userAuth, roleAuth(["Student"]),  async (req, res) => {
+router.post("/actions/submit",userAuth, roleAuth(["student"]),  async (req, res) => {
   try {
     const { user_id, class_id, action_type, reason } = req.body;
 
@@ -92,7 +92,7 @@ const { data: updateData, error: updateError } = await supabase
   }
 });
 
-router.put("/class-status",userAuth, roleAuth(["Student"]),  async (req, res) => {
+router.put("/class-status",userAuth, roleAuth(["student"]),  async (req, res) => {
   try {
     const { class_id, status, user_id } = req.body;
 

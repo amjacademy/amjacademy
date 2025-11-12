@@ -13,7 +13,7 @@ exports.Login = async (req, res) => {
   }
 
   if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
-    const token = jwt.sign({ user:username}, ADMIN_JWT, { expiresIn: "172800m" });
+    const token = jwt.sign({ username, role: "admin" }, ADMIN_JWT, { expiresIn: "172800m" });
 
    /*  res.clearCookie("adminToken", {
   path: "/",

@@ -7,7 +7,7 @@ import "./Login.css"
 const LoginForm = () => {
   const API_BASE = "https://amjacademy-working.onrender.com/api/users";
   /* const API_BASE = "http://localhost:5000/api/users"; */
-  const [userType, setUserType] = useState("Student");
+  const [userType, setUserType] = useState("student");
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
@@ -90,9 +90,9 @@ const LoginForm = () => {
     if (data.success) {
       localStorage.setItem("username", formData.username);
       localStorage.setItem("user_id", data.id); 
-      if (formData.role === "Student") {
+      if (formData.role === "student") {
         navigate("/student-dashboard");
-        } else if (formData.role === "Teacher") {
+        } else if (formData.role === "teacher") {
           navigate("/teacher-dashboard");
         } else {
           // Default fallback for unknown roles
@@ -220,15 +220,15 @@ const handleOtpSubmit = async (e) => {
         <div className="user-type-selector">
           <button
             type="button"
-            className={`user-type-btn ${userType === "Student" ? "active" : ""}`}
-            onClick={() => setUserType("Student")}
+            className={`user-type-btn ${userType === "student" ? "active" : ""}`}
+            onClick={() => setUserType("student")}
           >
             Student
           </button>
           <button
             type="button"
-            className={`user-type-btn ${userType === "Teacher" ? "active" : ""}`}
-            onClick={() => setUserType("Teacher")}
+            className={`user-type-btn ${userType === "teacher" ? "active" : ""}`}
+            onClick={() => setUserType("teacher")}
           >
             Teacher
           </button>
@@ -289,7 +289,7 @@ const handleOtpSubmit = async (e) => {
           )}
 
           <button type="submit" className="login-btn">
-            Sign In as {userType === "Student" ? "Student" : "Teacher"}
+            Sign In as {userType === "student" ? "student" : "teacher"}
           </button>
         </form>
 

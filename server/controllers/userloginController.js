@@ -30,41 +30,30 @@ const sendOtpEmail = async (email, otp) => {
 // Step 1: Send OTP
 exports.sendOtp = async (req, res) => {
   const { username, email, role } = req.body;
-  /* console.log("sendOtp called with:", { username, email, role }); */
 
   if (!username || !email || !role)
-    return res.status(400).json({ success: false, message: "Username, email, and role required" });
+    return res.status(400).json({ success: false, message: "Username, email, and role are required" });
 
   try {
     const { data: user, error } = await supabase
-      .from("enrollments")
+      .from("users")
       .select("*")
       .eq("username", username)
       .eq("email", email)
       .eq("role", role)
       .single();
 
-    console.log("sendOtp DB result:", { user, error });
-
-    if (error || !user) {
-      /* console.log("User not found for OTP"); */
-      return res.status(401).json({ success: false, message: "Username or email not found" });
-    }
+    if (error || !user)
+      return res.status(404).json({ success: false, message: "User not found" });
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    /* console.log(`OTP generated for ${email}: ${otp}`); */
+    otpStore[email] = { otp, expiresAt: Date.now() + 5 * 60 * 1000, verified: false };
 
-    const expiresAt = Date.now() + 5 * 60 * 1000;
-
-    otpStore[email] = { otp, expiresAt, verified: false };
-    /* console.log("OTP stored in memory:", otpStore[email]); */
-
-    /* console.log(`OTP generated before sending to ${email}: ${otp}`); */
     await sendOtpEmail(email, otp);
 
-    return res.json({ success: true, message: "OTP sent to email" });
+    return res.json({ success: true, message: "OTP sent successfully" });
   } catch (err) {
-    console.error("sendOtp server error:", err);
+    console.error("sendOtp error:", err);
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
@@ -72,99 +61,74 @@ exports.sendOtp = async (req, res) => {
 // Step 2: Verify OTP
 exports.verifyOtp = async (req, res) => {
   const { email, otp } = req.body;
-  /* console.log("OTP submitted", { email, otp }); */
 
   if (!email || !otp)
     return res.status(400).json({ success: false, message: "Email and OTP required" });
 
   const record = otpStore[email];
-  /* console.log("verifyOtp store record:", record);
- */
   if (!record) return res.status(400).json({ success: false, message: "OTP not found" });
 
   if (Date.now() > record.expiresAt) {
     delete otpStore[email];
-    /* console.log("OTP expired, deleted from store"); */
     return res.status(400).json({ success: false, message: "OTP expired" });
   }
 
-  if (record.otp !== otp) {
-    /* console.log("OTP mismatch:", otp, record.otp); */
+  if (record.otp !== otp)
     return res.status(400).json({ success: false, message: "Invalid OTP" });
-  }
 
-  // Mark verified
   otpStore[email].verified = true;
-  /* console.log("OTP verified successfully:", otpStore[email]); */
-
-  return res.json({ success: true, message: "OTP verified" });
+  return res.json({ success: true, message: "OTP verified successfully" });
 };
 
 // Step 3: Login
 exports.Login = async (req, res) => {
   const { username, email, password, role } = req.body;
-  /* console.log("Login called with:", { username, email, role }); */
 
   if (!username || !email || !password || !role)
-    return res.status(400).json({ success: false, message: "Username, email, password, and role required" });
+    return res.status(400).json({ success: false, message: "All fields are required" });
 
   const otpRecord = otpStore[email];
-  /* console.log("Login OTP record:", otpRecord); */
-
-  if (!otpRecord || !otpRecord.verified) {
-    console.log("OTP verification required error");
+  if (!otpRecord || !otpRecord.verified)
     return res.status(401).json({ success: false, message: "OTP verification required" });
-  }
 
   try {
     const { data: user, error } = await supabase
-      .from("enrollments")
+      .from("users")
       .select("*")
       .eq("username", username)
       .eq("email", email)
       .eq("role", role)
       .single();
 
-    /* console.log("Login DB result:", { user, error }); */
-
     if (error || !user)
       return res.status(401).json({ success: false, message: "Invalid credentials" });
 
-    const isMatch = password === user.password;
-    /* console.log("Password match:", isMatch); */
-
+    const isMatch = password == user.password;
     if (!isMatch)
-      return res.status(401).json({ success: false, message: "Invalid credentials" });
+      return res.status(401).json({ success: false, message: "Incorrect password" });
 
     const token = jwt.sign(
-  { id: user.id, email: user.email, role: user.role }, // <-- add role here
-  USER_JWT,
-  { expiresIn: "30d" });
+      { id: user.id, role: user.role },
+      USER_JWT,
+      { expiresIn: "30d" }
+    );
 
     delete otpStore[email];
-    /* console.log("OTP record deleted after login"); */
 
-   /*  res.cookie("userToken", token, {
+    res.cookie("userToken", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 45 * 60 * 1000,
-    }); */
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      path: "/",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
 
-  res.cookie("userToken", token, {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production", // ✅ true only in production
-  sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-  path: "/",
-  maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-});
     return res.json({ success: true, message: "Login successful", id: user.id });
   } catch (err) {
-    console.error("Login server error:", err);
+    console.error("Login error:", err);
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
 
 // Middleware: protect user routes
 exports.userAuth = (req, res, next) => {
@@ -204,97 +168,45 @@ exports.Logout = (req, res) => {
   res.json({ success: true, message: "User Logged out successfully" });
 };    
 
-// Step 4: Verify Login (Persistent Login Check)
+// Step 4: Verify Login (Persistent Check)
 exports.verifyLogin = async (req, res) => {
   try {
-    const adminToken = req.cookies?.adminToken;
     const userToken = req.cookies?.userToken;
+    if (!userToken)
+      return res.status(401).json({ success: false, message: "Unauthorized: No token found" });
 
-    // 1️⃣ Admin token check (no database verification)
-    if (adminToken) {
-      try {
-        const decodedAdmin = jwt.verify(adminToken, process.env.ADMIN_JWT_SECRET);
+    const decoded = jwt.verify(userToken, USER_JWT);
+    const { id, role } = decoded;
 
-        return res.status(200).json({
-          success: true,
-          role: "admin",
-          redirect: "/admin-dashboard",
-          user: { username: decodedAdmin.user  },
-        });
-      } catch (err) {
-        return res.status(401).json({
-          success: false,
-          message: "Invalid or expired admin token",
-        });
-      }
-    }
+    const { data: user, error } = await supabase
+      .from("users")
+      .select("id, username, email, role")
+      .eq("id", id)
+      .single();
 
-    // 2️⃣ User token check (Student / Teacher)
-    if (userToken) {
-      try {
-        const decodedUser = jwt.verify(userToken, process.env.USER_JWT_SECRET);
-        const { id, role } = decodedUser;
+    if (error || !user)
+      return res.status(404).json({ success: false, message: "User not found" });
 
-        if (!id || !role) {
-          return res.status(400).json({
-            success: false,
-            message: "Invalid user token payload",
-          });
-        }
+    const redirectPath =
+      role === "student"
+        ? "/student-dashboard"
+        : role === "teacher"
+        ? "/teacher-dashboard"
+        : role === "admin"
+        ? "/admin-dashboard"
+        : null;
 
-        // Both Student & Teacher are in 'enrollments' table
-        const { data: user, error } = await supabase
-          .from("enrollments")
-          .select("id, username, email, role")
-          .eq("id", id)
-          .single();
+    if (!redirectPath)
+      return res.status(401).json({ success: false, message: "Unauthorized role" });
 
-        if (error || !user) {
-          return res.status(404).json({
-            success: false,
-            message: "User not found",
-          });
-        }
-
-        // Redirect based on role
-        const redirectPath =
-          role === "Student"
-            ? "/student-dashboard"
-            : role === "Teacher"
-            ? "/teacher-dashboard"
-            : null;
-
-        if (!redirectPath) {
-          return res.status(401).json({
-            success: false,
-            message: "Unauthorized: Invalid role",
-          });
-        }
-
-        return res.status(200).json({
-          success: true,
-          role,
-          redirect: redirectPath,
-          user,
-        });
-      } catch (err) {
-        return res.status(401).json({
-          success: false,
-          message: "Invalid or expired user token",
-        });
-      }
-    }
-
-    // 3️⃣ Neither adminToken nor userToken found
-    return res.status(401).json({
-      success: false,
-      message: "Unauthorized: No valid token found",
+    return res.status(200).json({
+      success: true,
+      role,
+      redirect: redirectPath,
+      user,
     });
   } catch (err) {
-    console.error("verifyLogin error:", err.message);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error during verification",
-    });
+    console.error("verifyLogin error:", err);
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

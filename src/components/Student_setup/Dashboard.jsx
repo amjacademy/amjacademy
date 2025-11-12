@@ -16,6 +16,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const userType="Student";
   const userId=localStorage.getItem('user_id');
+  const API_BASE = "https://amjacademy-working.onrender.com/api/student";
+  /* const API_BASE = "http://localhost:5000/api/student"; */
 
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeTab, setActiveTab] = useState("dashboard") // This would come from auth context
@@ -45,7 +47,7 @@ const formatTime = (timeStr) => {
 useEffect(() => {
   const fetchAnnouncements = async () => {
     try {
-      const res = await fetch("https://amjacademy-working.onrender.com/api/student/fetchannouncements?", {
+      const res = await fetch(`${API_BASE}/fetchannouncements?`, {
   credentials: "include", // ✅ add this line
 });
       if (!res.ok) throw new Error("Failed to fetch announcements");
@@ -105,7 +107,7 @@ useEffect(() => {
     try {
       setLoading(true);
 
-      const response = await fetch("https://amjacademy-working.onrender.com/api/student/upcoming-classes", {
+      const response = await fetch(`${API_BASE}/upcoming-classes`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -220,7 +222,7 @@ const handleLeaveSubmit = async (leaveData) => {
     };
     console.log("Submitting leave/cancel with payload:", payload);
 
-    const response = await fetch("https://amjacademy-working.onrender.com/api/student/actions/submit", { // ✅ updated endpoint
+    const response = await fetch(`${API_BASE}/actions/submit`, { // ✅ updated endpoint
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -270,7 +272,7 @@ const handleJoinClass = async (classItem) => {
     setOngoingClass(classItem);
 
     // Update backend to set status = "ongoing"
-    const response = await fetch("https://amjacademy-working.onrender.com/api/student/class-status", {
+    const response = await fetch(`${API_BASE}/class-status`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
