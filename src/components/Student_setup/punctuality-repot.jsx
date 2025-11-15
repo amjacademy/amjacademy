@@ -80,6 +80,22 @@ function makeDummyRow(i) {
   }
 }
 
+// Function to map status labels for display
+function mapStatusForDisplay(status) {
+  switch (status) {
+    case "Early-Out":
+      return "Behind Scheduled"
+    case "Late-Out":
+    case "Late-In":
+      return "After Scheduled"
+    case "Early-In":
+    case "On-time":
+      return "As Scheduled"
+    default:
+      return status
+  }
+}
+
 export default function PunctualityReport() {
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
@@ -206,12 +222,12 @@ export default function PunctualityReport() {
                   <td>{r.checkoutTime}</td>
                   <td>
                     <span className={`chip ${r.checkinStatus.toLowerCase().replace(/\\s/g, "-")}`}>
-                      {r.checkinStatus}
+                      {mapStatusForDisplay(r.checkinStatus)}
                     </span>
                   </td>
                   <td>
                     <span className={`chip ${r.checkoutStatus.toLowerCase().replace(/\\s/g, "-")}`}>
-                      {r.checkoutStatus}
+                      {mapStatusForDisplay(r.checkoutStatus)}
                     </span>
                   </td>
                   <td>{r.duration}</td>
