@@ -33,6 +33,7 @@ const Dashboard = () => {
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [selectedLeaveClass, setSelectedLeaveClass] = useState(null);
   const [ongoingClass, setOngoingClass] = useState(null);
+  const [showAllClasses, setShowAllClasses] = useState(false);
 
 const formatTime = (timeStr) => {
   if (!timeStr) return "";
@@ -178,19 +179,7 @@ classes.sort((a, b) => {
     { id: "message", label: "Message", icon: "💬" },
     // { id: "notification", label: "Notification", icon: "🔔" },
     { id: "class-report", label: "Class Report", icon: "📊" },
-    {
-      id: "assignments",
-      label: "My Assignments",
-      icon: "📝",
-      hasDropdown: true,
-      isOpen: assignmentsOpen,
-      subItems: [
-        { id: "shared", label: "Share with me" },
-        { id: "my-uploads", label: "My Upload" },
-        { id: "assessments", label: "Assessments" },
-      ],
-    },
-    // Student-specific items
+    { id: "assignments", label: "My Assignments", icon: "📝" },
     { id: "punctuality-report", label: "Punctuality Report", icon: "⏰" },
     // { id: "session-count", label: "Session Count Report", icon: "📈" },
     // { id: "holidays", label: "Upcoming Holidays", icon: "🏖️" },
@@ -331,16 +320,10 @@ const isLastMinuteCancelEnabled = (classTime) => {
       //   return <Notification userType="student" />
       case "class-report":
         return <ClassReport />
-      case "assignments":
-        return <MyAssignments />
-      case "assignments-shared":
-        return <MyAssignments initialSection="shared" />
-      case "assignments-my-uploads":
-        return <MyAssignments initialSection="uploads" />
-      case "assignments-assessments":
-        return <MyAssignments initialSection="assessments" />
       case "punctuality-report":
         return <PunctualityReport />
+      case "assignments":
+        return <MyAssignments />
       case "dashboard":
       default:
         return (
@@ -410,7 +393,7 @@ const isLastMinuteCancelEnabled = (classTime) => {
           <h2>UPCOMING CLASSES</h2>
         </div>
         <div className="classes-list">
-          {upcomingClasses.map((classItem) => (
+          {(showAllClasses ? upcomingClasses : upcomingClasses.slice(0, 4)).map((classItem) => (
             <div
               key={classItem.id}
               className={`class-card-horizontal ${classItem.rescheduled ? "rescheduled-card" : ""}`}
@@ -450,7 +433,7 @@ const isLastMinuteCancelEnabled = (classTime) => {
                   JOIN CLASS
                 </button>
 
-                
+
       <button
         className="leave-class-btn"
         onClick={() => {
@@ -482,6 +465,13 @@ const isLastMinuteCancelEnabled = (classTime) => {
             </div>
           ))}
         </div>
+        {upcomingClasses.length > 4 && (
+          <div className="view-more">
+            <button className="view-more-btn" onClick={() => setShowAllClasses(!showAllClasses)}>
+              {showAllClasses ? "VIEW LESS" : "VIEW MORE"}
+            </button>
+          </div>
+        )}
       </section>
 
       
@@ -591,13 +581,6 @@ const isLastMinuteCancelEnabled = (classTime) => {
               onClick={() => { setActiveTab("class-report"); window.scrollTo(0, 0); }}
             >
               CLASS REPORT
-            </a>
-            <a
-              href="#"
-              className={`nav-link ${activeTab === "assignments" ? "active" : ""}`}
-              onClick={() => { setActiveTab("assignments"); window.scrollTo(0, 0); }}
-            >
-              MY ASSIGNMENTS
             </a>
             <a
               href="#"

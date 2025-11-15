@@ -9,6 +9,7 @@ import Notification from "../Admin/Notification.jsx"
 import Footer from "../Footer/footer.jsx"
 import ClassReport from "./class-report.jsx"
 import MyAssignments from "./my-assignments.jsx"
+
 import PunctualityReport from "./punctuality-report.jsx"
 import LeaveModal from "../common/LeaveModal.jsx"
 
@@ -29,6 +30,7 @@ const Dashboard = () => {
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [selectedLeaveClass, setSelectedLeaveClass] = useState(null);
   const [ongoingClass, setOngoingClass] = useState(null);
+  const [showAllClasses, setShowAllClasses] = useState(false);
 
 const formatTime = (timeStr) => {
   if (!timeStr) return "";
@@ -174,20 +176,9 @@ classes.sort((a, b) => {
     { id: "message", label: "Message", icon: "💬" },
     // { id: "notification", label: "Notification", icon: "🔔" },
     { id: "class-report", label: "Class Report", icon: "📊" },
-    {
-      id: "assignments",
-      label: "My Assignments",
-      icon: "📝",
-      hasDropdown: true,
-      isOpen: assignmentsOpen,
-      subItems: [
-        { id: "shared", label: "Share with me" },
-        { id: "my-uploads", label: "My Upload" },
-        { id: "assessments", label: "Assessments" },
-      ],
-    },
     // Student-specific items
     { id: "punctuality-report", label: "Punctuality Report", icon: "⏰" },
+    { id: "assignments", label: "My Assignments", icon: "📝" },
     // { id: "session-count", label: "Session Count Report", icon: "📈" },
     // { id: "holidays", label: "Upcoming Holidays", icon: "🏖️" },
     // { id: "demo-insight", label: "Post Demo Insight", icon: "💡" },
@@ -321,16 +312,11 @@ const isLastMinuteCancelEnabled = (classDate, classTime) => {
       //   return <Notification userType="student" />
       case "class-report":
         return <ClassReport />
-      case "assignments":
-        return <MyAssignments />
-      case "assignments-shared":
-        return <MyAssignments initialSection="shared" />
-      case "assignments-my-uploads":
-        return <MyAssignments initialSection="uploads" />
-      case "assignments-assessments":
-        return <MyAssignments initialSection="assessments" />
+
       case "punctuality-report":
         return <PunctualityReport />
+      case "assignments":
+        return <MyAssignments />
       case "dashboard":
       default:
         return (
@@ -401,7 +387,7 @@ const isLastMinuteCancelEnabled = (classDate, classTime) => {
   </div>
 
   <div className="classes-list">
-    {upcomingClasses.map((classItem) => {
+    {(showAllClasses ? upcomingClasses : upcomingClasses.slice(0, 4)).map((classItem) => {
       // 🧠 Extract students based on batch type
       const studentsToDisplay =
         classItem.batch.toLowerCase() === "individual"
@@ -504,6 +490,13 @@ const isLastMinuteCancelEnabled = (classDate, classTime) => {
       );
     })}
   </div>
+  {upcomingClasses.length > 4 && (
+    <div className="view-more">
+      <button className="view-more-btn" onClick={() => setShowAllClasses(!showAllClasses)}>
+        {showAllClasses ? "VIEW LESS" : "VIEW MORE"}
+      </button>
+    </div>
+  )}
 </section>
 
           </>
@@ -554,19 +547,20 @@ const isLastMinuteCancelEnabled = (classDate, classTime) => {
             >
               CLASS REPORT
             </a>
-            <a
-              href="#"
-              className={`nav-link ${activeTab === "assignments" ? "active" : ""}`}
-              onClick={() => { setActiveTab("assignments"); window.scrollTo(0, 0); }}
-            >
-              MY ASSIGNMENTS
-            </a>
+
             <a
               href="#"
               className={`nav-link ${activeTab === "punctuality-report" ? "active" : ""}`}
               onClick={() => { setActiveTab("punctuality-report"); window.scrollTo(0, 0); }}
             >
               PUNCTUALITY REPORT
+            </a>
+            <a
+              href="#"
+              className={`nav-link ${activeTab === "assignments" ? "active" : ""}`}
+              onClick={() => { setActiveTab("assignments"); window.scrollTo(0, 0); }}
+            >
+              MY ASSIGNMENTS
             </a>
           </nav>
         </div>

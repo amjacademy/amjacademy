@@ -179,6 +179,11 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
+.action-view-btn.completed {
+  background: linear-gradient(45deg, #00b894, #55efc4);
+  color: white;
+}
+
 .search-section {
   margin-bottom: 20px;
 }
@@ -367,6 +372,18 @@
   background: linear-gradient(45deg, #fdcb6e, #e17055);
 }
 
+.status-badge.incomplete {
+  background: linear-gradient(45deg, #fdcb6e, #e17055);
+}
+
+.status-badge.submitted {
+  background: linear-gradient(45deg, #00b894, #55efc4);
+}
+
+.status-badge.completed {
+  background: linear-gradient(45deg, #00b894, #55efc4);
+}
+
 .pagination {
   display: flex;
   justify-content: space-between;
@@ -395,6 +412,182 @@
 
 .pagination-controls button:hover {
   border-color: #667eea;
+}
+
+/* Assessment Form Styles */
+.assessment-form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.assessment-form-container {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.form-header h2 {
+  margin: 0;
+  color: #333;
+  font-size: 24px;
+  background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.assessment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.question-item {
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 15px;
+  border-left: 5px solid #667eea;
+  transition: all 0.3s ease;
+}
+
+.question-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.question-text {
+  margin: 0 0 15px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.4;
+}
+
+.answer-options {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.option-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 10px 15px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  background: white;
+  border: 2px solid #e0e0e0;
+}
+
+.option-label:hover {
+  border-color: #667eea;
+  transform: translateY(-1px);
+}
+
+.option-label input[type="radio"] {
+  margin: 0;
+  width: 18px;
+  height: 18px;
+  accent-color: #667eea;
+}
+
+.option-text {
+  font-weight: 500;
+  color: #333;
+}
+
+.option-label:has(input:checked) {
+  background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+}
+
+.option-label:has(input:checked) .option-text {
+  color: white;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 2px solid #f0f0f0;
+}
+
+.submit-btn {
+  background: linear-gradient(45deg, #00b894, #55efc4);
+  color: white;
+  border: none;
+  padding: 15px 40px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3);
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 184, 148, 0.4);
 }
 
 /* Responsive Design */
@@ -436,5 +629,27 @@
   .pagination {
     flex-direction: column;
     gap: 15px;
+  }
+
+  .assessment-form-container {
+    padding: 20px;
+    margin: 10px;
+  }
+
+  .form-header h2 {
+    font-size: 20px;
+  }
+
+  .answer-options {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .option-label {
+    justify-content: center;
+  }
+
+  .question-text {
+    font-size: 15px;
   }
 }

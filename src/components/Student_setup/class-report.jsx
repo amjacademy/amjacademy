@@ -11,6 +11,117 @@ const ClassReport = () => {
   const [classData, setClassData] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Demo data for each tab
+  const getDemoData = (tab) => {
+    switch (tab) {
+      case "upcoming":
+        return [
+          {
+            id: 1,
+            batch_type: "Individual",
+            status: "upcoming",
+            curriculum: "Keyboard Basics",
+            teacher_id: "John Smith",
+            arrangements: {
+              subject: "Keyboard",
+              date: "2025-01-15",
+              day: "Monday",
+              time: "14:00:00"
+            }
+          },
+          {
+            id: 2,
+            batch_type: "Group",
+            status: "upcoming",
+            curriculum: "Piano Fundamentals",
+            teacher_id: "Sarah Johnson",
+            arrangements: {
+              subject: "Piano",
+              date: "2025-01-16",
+              day: "Tuesday",
+              time: "16:30:00"
+            }
+          }
+        ];
+      case "completed":
+        return [
+          {
+            id: 3,
+            batch_type: "Individual",
+            status: "completed",
+            curriculum: "Keyboard Intermediate",
+            teacher_id: "John Smith",
+            arrangements: {
+              subject: "Keyboard",
+              date: "2025-01-10",
+              day: "Wednesday",
+              time: "14:00:00"
+            }
+          },
+          {
+            id: 4,
+            batch_type: "Group",
+            status: "completed",
+            curriculum: "Piano Scales",
+            teacher_id: "Sarah Johnson",
+            arrangements: {
+              subject: "Piano",
+              date: "2025-01-11",
+              day: "Thursday",
+              time: "16:30:00"
+            }
+          }
+        ];
+      case "Missing":
+        return [
+          {
+            id: 5,
+            batch_type: "Individual",
+            status: "leave",
+            curriculum: "Keyboard Advanced",
+            teacher_id: "John Smith",
+            reason: "Medical leave",
+            arrangements: {
+              subject: "Keyboard",
+              date: "2025-01-08",
+              day: "Monday",
+              time: "14:00:00"
+            }
+          },
+          {
+            id: 6,
+            batch_type: "Group",
+            status: "cancel",
+            curriculum: "Piano Theory",
+            teacher_id: "Sarah Johnson",
+            reason: "Teacher unavailable",
+            arrangements: {
+              subject: "Piano",
+              date: "2025-01-09",
+              day: "Tuesday",
+              time: "16:30:00"
+            }
+          },
+          {
+            id: 7,
+            batch_type: "Individual",
+            status: "notshown",
+            curriculum: "Keyboard Practice",
+            teacher_id: "John Smith",
+            reason: "Student did not attend",
+            arrangements: {
+              subject: "Keyboard",
+              date: "2025-01-07",
+              day: "Sunday",
+              time: "10:00:00"
+            }
+          }
+        ];
+      default:
+        return [];
+    }
+  };
+
   // Map frontend tab to backend status in arrangements table
   const getStatusValue = (tab) => {
     switch (tab) {
@@ -65,7 +176,8 @@ const ClassReport = () => {
   };
 
   useEffect(() => {
-    fetchClasses();
+    // Use demo data instead of fetching from backend
+    setClassData(getDemoData(activeTab));
   }, [activeTab, filterBy, fromDate, toDate]);
 
   // Badge helpers

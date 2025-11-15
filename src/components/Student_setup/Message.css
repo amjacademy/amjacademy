@@ -5,6 +5,35 @@
   font-family: "Arial", sans-serif;
 }
 
+.content-header2 {
+  /* Bright gradient header */
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  padding: 16px 24px;
+  margin: -44px -43px 43px -43px;
+  text-align: center;
+  border-radius: 0 0 20px 20px;
+}
+
+.content-header2 h1 {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.user-info {
+  margin-top: 10px;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.user-info span {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-weight: 500;
+}
+
 .message-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -23,13 +52,15 @@
 }
 
 .message-content {
-  background: rgba(255, 255, 255, 0.95);
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
   border-radius: 20px;
   padding: 0;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(10px);
-  height: calc(100vh - 150px);
-  overflow: hidden;
+  /* height: calc(100vh - 200px); */
+  /* min-height: 200px; */
+  /* max-height: calc(100vh - 100px); */
+  /* overflow: hidden; */
 }
 
 .message-layout {
@@ -182,8 +213,8 @@
 }
 
 .chat-messages {
-  flex: 1;
-  padding: 20px;
+  min-height: 0;
+  padding: 20px;;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -192,7 +223,7 @@
 
 .message {
   display: flex;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 .message.own {
@@ -205,34 +236,176 @@
 
 .message-content {
   max-width: 100%;
-  padding: 12px 18px;
+  /* max-height: 70vh; */
+  height: auto;
+  padding: 6px 10px;
   border-radius: 20px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   position: relative;
 }
 
 .message.own .message-content {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 80%);
   color: white;
-  border-bottom-right-radius: 5px;
+  height: auto;
+  border-bottom-right-radius: 2px;
 }
 
 .message.other .message-content {
-  background: rgba(255, 255, 255, 0.9);
-  color: #333;
-  border-bottom-left-radius: 5px;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 80%);
+  color: white;
+  height: auto;
+  border-bottom-left-radius: 2px;
 }
 
 .message-text {
-  font-size: 1rem;
-  line-height: 1.4;
-  margin-bottom: 5px;
+  font-size: 0.9rem;
+  line-height: 1.3;
+  margin-bottom: 3px;
+}
+
+.file-message {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.uploaded-image {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.uploaded-video {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.video-thumbnail-container {
+  position: relative;
+  display: inline-block;
+}
+
+.video-thumbnail {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.play-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+}
+
+.document-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #ffffff;
+  border-radius: 8px;
+  border: 2px solid #007bff;
+  max-width: 300px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.document-preview:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.document-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.document-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.document-name {
+  font-weight: 500;
+  font-size: 14px;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #333;
+}
+
+.document-size {
+  font-size: 12px;
+  color: #666;
+}
+
+.document-download-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.document-download-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.message-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 5px;
 }
 
 .message-time {
   font-size: 0.8rem;
   opacity: 0.7;
-  text-align: right;
+}
+
+.message-status {
+  display: flex;
+  align-items: center;
+}
+
+.tick {
+  font-size: 0.8rem;
+  margin-left: 2px;
+}
+
+.tick.single {
+  color: #666;
+}
+
+.tick.double {
+  color: #666;
+}
+
+.tick.double.blue {
+  color: #007bff;
 }
 
 .chat-input-container {
@@ -294,6 +467,188 @@
   transform: rotate(0deg);
 }
 
+.pin-button {
+  width: 50px;
+  height: 50px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.pin-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.upload-options {
+  position: absolute;
+  bottom: 60px;
+  right: 80px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  z-index: 1000;
+}
+
+.upload-option {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.upload-option:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.modal-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+}
+
+.modal-close:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.modal-image {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 5px;
+}
+
+.modal-video {
+  max-width: 100%;
+  max-height: 80vh;
+  border-radius: 5px;
+}
+
+.modal-document {
+  text-align: center;
+  padding: 20px;
+  background: white;
+  border-radius: 10px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.document-view-header h3 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+.document-view-header p {
+  color: #666;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.document-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.download-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.download-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.screenshot-blocked {
+  width: 200px;
+  height: 200px;
+  background: black;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.blocked-content {
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.clickable {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.clickable:hover {
+  transform: scale(1.02);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .message-container {
@@ -310,6 +665,16 @@
 
   .message-header h1 {
     font-size: 2rem;
+  }
+
+  .modal-content {
+    max-width: 95vw;
+    max-height: 95vh;
+    padding: 10px;
+  }
+
+  .modal-image, .modal-video {
+    max-height: 70vh;
   }
 }
 

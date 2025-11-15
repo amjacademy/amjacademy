@@ -15,7 +15,7 @@ function toCsv(rows) {
     "Check-in Status",
     "Checkout Status",
     "Class Duration",
-    "Reason",
+    // "Reason",
   ]
   const escape = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`
   const body = rows
@@ -28,7 +28,7 @@ function toCsv(rows) {
         r.checkinStatus,
         r.checkoutStatus,
         r.duration,
-        r.reason || "-",
+        // r.reason || "-",
       ]
         .map(escape)
         .join(","),
@@ -57,11 +57,11 @@ function makeDummyRow(i) {
   const ampm = i % 2 === 0 ? "AM" : "PM"
   const sessionType = ["Regular", "Special", "Demo"][i % 3]
   const classType = ["Group Class", "Individual Class", "Group Demo", "Individual Demo"][i % 4]
-  const slotStatus = ["On-time", "Early-Out", "Late-In", "Late-Out", "Early-In"][i % 5]
+  const slotStatus = ["On-time", "Behind-scheduled", "Late-In", "Late-Out", "Early-In"][i % 5]
   const checkinStatus = ["On-time", "Late-In", "Early-In"][i % 3]
   const checkoutStatus = ["On-time", "Early-Out", "Late-Out"][i % 3]
   const duration = `${30 + (i % 10) * 3} min.`
-  const reason = slotStatus.includes("Late") ? "Traffic" : slotStatus.includes("Early") ? "Left early" : ""
+  // const reason = slotStatus.includes("Late") ? "Traffic" : slotStatus.includes("Early") ? "Left early" : ""
   const teachers = ["Ms. Sarah", "Mr. David", "Ms. Lisa", "Mr. John", "Ms. Anna"]
 
   return {
@@ -76,7 +76,7 @@ function makeDummyRow(i) {
     duration,
     sessionType,
     classType,
-    reason,
+    // reason,
   }
 }
 
@@ -194,7 +194,7 @@ export default function PunctualityReport() {
                 <th>Check-in Status</th>
                 <th>Checkout Status</th>
                 <th>Class Duration</th>
-                <th>Reason</th>
+                {/* <th>Reason</th> */}
               </tr>
             </thead>
             <tbody>
@@ -215,7 +215,7 @@ export default function PunctualityReport() {
                     </span>
                   </td>
                   <td>{r.duration}</td>
-                  <td>{r.reason || "-"}</td>
+                  {/* <td>{r.reason || "-"}</td> */}
                 </tr>
               ))}
             </tbody>
