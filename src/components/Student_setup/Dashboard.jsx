@@ -34,6 +34,7 @@ const Dashboard = () => {
   const [selectedLeaveClass, setSelectedLeaveClass] = useState(null);
   const [ongoingClass, setOngoingClass] = useState(null);
   const [showAllClasses, setShowAllClasses] = useState(false);
+  const [incompleteAssessmentsCount, setIncompleteAssessmentsCount] = useState(1); // Static count for now, 1 incomplete out of 3
 
 const formatTime = (timeStr) => {
   if (!timeStr) return "";
@@ -135,7 +136,7 @@ useEffect(() => {
           level: cls.level,
           plan: cls.plan,
           duration: cls.duration || "45mins", // default
-          contractId: cls.contract_id || "ic-405", // default
+          teacherId: cls.teacher_id || "AMJT0001", // default
           image: "/images/amj-logo.png?height=120&width=200&query=keyboard lesson",
           title: `${cls.profession} Class`,
           status: cls.status || "not started", // default
@@ -179,7 +180,7 @@ classes.sort((a, b) => {
     { id: "message", label: "Message", icon: "💬" },
     // { id: "notification", label: "Notification", icon: "🔔" },
     { id: "class-report", label: "Class Report", icon: "📊" },
-    { id: "assignments", label: "My Assignments", icon: "📝" },
+    { id: "assignments", label: "My Assignments", icon: "📝", count: incompleteAssessmentsCount },
     { id: "punctuality-report", label: "Punctuality Report", icon: "⏰" },
     // { id: "session-count", label: "Session Count Report", icon: "📈" },
     // { id: "holidays", label: "Upcoming Holidays", icon: "🏖️" },
@@ -371,7 +372,7 @@ const isLastMinuteCancelEnabled = (classTime) => {
         <p>Duration: {ongoingClass.duration}</p>
         <p>Batch: {ongoingClass.batch}</p>
         <p>Level: {ongoingClass.level}</p>
-        <p>Contract ID: {ongoingClass.class_id}</p>
+        <p>Teacher ID: {ongoingClass.teacherId}</p>
         <p>Plan: {ongoingClass.plan}</p>
       </div>
       <div className="class-actions">
@@ -419,7 +420,7 @@ const isLastMinuteCancelEnabled = (classTime) => {
                 <div className="class-details">
                   <p>Teacher Name: {classItem.teachers.join(", ")}</p>
                   <p>Level: {classItem.level}</p>
-                  <p>Class ID: {classItem.class_id}</p>
+                  <p>Teacher ID: {classItem.teacherId}</p>
                   <p>Plan: {classItem.plan}</p>
                   <p>Duration: {classItem.duration}</p>
                 </div>
@@ -622,7 +623,7 @@ const isLastMinuteCancelEnabled = (classTime) => {
                     }}
                   >
                     <span className="nav-icon">{item.icon}</span>
-                    <span className="nav-label">{item.label}</span>
+                    <span className="nav-label">{item.label}{item.count > 0 ? <span style={{color: 'red', fontWeight: 'bold', marginLeft: '20px'}}> ({item.count})</span> : ''}</span>
                     {item.hasDropdown && <span className={`dropdown-arrow ${item.isOpen ? "open" : ""}`}>▼</span>}
                   </button>
                   {item.hasDropdown && item.isOpen && item.subItems && (

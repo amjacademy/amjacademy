@@ -62,34 +62,59 @@ app.use("/api/slot", require("./routes/slotbookingRoutes"));
 //Admin Routes
 app.use("/api/admin", require("./routes/adminRoutes"));
 
-app.get("/api/counts",adminAuth, async (req, res) => {
+app.get("/api/counts", adminAuth, async (req, res) => {
   try {
+    // enrollments (students/teachers)
     const { data: enrollments } = await supabase
       .from("enrollments")
       .select("role");
 
+    // announcements & schedules
     const { data: announcements } = await supabase.from("announcements").select("id");
     const { data: schedules } = await supabase.from("arrangements").select("id");
-    const { data: rescheduledRows, count, error } = await supabase
-    .from("arrangements")
-    .select("id", { count: "exact" }) // count: "exact" gives total matching rows
-    .eq("rescheduled", true);   
 
-    const studentsCount = enrollments.filter(e => e.role === "Student").length;
-    const teachersCount = enrollments.filter(e => e.role === "Teacher").length;
-   
+    // 1) Try primary source: notifications table (if you have it)
+    let notificationsCount = 0;
+    try {
+      const { count: notifCountFromTable, error: notifErr } = await supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("is_read", false);; // head:true returns only count
+      if (notifErr) throw notifErr;
+      // supabase returns count in `notifCountFromTable`
+      notificationsCount = notifCountFromTable || 0;
+    } catch (err) {
+      // fallback: if notifications table not present or query fails, use rescheduled arrangements
+      try {
+        const { count: reschedCount, error: reschedErr } = await supabase
+          .from("arrangements")
+          .select("id", { count: "exact", head: true })
+          .eq("rescheduled", true);
+
+        if (reschedErr) throw reschedErr;
+        notificationsCount = reschedCount || 0;
+      } catch (err2) {
+        console.warn("Failed to compute notifications count from both notifications table and arrangements rescheduled", err2);
+        notificationsCount = 0;
+      }
+    }
+
+    const studentsCount = (enrollments || []).filter(e => (e.role || "").toLowerCase() === "student").length;
+    const teachersCount = (enrollments || []).filter(e => (e.role || "").toLowerCase() === "teacher").length;
+
     res.json({
       students: studentsCount,
       teachers: teachersCount,
-      announcements: announcements.length,
-      schedules: schedules.length,
-      notifications: count || 0, // number of rescheduled arrangements
+      announcements: announcements?.length || 0,
+      schedules: schedules?.length || 0,
+      notifications: notificationsCount,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Error in /api/counts:", err);
     res.status(500).json({ error: "Failed to fetch counts" });
   }
 });
+
 
 app.use("/api/enrollments", require("./routes/enrollmentRoutes"));
 
@@ -99,7 +124,7 @@ app.use("/api/arrangements",require("./routes/arrangementRoutes"));
 
 app.use("/api/notifications", require("./routes/notificationRoutes"));
 
-
+app.use("/api/grouparrangements", require("./routes/grouparrangementRoutes"));
 //Login Route
 app.use("/api/users", require("./routes/userloginRoutes"));
 

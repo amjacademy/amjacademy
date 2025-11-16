@@ -5,6 +5,9 @@ import { useNavigate } from "react-router-dom"
 import "./Admin_login.css"
 
 export default function AdminLogin() {
+
+  const MAIN = "https://amjacademy-working.onrender.com";
+  const TEST= "http://localhost:5000";
   const [formData, setFormData] = useState({ username: "", password: "" })
   const [errors, setErrors] = useState({ username: "", password: "" })
   const [showPassword, setShowPassword] = useState(false)
@@ -35,7 +38,7 @@ export default function AdminLogin() {
   try {
     setLoading(true)
 
-    const res = await fetch("https://amjacademy-working.onrender.com/api/admin/login", {
+    const res = await fetch(`${MAIN}/api/admin/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include", // important: send/receive cookies

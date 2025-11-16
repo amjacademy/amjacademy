@@ -31,11 +31,12 @@ function useLocalStorage(key, initialValue) {
   return [state, setState];
 }
 
-const BASE = /* "http://localhost:5000" */"https://amjacademy-working.onrender.com";
-
 export default function Admin_Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const MAIN = "https://amjacademy-working.onrender.com";
+  const TEST= "http://localhost:5000";
 
   // Enrollment data
   const [students, setStudents] = useLocalStorage("admin_students", []);
@@ -71,7 +72,7 @@ export default function Admin_Dashboard() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const res = await axios.get(`${BASE}/api/admin/check-auth`, {
+        const res = await axios.get(`${MAIN}/api/admin/check-auth`, {
           withCredentials: true,
         });
         if (!res.data.success) {
@@ -92,7 +93,7 @@ export default function Admin_Dashboard() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch(`${BASE}/api/counts`, {
+        const res = await fetch(`${MAIN}/api/counts`, {
           credentials: "include",
         });
         const data = await res.json();
@@ -108,31 +109,39 @@ export default function Admin_Dashboard() {
     (async () => {
       try {
         setLoading(true);
-        const [enrollRes, annRes, schRes, notifRes] = await Promise.all([
-          fetch(`${BASE}/api/enrollments/getall`, { credentials: "include" }),
-          fetch(`${BASE}/api/announcements/receive`, { credentials: "include" }),
-          fetch(`${BASE}/api/arrangements/getdetails`, { credentials: "include" }),
-          fetch(`${BASE}/api/notifications`, { credentials: "include" }),
+        const [enrollRes, annRes, schRes, notifRes,groupsRes] = await Promise.all([
+          fetch(`${MAIN}/api/enrollments/getall`, { credentials: "include" }),
+          fetch(`${MAIN}/api/announcements/receive`, { credentials: "include" }),
+          fetch(`${MAIN}/api/arrangements/getdetails`, { credentials: "include" }),
+          fetch(`${MAIN}/api/notifications`, { credentials: "include" }),
+          fetch(`${MAIN}/api/grouparrangements`, { credentials: "include" }),
         ]);
 
-        const [enrollData, annData, schData, notifData] = await Promise.all([
+        const [enrollData, annData, schData, notifData, groupsData] = await Promise.all([
           enrollRes.json(),
           annRes.json(),
           schRes.json(),
           notifRes.json(),
+          groupsRes.json(),
         ]);
 
-    const studentsList = (enrollData || []).filter(   (x) => (x.role || "").toLowerCase() === "student"
- );
-const teachersList = (enrollData || []).filter(
-   (x) => (x.role || "").toLowerCase() === "teacher"
- );
+    const studentsList = (enrollData || []).filter((x) => (x.role || "").toLowerCase() === "student");
+    const teachersList = (enrollData || []).filter((x) => (x.role || "").toLowerCase() === "teacher");
+
 
         setStudents(studentsList);
         setTeachers(teachersList);
         setAnnouncements(Array.isArray(annData) ? annData : []);
         setSchedules(Array.isArray(schData) ? schData : []);
         setNotifications(Array.isArray(notifData) ? notifData : []);
+
+/*         // --- ADD THIS: keep apiCounts.notifications in sync with actual notifications array
+setApiCounts(prev => ({
+  ...prev,
+  notifications: Array.isArray(notifData) ? notifData.length : (prev.notifications || 0),
+})); */
+         // <-- set groups from backend; if groupsData is an array of group objects
+        setGroups(Array.isArray(groupsData) ? groupsData : []);
       } catch (err) {
         console.error("Error preloading dashboard data:", err);
       } finally {
@@ -236,7 +245,7 @@ const teachersList = (enrollData || []).filter(
 
   const handleLogout = async () => {
     try {
-      const res = await fetch(`${BASE}/api/admin/logout`, {
+      const res = await fetch(`${MAIN}/api/admin/logout`, {
         method: "POST",
         credentials: "include",
       });

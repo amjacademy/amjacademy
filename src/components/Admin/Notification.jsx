@@ -8,6 +8,10 @@ export default function Notifications({
   filterKind = "",
   filterRole = "",
 }) {
+
+  const MAIN = "https://amjacademy-working.onrender.com";
+  const TEST= "http://localhost:5000";
+
   const [messages, setMessages] = useState([]);
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState(null);
@@ -21,7 +25,7 @@ export default function Notifications({
         setLoading(true);
         const params = new URLSearchParams({ filterRole, filterKind, search });
         const res = await fetch(
-          `https://amjacademy-working.onrender.com/api/notifications?${params.toString()}`,
+          `${MAIN}/api/notifications?${params.toString()}`,
           {
             method: "GET",
             headers: {
@@ -79,9 +83,14 @@ export default function Notifications({
   const markAsRead = async (id) => {
     try {
       await fetch(
-        `https://amjacademy-working.onrender.com/api/notifications/mark-read/${id}`,
-        { method: "PUT" },
-        { credentials: "include" }
+        `${MAIN}/api/notifications/mark-read/${id}`,
+        {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          }
       );
       setMessages((prev) =>
         prev.map((msg) => (msg.id === id ? { ...msg, read: true } : msg))

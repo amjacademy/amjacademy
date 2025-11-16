@@ -12,6 +12,7 @@ const Message = () => {
   const [showModal, setShowModal] = useState(false)
   const [modalContent, setModalContent] = useState('')
   const [modalType, setModalType] = useState('')
+  const [isChatOpen, setIsChatOpen] = useState(false)
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -260,7 +261,7 @@ const Message = () => {
       <div className="message-content">
         <div className="message-layout">
           {/* Contacts List */}
-          <div className="contacts-panel">
+          <div className={`contacts-panel ${isChatOpen && window.innerWidth <= 768 ? 'mobile-hidden' : ''}`}>
             <div className="contacts-header">
               <h3>Student: {currentUser}</h3>
             </div>
@@ -284,7 +285,10 @@ const Message = () => {
                 <div
                   key={contact.id}
                   className={`contact-item ${selectedContact === contact.id ? "active" : ""}`}
-                  onClick={() => setSelectedContact(contact.id)}
+                  onClick={() => {
+                    setSelectedContact(contact.id)
+                    setIsChatOpen(true)
+                  }}
                 >
                   <div className="contact-avatar">
                     <img src="anto-logo.jpg" alt={contact.name} />
@@ -301,8 +305,15 @@ const Message = () => {
           </div>
 
           {/* Chat Area */}
-          <div className="chat-panel">
+          <div className={`chat-panel ${!isChatOpen && window.innerWidth <= 768 ? 'mobile-hidden' : ''}`}>
             <div className="chat-header">
+              <button
+                className="back-button"
+                onClick={() => setIsChatOpen(false)}
+                style={{ display: window.innerWidth <= 768 ? 'block' : 'none' }}
+              >
+                ← Back
+              </button>
               <div className="chat-contact-info">
                 <img
                   src="anto-logo.jpg"
