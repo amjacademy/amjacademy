@@ -134,6 +134,30 @@ const GroupModel = {
 
     if (error) throw error;
   },
+  async getStudentGroupClasses(studentId) {
+  // 1. Fetch all groups where student is member
+  const { data: groups } = await supabase
+    .from("group_arrangement_students")
+    .select("group_id")
+    .eq("student_id", studentId);
+
+  if (!groups || groups.length === 0) return [];
+
+  const groupIds = groups.map(g => g.group_id);
+
+  // 2. Fetch next sessions from these groups
+  const now = new Date().toISOString();
+
+  const { data: sessions } = await supabase
+    .from("group_arrangement_sessions")
+    .select("*, group_arrangements(*)")
+    .in("group_id", groupIds)
+    .gte("session_at", now)
+    .order("session_at", { ascending: true });
+
+  return sessions;
+}
+
 };
 
 module.exports = { GroupModel };

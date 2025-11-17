@@ -19,4 +19,6 @@ router.put("/:id", GroupController.update);
 // DELETE group
 router.delete("/:id", GroupController.delete);
 
+router.get("/student/classes", GroupController.getStudentGroupClasses);
+
 module.exports = router;

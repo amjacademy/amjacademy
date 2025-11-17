@@ -78,5 +78,19 @@ const GroupController = {
       res.status(500).json({ error: err.message });
     }
   },
+  async getStudentGroupClasses(req, res) {
+  try {
+    const studentId = req.headers["user_id"];
+    if (!studentId)
+      return res.status(400).json({ error: "user_id is required" });
+
+    const data = await GroupModel.getStudentGroupClasses(studentId);
+    res.json({ success: true, classes: data });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
 };
 module.exports = { GroupController };
