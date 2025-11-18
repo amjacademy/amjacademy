@@ -66,6 +66,13 @@ export default function Admin_Dashboard() {
     }
   }, [location.state]);
 
+  // Close notification submenu when activeTab changes
+  useEffect(() => {
+    if (activeTab !== "notifications") {
+      setShowNotificationSubmenu(false);
+    }
+  }, [activeTab]);
+
   const username = localStorage.getItem("admin_username") || "Admin";
 
   // Session check
@@ -270,6 +277,7 @@ setApiCounts(prev => ({
             className="back-btn"
             onClick={() => {
               setActiveTab("dashboard");
+              setShowNotificationSubmenu(false);
               window.scrollTo(0, 0);
             }}
           >
@@ -279,6 +287,7 @@ setApiCounts(prev => ({
             className="forward-btn"
             onClick={() => {
               setActiveTab(getNextTab(activeTab));
+              setShowNotificationSubmenu(false);
               window.scrollTo(0, 0);
             }}
           >
@@ -301,6 +310,7 @@ setApiCounts(prev => ({
               className="nav-link active"
               onClick={() => {
                 setActiveTab("dashboard");
+                setShowNotificationSubmenu(false);
                 window.scrollTo(0, 0);
               }}
             >

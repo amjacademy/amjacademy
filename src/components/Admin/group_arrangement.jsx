@@ -373,9 +373,9 @@ const GroupArrangement = () => {
 
   return (
     <div className="group-arrangement-container">
-      <div className="content-header">
+      {/* <div className="content-header">
         <h1>GROUP ARRANGEMENT</h1>
-      </div>
+      </div> */}
 
       {!showForm && (
         <button className="add-new-btn" onClick={() => setShowForm(true)}>

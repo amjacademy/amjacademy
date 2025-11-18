@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Notification from "./Notification.jsx";
+import GroupArrangement from "./group_arrangement.jsx";
 
 const BASE = /* "http://localhost:5000" */"https://amjacademy-working.onrender.com";
 
@@ -303,29 +304,25 @@ const handleView = async (user) => {
 
   return (
     <>
-      <div className="content-header1">
-        <h1>DASHBOARD</h1>
-      </div>
-
       {/* Overview cards */}
       <div className="stats-overview">
-        <div className="stat" onClick={() => setSelectedModule("students")}>
+        <div className="stat" onClick={() => { setSelectedModule("students"); setShowNotificationMenu(false); }}>
           <span className="stat-num">{counts.students}</span>
           <span className="stat-label">Students</span>
         </div>
-        <div className="stat" onClick={() => setSelectedModule("teachers")}>
+        <div className="stat" onClick={() => { setSelectedModule("teachers"); setShowNotificationMenu(false); }}>
           <span className="stat-num">{counts.teachers}</span>
           <span className="stat-label">Teachers</span>
         </div>
-        <div className="stat" onClick={() => setSelectedModule("announcements")}>
+        <div className="stat" onClick={() => { setSelectedModule("announcements"); setShowNotificationMenu(false); }}>
           <span className="stat-num">{counts.announcements}</span>
           <span className="stat-label">Announcements</span>
         </div>
-        <div className="stat" onClick={() => setSelectedModule("schedules")}>
+        <div className="stat" onClick={() => { setSelectedModule("schedules"); setShowNotificationMenu(false); }}>
           <span className="stat-num">{counts.schedules}</span>
           <span className="stat-label">Schedules</span>
         </div>
-        <div className="stat" onClick={() => setSelectedModule("groups")}>
+        <div className="stat" onClick={() => { setSelectedModule("groups"); setShowNotificationMenu(false); }}>
           <span className="stat-num">{counts.groups}</span>
           <span className="stat-label">Groups</span>
         </div>
@@ -418,6 +415,13 @@ const handleView = async (user) => {
             Back
           </button>
           <Notification userType="admin" filterKind="Last Minute Cancellation" filterRole="student" />
+        </div>
+      )}
+      {selectedModule === "groups" && (
+        <div>
+          <h2 style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white', padding: '12px 20px', borderRadius: '16px', boxShadow: '0 8px 24px rgba(0, 242, 254, 0.18)', textAlign: 'center', fontSize: '1.5em', fontWeight: '600', marginBottom: '20px' }}>Group Arrangement</h2>
+          <button onClick={handleBack} style={{ backgroundColor: '#00008B', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', marginBottom: '10px' }}>Back</button>
+          <GroupArrangement />
         </div>
       )}
     </>
