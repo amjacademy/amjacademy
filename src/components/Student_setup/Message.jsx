@@ -13,6 +13,69 @@ const Message = () => {
   const [modalContent, setModalContent] = useState('')
   const [modalType, setModalType] = useState('')
   const [isChatOpen, setIsChatOpen] = useState(false)
+  const [showWarningModal, setShowWarningModal] = useState(false)
+  const [contacts, setContacts] = useState([
+    {
+      id: "ms-lisa",
+      name: "Ms. Lisa",
+      lastMessage: "yes my dear",
+      time: "4 days ago",
+      avatar: "/placeholder.svg?height=50&width=50",
+      online: false,
+      status: "Last seen recently",
+      unreadCount: 2,
+    },
+    {
+      id: "mr-david",
+      name: "Mr. David",
+      lastMessage: "ok",
+      time: "7 days ago",
+      avatar: "/placeholder.svg?height=50&width=50",
+      online: false,
+      status: "Last seen 5 minutes ago",
+      unreadCount: 1,
+    },
+    {
+      id: "ms-sarah",
+      name: "Ms. Sarah",
+      lastMessage: "No Communication Available",
+      time: "",
+      avatar: "/placeholder.svg?height=50&width=50",
+      online: true,
+      status: "Online",
+      unreadCount: 0,
+    },
+    {
+      id: "mr-john",
+      name: "Mr. John",
+      lastMessage: "No Communication Available",
+      time: "",
+      avatar: "/placeholder.svg?height=50&width=50",
+      online: false,
+      status: "Last seen recently",
+      unreadCount: 0,
+    },
+    {
+      id: "ms-anna",
+      name: "Ms. Anna",
+      lastMessage: "No Communication Available",
+      time: "",
+      avatar: "/placeholder.svg?height=50&width=50",
+      online: false,
+      status: "Last seen recently",
+      unreadCount: 0,
+    },
+    {
+      id: "mr-mike",
+      name: "Mr. Mike",
+      lastMessage: "No Communication Available",
+      time: "",
+      avatar: "/placeholder.svg?height=50&width=50",
+      online: false,
+      status: "Last seen recently",
+      unreadCount: 0,
+    },
+  ])
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -36,6 +99,14 @@ const Message = () => {
       text: "That's wonderful to hear! Keep up the good work.",
       time: "10:35 AM",
       isOwn: false,
+      status: "delivered",
+    },
+    {
+      id: 4,
+      sender: "me",
+      text: "Thanks! I'll keep practicing.",
+      time: "10:36 AM",
+      isOwn: true,
       status: "delivered",
     },
   ])
@@ -85,61 +156,50 @@ const Message = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [showUploadOptions])
 
-  const contacts = [
-    {
-      id: "ms-lisa",
-      name: "Ms. Lisa",
-      lastMessage: "yes my dear",
-      time: "4 days ago",
-      avatar: "/placeholder.svg?height=50&width=50",
-      online: false,
-    },
-    {
-      id: "mr-david",
-      name: "Mr. David",
-      lastMessage: "ok",
-      time: "7 days ago",
-      avatar: "/placeholder.svg?height=50&width=50",
-      online: false,
-    },
-    {
-      id: "ms-sarah",
-      name: "Ms. Sarah",
-      lastMessage: "No Communication Available",
-      time: "",
-      avatar: "/placeholder.svg?height=50&width=50",
-      online: true,
-    },
-    {
-      id: "mr-john",
-      name: "Mr. John",
-      lastMessage: "No Communication Available",
-      time: "",
-      avatar: "/placeholder.svg?height=50&width=50",
-      online: false,
-    },
-    {
-      id: "ms-anna",
-      name: "Ms. Anna",
-      lastMessage: "No Communication Available",
-      time: "",
-      avatar: "/placeholder.svg?height=50&width=50",
-      online: false,
-    },
-    {
-      id: "mr-mike",
-      name: "Mr. Mike",
-      lastMessage: "No Communication Available",
-      time: "",
-      avatar: "/placeholder.svg?height=50&width=50",
-      online: false,
-    },
-  ]
-
   const currentContact = contacts.find((contact) => contact.id === selectedContact) || contacts[0]
+
+  const totalUnreadPersons = contacts.filter(contact => assignedTeachers.includes(contact.name) && contact.unreadCount > 0).length
+
+  const handleContactClick = (contactId) => {
+    setSelectedContact(contactId)
+    setIsChatOpen(true)
+    // Reset unread count when contact is selected
+    setContacts(prevContacts =>
+      prevContacts.map(contact =>
+        contact.id === contactId ? { ...contact, unreadCount: 0 } : contact
+      )
+    )
+  }
+
+  const checkRestrictedContent = (text) => {
+    const restrictedWords = [
+      "contact",
+      "number",
+      "mobile number",
+      "no.",
+      "whatsapp contact"
+    ]
+    const tenDigitRegex = /\b\d{10}\b/
+
+    const lowerText = text.toLowerCase()
+    for (const word of restrictedWords) {
+      if (lowerText.includes(word.toLowerCase())) {
+        return true
+      }
+    }
+    if (tenDigitRegex.test(text)) {
+      return true
+    }
+    return false
+  }
 
   const handleSendMessage = () => {
     if (messageText.trim()) {
+      if (checkRestrictedContent(messageText)) {
+        setShowWarningModal(true)
+        return
+      }
+
       const newMessage = {
         id: messages.length + 1,
         sender: "me",
@@ -264,6 +324,11 @@ const Message = () => {
           <div className={`contacts-panel ${isChatOpen && window.innerWidth <= 768 ? 'mobile-hidden' : ''}`}>
             <div className="contacts-header">
               <h3>Student: {currentUser}</h3>
+              {totalUnreadPersons > 0 && (
+                <div className="total-unread-count">
+                  Unread: {totalUnreadPersons}
+                </div>
+              )}
             </div>
             <div className="search-container">
               <select
@@ -285,10 +350,7 @@ const Message = () => {
                 <div
                   key={contact.id}
                   className={`contact-item ${selectedContact === contact.id ? "active" : ""}`}
-                  onClick={() => {
-                    setSelectedContact(contact.id)
-                    setIsChatOpen(true)
-                  }}
+                  onClick={() => handleContactClick(contact.id)}
                 >
                   <div className="contact-avatar">
                     <img src="anto-logo.jpg" alt={contact.name} />
@@ -298,228 +360,247 @@ const Message = () => {
                     <div className="contact-name">{isScreenshotAttempt ? '███' : contact.name}</div>
                     <div className="contact-last-message">{isScreenshotAttempt ? '███' : contact.lastMessage}</div>
                   </div>
-                  {contact.time && <div className="contact-time">{isScreenshotAttempt ? '███' : contact.time}</div>}
+                  <div className="contact-time-container">
+                    {contact.time && <div className="contact-time">{isScreenshotAttempt ? '███' : contact.time}</div>}
+                    {contact.unreadCount > 0 && (
+                      <div className="unread-count">{isScreenshotAttempt ? '███' : contact.unreadCount}</div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Chat Area */}
-          <div className={`chat-panel ${!isChatOpen && window.innerWidth <= 768 ? 'mobile-hidden' : ''}`}>
-            <div className="chat-header">
-              <button
-                className="back-button"
-                onClick={() => setIsChatOpen(false)}
-                style={{ display: window.innerWidth <= 768 ? 'block' : 'none' }}
-              >
-                ← Back
-              </button>
-              <div className="chat-contact-info">
-                <img
-                  src="anto-logo.jpg"
-                  alt={currentContact.name}
-                  className="chat-avatar"
-                />
-                <span className="chat-contact-name">{isScreenshotAttempt ? '███' : currentContact.name}</span>
-              </div>
-            </div>
+          <div className="chat-panel">
+            {isChatOpen ? (
+              <>
+                <div className="chat-header">
+                  <button
+                    className="back-button"
+                    onClick={() => setIsChatOpen(false)}
+                    style={{ display: window.innerWidth <= 768 ? 'block' : 'none' }}
+                  >
+                    ← Back
+                  </button>
+                  <div className="chat-contact-info">
+                    <img
+                      src="anto-logo.jpg"
+                      alt={currentContact.name}
+                      className="chat-avatar"
+                    />
+                    <div>
+                      <span className="chat-contact-name">{isScreenshotAttempt ? '███' : currentContact.name}</span>
+                      <div className="chat-contact-status">{isScreenshotAttempt ? '███' : currentContact.status}</div>
+                    </div>
+                  </div>
+                </div>
 
-            <div className="chat-messages" onContextMenu={(e) => e.preventDefault()}>
-              {messages.map((message) => (
-                <div key={message.id} className={`message ${message.isOwn ? "own" : "other"}`}>
-                  <div className="message-content" onContextMenu={(e) => e.preventDefault()} style={isScreenshotAttempt ? {backgroundColor: 'black'} : {}}>
-                    {message.isFile && message.fileType === 'image' && message.fileUrl ? (
-                      <div className="file-message">
-                        {isScreenshotAttempt ? (
-                          <div className="screenshot-blocked">
-                            <div className="blocked-content">███</div>
-                          </div>
-                        ) : (
-                          <img
-                            src={message.fileUrl}
-                            alt={message.text}
-                            className="uploaded-image clickable"
-                            onClick={() => {
-                              setModalContent(message.fileUrl)
-                              setModalType('image')
-                              setShowModal(true)
-                            }}
-                            onContextMenu={(e) => e.preventDefault()}
-                          />
-                        )}
-                        <div className="message-text">{isScreenshotAttempt ? '███' : message.text}</div>
-                      </div>
-                    ) : message.isFile && message.fileType === 'video' && message.fileUrl ? (
-                      <div className="file-message">
-                        {isScreenshotAttempt ? (
-                          <div className="screenshot-blocked">
-                            <div className="blocked-content">███</div>
-                          </div>
-                        ) : (
-                          message.thumbnailUrl ? (
-                            <div className="video-thumbnail-container">
+                <div className="chat-messages" onContextMenu={(e) => e.preventDefault()}>
+                  {messages.map((message) => (
+                    <div key={message.id} className={`message ${message.isOwn ? "own" : "other"}`}>
+                      <div className="message-content" onContextMenu={(e) => e.preventDefault()} style={isScreenshotAttempt ? {backgroundColor: 'black'} : {}}>
+                        {message.isFile && message.fileType === 'image' && message.fileUrl ? (
+                          <div className="file-message">
+                            {isScreenshotAttempt ? (
+                              <div className="screenshot-blocked">
+                                <div className="blocked-content">███</div>
+                              </div>
+                            ) : (
                               <img
-                                src={message.thumbnailUrl}
-                                alt="Video thumbnail"
-                                className="video-thumbnail clickable"
+                                src={message.fileUrl}
+                                alt={message.text}
+                                className="uploaded-image clickable"
                                 onClick={() => {
                                   setModalContent(message.fileUrl)
-                                  setModalType('video')
+                                  setModalType('image')
                                   setShowModal(true)
                                 }}
                                 onContextMenu={(e) => e.preventDefault()}
                               />
-                              <div className="play-overlay">▶</div>
-                            </div>
-                          ) : (
-                            <video
-                              controls
-                              className="uploaded-video clickable"
+                            )}
+                            <div className="message-text">{isScreenshotAttempt ? '███' : message.text}</div>
+                          </div>
+                        ) : message.isFile && message.fileType === 'video' && message.fileUrl ? (
+                          <div className="file-message">
+                            {isScreenshotAttempt ? (
+                              <div className="screenshot-blocked">
+                                <div className="blocked-content">███</div>
+                              </div>
+                            ) : (
+                              message.thumbnailUrl ? (
+                                <div className="video-thumbnail-container">
+                                  <img
+                                    src={message.thumbnailUrl}
+                                    alt="Video thumbnail"
+                                    className="video-thumbnail clickable"
+                                    onClick={() => {
+                                      setModalContent(message.fileUrl)
+                                      setModalType('video')
+                                      setShowModal(true)
+                                    }}
+                                    onContextMenu={(e) => e.preventDefault()}
+                                  />
+                                  <div className="play-overlay">▶</div>
+                                </div>
+                              ) : (
+                                <video
+                                  controls
+                                  className="uploaded-video clickable"
+                                  onClick={() => {
+                                    setModalContent(message.fileUrl)
+                                    setModalType('video')
+                                    setShowModal(true)
+                                  }}
+                                  onContextMenu={(e) => e.preventDefault()}
+                                >
+                                  <source src={message.fileUrl} type={message.fileType} />
+                                  Your browser does not support the video tag.
+                                </video>
+                              )
+                            )}
+                            <div className="message-text">{isScreenshotAttempt ? '███' : message.text}</div>
+                          </div>
+                        ) : message.isFile && message.fileType === 'document' && message.fileUrl ? (
+                          <div className="file-message">
+                            <div
+                              className="document-preview clickable"
                               onClick={() => {
                                 setModalContent(message.fileUrl)
-                                setModalType('video')
+                                setModalType('document')
                                 setShowModal(true)
                               }}
-                              onContextMenu={(e) => e.preventDefault()}
                             >
-                              <source src={message.fileUrl} type={message.fileType} />
-                              Your browser does not support the video tag.
-                            </video>
-                          )
+                              <div className="document-icon">📄</div>
+                              <div className="document-info">
+                                <div className="document-name">{isScreenshotAttempt ? '███' : message.fileName || 'Document'}</div>
+                                <div className="document-size">{isScreenshotAttempt ? '███' : message.fileSize || ''}</div>
+                              </div>
+                              <button
+                                className="document-download-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  const link = document.createElement('a')
+                                  link.href = message.fileUrl
+                                  link.download = message.fileName || 'document'
+                                  link.click()
+                                }}
+                                title="Download document"
+                              >
+                                ⬇️
+                              </button>
+                            </div>
+                            <div className="message-text">{isScreenshotAttempt ? '███' : message.text}</div>
+                          </div>
+                        ) : (
+                          <div className="message-text">{isScreenshotAttempt ? '███' : message.text}</div>
                         )}
-                        <div className="message-text">{isScreenshotAttempt ? '███' : message.text}</div>
+                        <div className="message-meta">
+                          <div className="message-time">{isScreenshotAttempt ? '███' : message.time}</div>
+                          {message.isOwn && (
+                            <div className="message-status">
+                              {message.status === "sent" && <span className="tick single">✓</span>}
+                              {message.status === "delivered" && <span className="tick double">✓✓</span>}
+                              {message.status === "read" && <span className="tick double blue">✓✓</span>}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    ) : message.isFile && message.fileType === 'document' && message.fileUrl ? (
-                      <div className="file-message">
-                        <div
-                          className="document-preview clickable"
-                          onClick={() => {
-                            setModalContent(message.fileUrl)
-                            setModalType('document')
-                            setShowModal(true)
+                    </div>
+                  ))}
+                </div>
+
+                <div className="chat-input-container">
+                  <div className="chat-input-wrapper" style={{ position: 'relative' }}>
+                    <input
+                      type="text"
+                      placeholder="Type your message here..."
+                      value={messageText}
+                      onChange={(e) => setMessageText(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      className="chat-input"
+                    />
+
+                    {/* Hidden file inputs for different types */}
+                    <input
+                      type="file"
+                      id="image-upload"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={(e) => handleFileUpload(e, 'image')}
+                    />
+                    <input
+                      type="file"
+                      id="video-upload"
+                      accept="video/*"
+                      style={{ display: 'none' }}
+                      onChange={(e) => handleFileUpload(e, 'video')}
+                    />
+                    <input
+                      type="file"
+                      id="document-upload"
+                      accept=".pdf,.doc,.docx,.txt,.ppt,.pptx,.xls,.xlsx"
+                      style={{ display: 'none' }}
+                      onChange={(e) => handleFileUpload(e, 'document')}
+                    />
+
+                    {/* Upload options dropdown */}
+                    {showUploadOptions && (
+                      <div className="upload-options" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          className="upload-option"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setShowUploadOptions(false)
+                            document.getElementById('image-upload').click()
                           }}
                         >
-                          <div className="document-icon">📄</div>
-                          <div className="document-info">
-                            <div className="document-name">{isScreenshotAttempt ? '███' : message.fileName || 'Document'}</div>
-                            <div className="document-size">{isScreenshotAttempt ? '███' : message.fileSize || ''}</div>
-                          </div>
-                          <button
-                            className="document-download-btn"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              const link = document.createElement('a')
-                              link.href = message.fileUrl
-                              link.download = message.fileName || 'document'
-                              link.click()
-                            }}
-                            title="Download document"
-                          >
-                            ⬇️
-                          </button>
-                        </div>
-                        <div className="message-text">{isScreenshotAttempt ? '███' : message.text}</div>
+                          🖼️ Image
+                        </button>
+                        <button
+                          className="upload-option"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setShowUploadOptions(false)
+                            document.getElementById('video-upload').click()
+                          }}
+                        >
+                          🎥 Video
+                        </button>
+                        <button
+                          className="upload-option"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setShowUploadOptions(false)
+                            document.getElementById('document-upload').click()
+                          }}
+                        >
+                          📄 Document
+                        </button>
                       </div>
-                    ) : (
-                      <div className="message-text">{isScreenshotAttempt ? '███' : message.text}</div>
                     )}
-                    <div className="message-meta">
-                      <div className="message-time">{isScreenshotAttempt ? '███' : message.time}</div>
-                      {message.isOwn && (
-                        <div className="message-status">
-                          {message.status === "sent" && <span className="tick single">✓</span>}
-                          {message.status === "delivered" && <span className="tick double">✓✓</span>}
-                          {message.status === "read" && <span className="tick double blue">✓✓</span>}
-                        </div>
-                      )}
-                    </div>
+
+                    <button
+                      className="pin-button"
+                      onClick={() => setShowUploadOptions(!showUploadOptions)}
+                      title="Attach file"
+                    >
+                      📎
+                    </button>
+                    <button onClick={handleSendMessage} className="send-button" disabled={!messageText.trim()}>
+                      <span className="send-icon">➤</span>
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
-
-            <div className="chat-input-container">
-              <div className="chat-input-wrapper" style={{ position: 'relative' }}>
-                <input
-                  type="text"
-                  placeholder="Type your message here..."
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="chat-input"
-                />
-
-                {/* Hidden file inputs for different types */}
-                <input
-                  type="file"
-                  id="image-upload"
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  onChange={(e) => handleFileUpload(e, 'image')}
-                />
-                <input
-                  type="file"
-                  id="video-upload"
-                  accept="video/*"
-                  style={{ display: 'none' }}
-                  onChange={(e) => handleFileUpload(e, 'video')}
-                />
-                <input
-                  type="file"
-                  id="document-upload"
-                  accept=".pdf,.doc,.docx,.txt,.ppt,.pptx,.xls,.xlsx"
-                  style={{ display: 'none' }}
-                  onChange={(e) => handleFileUpload(e, 'document')}
-                />
-
-                {/* Upload options dropdown */}
-                {showUploadOptions && (
-                  <div className="upload-options" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      className="upload-option"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setShowUploadOptions(false)
-                        document.getElementById('image-upload').click()
-                      }}
-                    >
-                      🖼️ Image
-                    </button>
-                    <button
-                      className="upload-option"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setShowUploadOptions(false)
-                        document.getElementById('video-upload').click()
-                      }}
-                    >
-                      🎥 Video
-                    </button>
-                    <button
-                      className="upload-option"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setShowUploadOptions(false)
-                        document.getElementById('document-upload').click()
-                      }}
-                    >
-                      📄 Document
-                    </button>
-                  </div>
-                )}
-
-                <button
-                  className="pin-button"
-                  onClick={() => setShowUploadOptions(!showUploadOptions)}
-                  title="Attach file"
-                >
-                  📎
-                </button>
-                <button onClick={handleSendMessage} className="send-button" disabled={!messageText.trim()}>
-                  <span className="send-icon">➤</span>
-                </button>
+              </>
+            ) : (
+              <div className="chat-placeholder">
+                <div className="placeholder-content">
+                  <h3>Select a contact to start chatting</h3>
+                  <p>Choose a teacher from the list to begin your conversation.</p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
@@ -557,6 +638,20 @@ const Message = () => {
                 </div>
               </div>
             ) : null}
+          </div>
+        </div>
+      )}
+
+      {/* Warning Modal for restricted content */}
+      {showWarningModal && (
+        <div className="modal-overlay" onClick={() => setShowWarningModal(false)}>
+          <div className="warning-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowWarningModal(false)}>×</button>
+            <div className="warning-content">
+              <h3>⚠️ Warning</h3>
+              <p>Your message contains restricted content and cannot be sent. Please avoid sharing contact information or numbers.</p>
+              <button className="warning-ok-btn" onClick={() => setShowWarningModal(false)}>OK</button>
+            </div>
           </div>
         </div>
       )}

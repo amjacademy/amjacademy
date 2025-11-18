@@ -36,6 +36,7 @@ const Dashboard = () => {
   const [ongoingClass, setOngoingClass] = useState(null);
   const [showAllClasses, setShowAllClasses] = useState(false);
   const [incompleteAssessmentsCount, setIncompleteAssessmentsCount] = useState(1); // Static count for now, 1 incomplete out of 3
+  const [messageUnreadCount, setMessageUnreadCount] = useState(2); // Static count for now, based on contacts with unread messages
 
   // helper: convert "date" + "time" strings into an ISO-like datetime (sessionAt)
   // Works for most server formats like "2025-11-17" + "14:30:00" or "14:30"
@@ -111,6 +112,12 @@ const formatDate = (dateStr) => {
       setShowAnnouncement(false)
     }
   }, [])
+
+  useEffect(() => {
+    if (activeTab === "message") {
+      setMessageUnreadCount(0);
+    }
+  }, [activeTab])
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -241,7 +248,7 @@ const formatDate = (dateStr) => {
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: "🏠" },
     { id: "profile", label: "My Profile", icon: "👤" },
-    { id: "message", label: "Message", icon: "💬" },
+    { id: "message", label: "Message", icon: "💬", count: messageUnreadCount },
     { id: "class-report", label: "Class Report", icon: "📊" },
     { id: "assignments", label: "My Assignments", icon: "📝", count: incompleteAssessmentsCount },
     { id: "punctuality-report", label: "Punctuality Report", icon: "⏰" },
@@ -674,9 +681,11 @@ const formatDate = (dateStr) => {
                         window.scrollTo(0, 0)
                       }
                     }}
+                    style={{ display: 'flex', alignItems: 'center' }}
                   >
                     <span className="nav-icon">{item.icon}</span>
-                    <span className="nav-label">{item.label}{item.count > 0 ? <span style={{color: 'red', fontWeight: 'bold', marginLeft: '20px'}}> ({item.count})</span> : ''}</span>
+                    <span className="nav-label">{item.label}</span>
+                    {item.count > 0 && <span style={{color: 'red', fontWeight: 'bold', marginLeft: 'auto'}}>({item.count})</span>}
                     {item.hasDropdown && <span className={`dropdown-arrow ${item.isOpen ? "open" : ""}`}>▼</span>}
                   </button>
                 </div>
