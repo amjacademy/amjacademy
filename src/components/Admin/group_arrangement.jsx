@@ -17,6 +17,7 @@ const GroupArrangement = () => {
     students: [],
     classLink: "",
     teacherId: "",
+    teacherName: "",
     sessionForWeek: "1 day",
     scheduleFor: "12",
     day: "",
@@ -245,6 +246,7 @@ const GroupArrangement = () => {
         group_name: formData.groupName,
         class_link: formData.classLink,
         teacher_id: formData.teacherId,
+        teacher_name: formData.teacherName,
         session_for_week: formData.sessionForWeek,
         schedule_for: parseInt(formData.scheduleFor),
         day: formData.day,
@@ -424,14 +426,23 @@ const GroupArrangement = () => {
                   <label>Teacher *</label>
                   <select
                     value={formData.teacherId}
-                    onChange={(e) =>
-                      setFormData({ ...formData, teacherId: e.target.value })
-                    }
+                    onChange={(e) => {
+                      const selectedOption = e.target.options[e.target.selectedIndex];
+                      setFormData({
+                        ...formData,
+                        teacherId: selectedOption.value,
+                        teacherName: selectedOption.getAttribute("data-name"),
+                      });
+                    }}
                     required
                   >
                     <option value="">Select Teacher</option>
                     {teachers.map((teacher) => (
-                      <option key={teacher.id} value={teacher.id}>
+                      <option 
+                        key={teacher.id} 
+                        value={teacher.id} 
+                        data-name={teacher.name}
+                      >
                         {teacher.name}
                       </option>
                     ))}

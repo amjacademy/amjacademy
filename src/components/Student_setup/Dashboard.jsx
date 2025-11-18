@@ -36,7 +36,7 @@ const Dashboard = () => {
   const [ongoingClass, setOngoingClass] = useState(null);
   const [showAllClasses, setShowAllClasses] = useState(false);
   const [incompleteAssessmentsCount, setIncompleteAssessmentsCount] = useState(1); // Static count for now, 1 incomplete out of 3
-  const [messageUnreadCount, setMessageUnreadCount] = useState(2); // Static count for now, based on contacts with unread messages
+  const [messageUnreadCount, setMessageUnreadCount] = useState(2);
 
   // helper: convert "date" + "time" strings into an ISO-like datetime (sessionAt)
   // Works for most server formats like "2025-11-17" + "14:30:00" or "14:30"
@@ -226,6 +226,7 @@ const formatDate = (dateStr) => {
               groupId: cls.group_id,
               groupName: cls.group_arrangements.group_name,
               teacherId: cls.group_arrangements.teacher_id,
+              teacher: cls.group_arrangements.teacher_name,
               classLink: cls.group_arrangements.class_link,
               sessionAt, // ISO
               sessionNumber: cls.session_number,
@@ -248,7 +249,7 @@ const formatDate = (dateStr) => {
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: "🏠" },
     { id: "profile", label: "My Profile", icon: "👤" },
-    { id: "message", label: "Message", icon: "💬", count: messageUnreadCount },
+    { id: "message", label: "Message", icon: "💬" },
     { id: "class-report", label: "Class Report", icon: "📊" },
     { id: "assignments", label: "My Assignments", icon: "📝", count: incompleteAssessmentsCount },
     { id: "punctuality-report", label: "Punctuality Report", icon: "⏰" },
@@ -353,7 +354,7 @@ const formatDate = (dateStr) => {
         batch: "Group",
         level: "N/A",
         plan: `${cls.sessionNumber} / ${cls.totalSessions}`,
-        teachers: [cls.teacherId],
+        teacher: cls.teacher,
         image: "/images/amj-logo.png",
         link: cls.classLink
       };
@@ -423,7 +424,7 @@ const formatDate = (dateStr) => {
 
     // unify display fields
     const title = isGroup ? (cls.groupName || "Group Class") : (cls.title || "Class");
-    const teacherName = isGroup ? cls.teacherId : (cls.teachers && cls.teachers.join(", "));
+    const teacherName = isGroup ? cls.teacher : (cls.teachers && cls.teachers.join(", "));
     const duration = isGroup ? "45 mins" : (cls.duration || "45 mins");
     const planBadge = isGroup ? `${cls.sessionNumber}/${cls.totalSessions}` : (cls.plan || "");
 
@@ -684,8 +685,8 @@ const formatDate = (dateStr) => {
                     style={{ display: 'flex', alignItems: 'center' }}
                   >
                     <span className="nav-icon">{item.icon}</span>
-                    <span className="nav-label">{item.label}</span>
-                    {item.count > 0 && <span style={{color: 'red', fontWeight: 'bold', marginLeft: 'auto'}}>({item.count})</span>}
+                    <span className="nav-label">{item.label}
+                    {item.count > 0 ? <span style={{color: 'red', fontWeight: 'bold', marginLeft: '20px'}}> ({item.count})</span> : ''}</span>
                     {item.hasDropdown && <span className={`dropdown-arrow ${item.isOpen ? "open" : ""}`}>▼</span>}
                   </button>
                 </div>

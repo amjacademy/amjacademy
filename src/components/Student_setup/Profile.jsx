@@ -4,6 +4,10 @@ import { useState, useRef, useEffect } from "react"
 import "./Profile.css"
 
 const Profile = () => {
+
+  const MAIN="https://amjacademy-working.onrender.com";
+  const LOCAL="http://localhost:5000";
+
   const [activeSection, setActiveSection] = useState("videos")
   const [newProfileImage, setNewProfileImage] = useState(null)
   const [uploadedVideos, setUploadedVideos] = useState([])
@@ -12,7 +16,6 @@ const Profile = () => {
   const videoInputRef = useRef(null)
   const photoInputRef = useRef(null)
   const [storyCharacters, setStoryCharacters] = useState([])
-
   const [userProfile, setUserProfile] = useState({
     name: "Student",
     email: "",
@@ -21,15 +24,13 @@ const Profile = () => {
     totalClassesAttended: 0,
     progress: "0%",
     achievements: 0,
-    enrolledSubjects: [],
+    enrolledSubjects: " ",
     videos: [],
     photos: [],
   })
 
-  const [unlockedCharacters, setUnlockedCharacters] = useState(() => {
-    const saved = localStorage.getItem("unlockedCharacters")
-    return saved ? JSON.parse(saved) : []
-  })
+const [unlockedCharacters, setUnlockedCharacters] = useState([]);
+
 
   // -------------------- FETCH PROFILE --------------------
   useEffect(() => {
@@ -38,22 +39,24 @@ const Profile = () => {
       if (!userId) return
 
       try {
-        const res = await fetch(`https://amjacademy-working.onrender.com/profile/${userId}`)
+        const res = await fetch(`${MAIN}/profile/${userId}`, { credentials: 'include' })
         if (res.ok) {
           const data = await res.json()
           setUserProfile({
             name: data.name || "Student",
             email: data.email || "",
             username: data.username || "",
-            avatar: data.avatar || "/placeholder.svg",
-            enrolledSubjects: data.enrolled_subjects || [],
-            totalClassesAttended: data.total_classes_attended || 0,
+            avatar: data.profile || "/placeholder.svg",
+            enrolledSubjects: data.enrolledSubjects || " ",
+            totalClassesAttended: data.totalClassesAttended || 0,
             progress: data.progress || "0%",
             achievements: data.achievements || 0,
-            videos: data.media?.filter(m => m.resource_type === "video") || [],
-            photos: data.media?.filter(m => m.resource_type === "photo") || [],
+            videos: data.media?.videos || [],
+            photos: data.media?.photos || [],
+
           })
-          setUnlockedCharacters(data.unlocked || [])
+          setUnlockedCharacters(data.unlocked || []);
+          /* console.log(data.unlocked) */
         } else if (res.status === 404) {
           console.log("Profile not found. Initialize it first.")
         }
@@ -69,7 +72,7 @@ const Profile = () => {
   useEffect(() => {
     const fetchCharacters = async () => {
       try {
-        const res = await fetch("https://amjacademy-working.onrender.com/story-characters")
+        const res = await fetch(`${MAIN}/story-characters`, { credentials: 'include' })
         if (res.ok) {
           const data = await res.json()
           setStoryCharacters(data)
@@ -86,7 +89,7 @@ const Profile = () => {
   const fetchMedia = async () => {
     try {
       const userId = localStorage.getItem("user_id");
-      const res = await fetch(`https://amjacademy-working.onrender.com/media/${userId}`);
+      const res = await fetch(`${MAIN}/media/${userId}`, { credentials: 'include' });
       if (!res.ok) throw new Error("Failed to fetch media");
 
       const data = await res.json();
@@ -116,12 +119,6 @@ const Profile = () => {
   fetchMedia();
 }, []);
 
-
-  // -------------------- SAVE UNLOCKED CHARACTERS --------------------
-  useEffect(() => {
-    localStorage.setItem("unlockedCharacters", JSON.stringify(unlockedCharacters))
-  }, [unlockedCharacters])
-
   // -------------------- HANDLE PROFILE IMAGE --------------------
 const handleProfileImageChange = async (e) => {
   const file = e.target.files[0];
@@ -136,7 +133,7 @@ const handleProfileImageChange = async (e) => {
 // must match backend parser.single("avatar")
 
     // Upload to media endpoint
-    const mediaRes = await fetch(`https://amjacademy-working.onrender.com/profile/${userId}/avatar`, {
+    const mediaRes = await fetch(`${MAIN}/profile/${userId}/avatar`, {
       method: "POST",
       body: formData,
     });
@@ -144,6 +141,7 @@ const handleProfileImageChange = async (e) => {
     if (!mediaRes.ok) throw new Error("Failed to upload image");
 
     const mediaData = await mediaRes.json();
+    /* console.log("Media upload response:", mediaData.secure_url); */
     const newAvatarUrl = mediaData.secure_url; // URL returned from backend
 
     // Update frontend state
@@ -152,12 +150,11 @@ const handleProfileImageChange = async (e) => {
       avatar: newAvatarUrl,
     }));
 
-    console.log("Profile image updated successfully!");
+    window.alert("Profile image updated successfully!");
   } catch (err) {
     console.error("Error updating profile image:", err);
   }
 };
-
 
 
 // -------------------- HANDLE VIDEO UPLOAD --------------------
@@ -172,7 +169,7 @@ const handleVideoUpload = async (e) => {
     formData.append("type", "video");
 
     try {
-      const res = await fetch(`https://amjacademy-working.onrender.com/media/${userId}/upload`, {
+      const res = await fetch(`${MAIN}/media/${userId}/upload`, {
         method: "POST",
         body: formData,
       });
@@ -201,7 +198,7 @@ const handlePhotoUpload = async (e) => {
     formData.append("type", "photo");
 
     try {
-      const res = await fetch(`https://amjacademy-working.onrender.com/media/${userId}/upload`, {
+      const res = await fetch(`${MAIN}/media/${userId}/upload`, {
         method: "POST",
         body: formData,
       });
@@ -271,7 +268,7 @@ const handlePhotoUpload = async (e) => {
               { icon:"🎓", label:"Classes Attended", value:userProfile.totalClassesAttended },
               { icon:"📊", label:"Progress", value:userProfile.progress },
               { icon:"🏆", label:"Achievements", value:userProfile.achievements },
-              { icon:"📚", label:"Subjects", value:userProfile.enrolledSubjects.join(", ") || "None" }
+              { icon:"📚", label:"Subjects", value:userProfile.enrolledSubjects || "None" }
             ].map((card,i)=>(
               <div key={i} className={`info-card info-card-${i}`} >
                 <div className="info-icon">{card.icon}</div>
