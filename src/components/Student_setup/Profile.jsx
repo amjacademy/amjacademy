@@ -51,6 +51,7 @@ const [unlockedCharacters, setUnlockedCharacters] = useState([]);
             totalClassesAttended: data.totalClassesAttended || 0,
             progress: data.progress || "0%",
             achievements: data.achievements || 0,
+            ratings: data.ratings || 0,
             videos: data.media?.videos || [],
             photos: data.media?.photos || [],
 
@@ -266,6 +267,7 @@ const handlePhotoUpload = async (e) => {
               { icon:"📧", label:"Email", value:userProfile.email },
               { icon:"👤", label:"Username", value:userProfile.username },
               { icon:"🎓", label:"Classes Attended", value:userProfile.totalClassesAttended },
+              { icon:"⭐", label:"Ratings", value:userProfile.ratings },
               { icon:"📊", label:"Progress", value:userProfile.progress },
               { icon:"🏆", label:"Achievements", value:userProfile.achievements },
               { icon:"📚", label:"Subjects", value:userProfile.enrolledSubjects || "None" }

@@ -47,7 +47,8 @@ const MyAssignments = () => {
     "Did you ask for help whenever you didn't understand something?",
     "Did you cooperate during group or pair activities?",
     "Did you practice the assigned piece/exercise at home?",
-    "Did you feel more confident compared to last week's session?"
+    "Did you feel more confident compared to last week's session?",
+    "Your feedback about the teacher:"
   ]
 
   const handleViewClick = (assessmentId) => {
@@ -200,41 +201,52 @@ const MyAssignments = () => {
     <div className="assessment-form-overlay">
       <div className="assessment-form-container">
         <div className="form-header">
-          <h2>Weekly Assessment</h2>
+          <h2>🎵 Weekly Music Assessment <span className="music-icon">🎼</span></h2>
           <button className="close-btn" onClick={() => setShowForm(false)}>×</button>
         </div>
         <form onSubmit={handleFormSubmit} className="assessment-form">
           {questions.map((question, index) => (
             <div key={index} className="question-item">
-              <p className="question-text">{index + 1}. {question}</p>
-              <div className="answer-options">
-                <label className="option-label">
-                  <input
-                    type="radio"
-                    name={`question-${index}`}
-                    value="Yes"
-                    checked={formAnswers[index] === "Yes"}
-                    onChange={() => handleAnswerChange(index, "Yes")}
-                    required
-                  />
-                  <span className="option-text">Yes</span>
-                </label>
-                <label className="option-label">
-                  <input
-                    type="radio"
-                    name={`question-${index}`}
-                    value="No"
-                    checked={formAnswers[index] === "No"}
-                    onChange={() => handleAnswerChange(index, "No")}
-                    required
-                  />
-                  <span className="option-text">No</span>
-                </label>
-              </div>
+              <p className="question-text">🎼 {index + 1}. {question}</p>
+              {index === 10 ? (
+                <textarea
+                  className="feedback-textarea"
+                  value={formAnswers[index] || ""}
+                  onChange={(e) => handleAnswerChange(index, e.target.value)}
+                  placeholder="Please share your feedback about the teacher..."
+                  rows="4"
+                  required
+                />
+              ) : (
+                <div className="answer-options">
+                  <label className="option-label yes-option">
+                    <input
+                      type="radio"
+                      name={`question-${index}`}
+                      value="Yes"
+                      checked={formAnswers[index] === "Yes"}
+                      onChange={() => handleAnswerChange(index, "Yes")}
+                      required
+                    />
+                    <span className="option-text">Yes 👍</span>
+                  </label>
+                  <label className="option-label no-option">
+                    <input
+                      type="radio"
+                      name={`question-${index}`}
+                      value="No"
+                      checked={formAnswers[index] === "No"}
+                      onChange={() => handleAnswerChange(index, "No")}
+                      required
+                    />
+                    <span className="option-text">No 👎</span>
+                  </label>
+                </div>
+              )}
             </div>
           ))}
           <div className="form-actions">
-            <button type="submit" className="submit-btn">Submit Assessment</button>
+            <button type="submit" className="submit-btn">🚀 Submit My Assessment!</button>
           </div>
         </form>
       </div>

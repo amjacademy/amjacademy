@@ -4,22 +4,22 @@ import './Testimonials.css';
 const Testimonials = () => {
   const testimonials = [
     {
-      name: 'Name',
-      role: 'Experience',
+      name: 'Deveshwar Sanaadhana',
+      role: 'Begginer Student',
       image: 'images/Accolades.jpg?height=80&width=80',
-      text: 'Be the first to embrace the AMJ experience, and let your voice be heard.'
+      text: 'I like this class . The teacher is very kind.I love this teacher'
     },
     {
-      name: 'Name',
-      role: 'Experience',
+      name: 'A.Maria Viyanci ',
+      role: 'Begginer Student',
       image: 'images/Accolades.jpg?height=80&width=80',
-      text: 'Be the first to embrace the AMJ experience, and let your voice be heard.'
+      text: 'The keyboard class is very useful and engaging.Tha lesson are easy to follow, and I am improving my skills steadily .The teacher is supportive and makes learning enjoyable.'
     },
     {
-      name: 'Name',
-      role: 'Experience',
+      name: 'M ANTONY LISBAN',
+      role: 'intermediate Student',
       image: 'images/Accolades.jpg?height=80&width=80',
-      text: 'Be the first to embrace the AMJ experience, and let your voice be heard.'
+      text: 'Your guidance has turned my fingers into magic on the keys! From scales to symphonies, you have made music feel accessible and joyful. Your passion is contagious, and I am so grateful for every lesson. Keep inspiring....'
     },
     // {
     //   name: 'David Thompson',

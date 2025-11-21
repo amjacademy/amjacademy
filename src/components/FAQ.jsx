@@ -28,7 +28,7 @@ const FAQ = () => {
     {
       question: "How long the session been?",
       answer:
-        "1:1 - 50 min , group - 50 min ",
+        "1:1 - 45 min , group - 50 min ",
     },
     // {
     //   question: "What is your teaching experience?",
@@ -53,7 +53,7 @@ const FAQ = () => {
     {
       question: "What I have to do if I can't attend upcoming class?",
       answer:
-        "You can have a option to cancel class. But have to inform atleast before one hour.",
+        "You can have a option to cancel class. But have to inform atleast before four hour.",
     },
     {
       question: "Do you prepare students for Trinity exam?",

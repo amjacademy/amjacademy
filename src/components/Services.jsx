@@ -1,6 +1,7 @@
 "use client"
 import { useNavigate } from 'react-router-dom';
 import "./Services.css"
+import "./VocalServices.jsx"
 
 const Services = () => {
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ const Services = () => {
       navigate("/hindi-classes");
       window.scrollTo(0, 0);
     } else if (module === "vocal") {
-      navigate("/vocal-classes");
+      navigate("/vocal-services");
       window.scrollTo(0, 0);
     }
   }
@@ -72,7 +73,7 @@ const Services = () => {
            </div>
 
           {/* Recorded Classes */}
-          <div
+          {/* <div
             className="service-card clickable"
             onClick={() => handleModuleClick("recorded")}
             role="button"
@@ -94,7 +95,7 @@ const Services = () => {
               <div className="feature">📱 Learn at Your Pace</div>
             </div>
             <div className="learn-more">Click to Learn More →</div>
-          </div>
+          </div> */}
 
           {/* Hindi Classes */}
           <div
@@ -118,7 +119,7 @@ const Services = () => {
               <div className="feature">📝 Writing Skills</div>
               <div className="feature">🎭 Cultural Context</div>
             </div>
-            <div className="learn-more">Click to Learn More →</div>
+            <div className="coming-soon">Coming Soon</div>
           </div>
 
           {/* Vocal Classes */}
@@ -143,7 +144,7 @@ const Services = () => {
               <div className="feature">🎼 Music Theory</div>
               <div className="feature">🎤 Performance Skills</div>
             </div>
-            <div className="learn-more">Click to Learn More →</div>
+            <div className="coming-soon">Coming Soon</div>
           </div>
         </div>
 
