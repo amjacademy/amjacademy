@@ -1,17 +1,30 @@
-const { createClient } = require('@supabase/supabase-js');
+// config/supabaseClient.js
+const { createClient } = require("@supabase/supabase-js");
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+// ❗ Use SERVICE ROLE key on the backend, not the anon key
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  console.error("❌ SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY missing!");
+} else {
+  console.log("✅ Supabase server client initialized with service role key.");
+}
 
-// Simple test function to log initialization
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
+});
+
+// Optional: simple test
 const testSupabaseConnection = () => {
-  if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-    console.log('✅ Supabase client initialized successfully!');
+  if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+    console.log("✅ Supabase client ready (service role).");
   } else {
-    console.error('❌ Supabase URL or ANON key missing!');
+    console.error("❌ Supabase env vars missing!");
   }
 };
-// Export both supabase client and test function
+
 module.exports = { supabase, testSupabaseConnection };

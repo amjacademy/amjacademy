@@ -12,6 +12,7 @@ import Contact from './components/Contact';
 import Footer from './components/Footer/footer';
 import PianoLessons from './components/PianoLessons';
 import RecordedClasses from './components/RecordedClasses';
+import PianoServices from './components/PianoServices';
 import RegistrationEnhanced from './components/RegistrationModal';
 import LoginForm from './components/Login/Login';
 import TeacherDashboard from './components/Teacher_setup/dashboard';
@@ -118,6 +119,17 @@ function RecordedClassesPage() {
   );
 }
 
+// Piano Services Page Component
+function PianoServicesPage() {
+  return (
+    <>
+      <Header />
+      <PianoServices />
+      <Footer />
+    </>
+  );
+}
+
 // Registration Page Component
 function RegistrationPage() {
   const [isModalOpen, setIsModalOpen] = useState(true);
@@ -192,6 +204,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/piano-lessons" element={<PianoLessonsPage />} />
+          <Route path="/piano-services" element={<PianoServicesPage />} />
           <Route path="/recorded-classes" element={<RecordedClassesPage />} />
           <Route path="/registration" element={<RegistrationPage />} />
           <Route path="/login" element={<LoginPage />} />

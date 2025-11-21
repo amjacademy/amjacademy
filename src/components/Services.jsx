@@ -8,10 +8,16 @@ const Services = () => {
   const handleModuleClick = (module) => {
     // Use React Router for navigation
     if (module === "piano") {
-      navigate("/piano-lessons");
+      navigate("/piano-services");
       window.scrollTo(0, 0);
     } else if (module === "recorded") {
       navigate("/recorded-classes");
+      window.scrollTo(0, 0);
+    } else if (module === "hindi") {
+      navigate("/hindi-classes");
+      window.scrollTo(0, 0);
+    } else if (module === "vocal") {
+      navigate("/vocal-classes");
       window.scrollTo(0, 0);
     }
   }
@@ -40,7 +46,7 @@ const Services = () => {
             <div className="service-icon">
               <div className="icon-wrapper">🎹</div>
             </div>
-            <h3>Live Piano and Keyboard Classes</h3>
+            <h3>Piano and Keyboard Classes</h3>
             <p>1:1 professional teachings and Group teaching to enhance your skill level in music goal</p>
             <div className="service-features">
               <div className="feature">✨ Personalized Learning</div>
@@ -68,12 +74,12 @@ const Services = () => {
           {/* Recorded Classes */}
           <div
             className="service-card clickable"
-            onClick={() => handleModuleClick1("recorded")}
+            onClick={() => handleModuleClick("recorded")}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
-                handleModuleClick1("recorded")
+                handleModuleClick("recorded")
               }
             }}
           >
@@ -87,7 +93,57 @@ const Services = () => {
               <div className="feature">🎼 Classical & Contemporary</div>
               <div className="feature">📱 Learn at Your Pace</div>
             </div>
-            <div className="coming-soon">Coming Soon</div>
+            <div className="learn-more">Click to Learn More →</div>
+          </div>
+
+          {/* Hindi Classes */}
+          <div
+            className="service-card clickable"
+            onClick={() => handleModuleClick("hindi")}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                handleModuleClick("hindi")
+              }
+            }}
+          >
+            <div className="service-icon">
+              <div className="icon-wrapper">📖</div>
+            </div>
+            <h3>Hindi Classes</h3>
+            <p>Master the Hindi language with interactive lessons and cultural insights.</p>
+            <div className="service-features">
+              <div className="feature">🗣️ Spoken Hindi</div>
+              <div className="feature">📝 Writing Skills</div>
+              <div className="feature">🎭 Cultural Context</div>
+            </div>
+            <div className="learn-more">Click to Learn More →</div>
+          </div>
+
+          {/* Vocal Classes */}
+          <div
+            className="service-card clickable"
+            onClick={() => handleModuleClick("vocal")}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                handleModuleClick("vocal")
+              }
+            }}
+          >
+            <div className="service-icon">
+              <div className="icon-wrapper">🎤</div>
+            </div>
+            <h3>Vocal Classes</h3>
+            <p>Develop your singing voice with professional vocal training and techniques.</p>
+            <div className="service-features">
+              <div className="feature">🎵 Voice Training</div>
+              <div className="feature">🎼 Music Theory</div>
+              <div className="feature">🎤 Performance Skills</div>
+            </div>
+            <div className="learn-more">Click to Learn More →</div>
           </div>
         </div>
 

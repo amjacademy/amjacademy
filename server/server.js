@@ -44,7 +44,8 @@ app.use(cors({
 app.use(express.json());
 
 const { supabase } = require("./config/supabaseClient");
-
+const errorHandler = require("./utils/errorHandler");
+app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 
 // Routes
@@ -193,6 +194,9 @@ app.post("/profile/init", async (req, res) => {
 });
 
 app.use("/",require("./routes/profileRoutes"));
+
+
+app.use("/api/messages", require("./routes/messagesRoutes"));
 
 
 //Teacher Routes
