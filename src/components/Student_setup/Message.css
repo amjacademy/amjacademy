@@ -840,3 +840,17 @@
     height: calc(100vh - 350px);
   }
 }
+@media (max-width: 400px) {
+  .contact-item {
+    width: 150px;
+    padding: 10px 15px;
+  }
+
+  .contact-name {
+    font-size: 1rem;
+  }
+
+  .contact-last-message {
+    font-size: 0.8rem;
+  }
+}
