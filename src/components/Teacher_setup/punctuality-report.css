@@ -239,9 +239,14 @@
   background: #fecaca;
   color: #7f1d1d;
 }
-.chip.as-schedule {
+.chip.as-scheduled,
+.chip.as\\ scheduled {
   background: #22c55e !important;
   color: white !important;
+}
+.chip.after-scheduled {
+  background: #facc15 !important;
+  color: black !important;
 }
 .chip.behind-schedule {
   background: #ef4444 !important;

@@ -102,12 +102,12 @@ const MyAssignments = () => {
             <option>Piano</option>
             {/* <option>Guitar</option> */}
           </select>
-          <select className="stage-select">
+          {/* <select className="stage-select">
             <option>Select level</option>
             <option>Beginner</option>
             <option>Intermediate</option>
             <option>Advanced</option>
-          </select>
+          </select> */}
           <button className="refresh-btn">🔄</button>
         </div>
 

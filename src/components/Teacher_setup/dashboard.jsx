@@ -11,6 +11,7 @@ import ClassReport from "./class-report.jsx"
 // import MyAssignments from "./my-assignments.jsx"
 import PunctualityReport from "./punctuality-report.jsx"
 import LeaveModal from "../common/LeaveModal.jsx"
+import MyAssignments from "./my-assignments.jsx"
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -222,6 +223,7 @@ const Dashboard = () => {
     { id: "profile", label: "My Profile", icon: "👤" },
     { id: "message", label: "Message", icon: "💬" },
     { id: "class-report", label: "Class Report", icon: "📊" },
+    { id: "my-assignments", label: "My Assignments", icon: "📝" },
     { id: "punctuality-report", label: "Punctuality Report", icon: "⏰" },
   ];
 
@@ -459,6 +461,8 @@ const Dashboard = () => {
         return <ClassReport />;
       case "punctuality-report":
         return <PunctualityReport />;
+      case "my-assignments":
+        return <MyAssignments />;
       case "dashboard":
       default:
         return (

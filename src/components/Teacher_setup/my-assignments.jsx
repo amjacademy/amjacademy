@@ -3,189 +3,94 @@
 import { useState, useEffect } from "react"
 import "./my-assignments.css"
 
-const MyAssignments = ({ initialSection = "shared" }) => {
-  const [activeSection, setActiveSection] = useState(initialSection)
-
-  useEffect(() => {
-    setActiveSection(initialSection)
-  }, [initialSection])
-
-  const [activeTab, setActiveTab] = useState("videos")
-  const [searchKeyword, setSearchKeyword] = useState("")
-  const [searchDate, setSearchDate] = useState("")
-
-  const sharedAssignments = [
+const MyAssignments = () => {
+  const [showForm, setShowForm] = useState(false)
+  const [formAnswers, setFormAnswers] = useState({})
+  const [currentAssessmentId, setCurrentAssessmentId] = useState(null)
+  const [assessments, setAssessments] = useState([
     {
       id: 1,
-      title: "Keyboard Practice Session",
-      sharedBy: "S",
-      type: "video",
-      thumbnail: "images/keyboard-practice.jpg",
-      description: "Basic scales and chord progressions",
-    },
-  ]
-
-  const myUploads = {
-    videos: [],
-    audio: [],
-    photos: [],
-    docs: [],
-  }
-
-  const assessments = [
-    {
-      id: 1,
-      studentName: "Rihan Sandipatham",
-      age: "9 Years",
-      subject: "Keyboard | Intermediate Level 1",
-      stage: "Intermediate Level 1",
-      reviewer: "Dhawal Shethia",
+      subject: "Keyboard | Intermediate ",
+      teacher: "Student 1",
       dueDate: "22 Apr, 2025",
       progress: "Overall: 31/33, Current: 8/10",
-      isReopen: false,
-      lastRemark: "N/A",
-      status: "Pending Approval",
+      status: "Incomplete",
       actions: ["View"],
     },
     {
       id: 2,
-      studentName: "Elorah Michael",
-      age: "8 Years",
       subject: "Keyboard | Beginner",
-      stage: "Half Term",
-      reviewer: "Dhawal Shethia",
+      teacher: "Developer_student",
       dueDate: "30 Apr, 2025",
       progress: "Overall: 24/24, Current: 24/24",
-      isReopen: false,
-      lastRemark: "N/A",
-      status: "Pending Approval",
-      actions: ["View"],
+      status: "Completed",
+      actions: ["Submited"],
     },
     {
       id: 3,
-      studentName: "Haniel null",
-      age: "8 Years",
       subject: "Keyboard | Beginner",
-      stage: "Half Term",
-      reviewer: "Dhawal Shethia",
+      teacher: "Student 2",
       dueDate: "30 Apr, 2025",
       progress: "Overall: 24/24, Current: 24/24",
-      isReopen: false,
-      lastRemark: "N/A",
-      status: "Pending Approval",
-      actions: ["View"],
+      status: "Completed",
+      actions: ["Submited"],
     },
+  ])
+
+  const questions = [
+    "Did the student come prepared for the class?",
+    "Did the student practice at least once between sessions?",
+    "Did the student recall what was taught in the previous session?",
+    "Did the student follow the instructions properly during the class?",
+    "Did the student stay focused throughout the session?",
+    "Did the student show improvement on the mistakes pointed out in the last class?",
+    "Did the student ask for help when they didn’t understand something?",
+    "Did the student cooperate well during group or pair activities?",
+    "Did the student practice the assigned piece/exercise at home?",
+    "Did the student appear more confident compared to the previous session?",
+    "Teacher’s comments about the student:"
   ]
 
-  const renderSharedAssignments = () => (
-    <div className="shared-assignments">
-      <div className="assignments-header">
-        <h2>ASSIGNMENTS SHARED</h2>
-      </div>
+  const handleViewClick = (assessmentId) => {
+    setCurrentAssessmentId(assessmentId)
+    setShowForm(true)
+  }
 
-      <div className="content-tabs">
-        <button
-          className={`content-tab ${activeTab === "videos" ? "active" : ""}`}
-          onClick={() => setActiveTab("videos")}
-        >
-          Videos
-        </button>
-        <button
-          className={`content-tab ${activeTab === "photos" ? "active" : ""}`}
-          onClick={() => setActiveTab("photos")}
-        >
-          Photos
-        </button>
-        <button className={`content-tab ${activeTab === "docs" ? "active" : ""}`} onClick={() => setActiveTab("docs")}>
-          Docs
-        </button>
-      </div>
+  const handleFormSubmit = (e) => {
+    e.preventDefault()
+    console.log("Form submitted with answers:", formAnswers)
 
-      <div className="assignments-content">
-        {sharedAssignments.map((assignment) => (
-          <div key={assignment.id} className="assignment-card">
-            <div className="assignment-thumbnail">
-              <img src={assignment.thumbnail || "/placeholder.svg"} alt={assignment.title} />
-            </div>
-            <div className="assignment-info">
-              <div className="shared-by">
-                Shared by <span className="shared-badge">{assignment.sharedBy}</span>
-              </div>
-              <h3>{assignment.title}</h3>
-              <p>{assignment.description}</p>
-            </div>
-            <div className="assignment-actions">
-              <button className="view-btn">VIEW</button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
+    // Update the assessment status and actions
+    setAssessments(prevAssessments =>
+      prevAssessments.map(assessment =>
+        assessment.id === currentAssessmentId
+          ? {
+              ...assessment,
+              status: "Completed",
+              actions: ["Submited"]
+            }
+          : assessment
+      )
+    )
 
-  const renderMyUploads = () => (
-    <div className="my-uploads">
-      <div className="uploads-header">
-        <h2>ASSIGNMENT UPLOADS</h2>
-        <button className="upload-btn">UPLOAD</button>
-      </div>
+    // Here you can handle the submission, e.g., send to API
+    setShowForm(false)
+    setFormAnswers({})
+    setCurrentAssessmentId(null)
+  }
 
-      <div className="content-tabs">
-        <button
-          className={`content-tab ${activeTab === "videos" ? "active" : ""}`}
-          onClick={() => setActiveTab("videos")}
-        >
-          Videos
-        </button>
-        <button
-          className={`content-tab ${activeTab === "audio" ? "active" : ""}`}
-          onClick={() => setActiveTab("audio")}
-        >
-          Audio
-        </button>
-        <button
-          className={`content-tab ${activeTab === "photos" ? "active" : ""}`}
-          onClick={() => setActiveTab("photos")}
-        >
-          Photos
-        </button>
-        <button className={`content-tab ${activeTab === "docs" ? "active" : ""}`} onClick={() => setActiveTab("docs")}>
-          Docs
-        </button>
-      </div>
-
-      <div className="search-section">
-        <div className="search-inputs">
-          <input
-            type="text"
-            placeholder="Search By Keyword"
-            value={searchKeyword}
-            onChange={(e) => setSearchKeyword(e.target.value)}
-            className="search-input"
-          />
-          <input
-            type="date"
-            value={searchDate}
-            onChange={(e) => setSearchDate(e.target.value)}
-            className="date-input"
-          />
-          <button className="search-btn">🔍 Search</button>
-        </div>
-      </div>
-
-      <div className="uploads-content">
-        <div className="empty-state">
-          <p>You do not have any {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}.</p>
-        </div>
-      </div>
-    </div>
-  )
+  const handleAnswerChange = (questionIndex, answer) => {
+    setFormAnswers(prev => ({
+      ...prev,
+      [questionIndex]: answer
+    }))
+  }
 
   const renderAssessments = () => (
     <div className="assessments-section">
-      <div className="assessments-header">
-        <h2>Assessments</h2>
-      </div>
+      {/* <div className="assessments-header">
+        <h2>My Assessments</h2>
+      </div> */}
 
       <div className="filter-section">
         <div className="filter-row">
@@ -195,15 +100,14 @@ const MyAssignments = ({ initialSection = "shared" }) => {
             <option>Select Subject</option>
             <option>Keyboard</option>
             <option>Piano</option>
-            <option>Guitar</option>
+            {/* <option>Guitar</option> */}
           </select>
           <select className="stage-select">
-            <option>Select Stage</option>
+            <option>Select level</option>
             <option>Beginner</option>
             <option>Intermediate</option>
             <option>Advanced</option>
           </select>
-          <input type="text" placeholder="Student Name" className="student-input" />
           <button className="refresh-btn">🔄</button>
         </div>
 
@@ -211,55 +115,41 @@ const MyAssignments = ({ initialSection = "shared" }) => {
           <label>
             <input type="radio" name="status" value="all" defaultChecked /> All
           </label>
-          <label>
+          {/* <label>
             <input type="radio" name="status" value="due" /> Due
           </label>
           <label>
             <input type="radio" name="status" value="overdue" /> Overdue
+          </label> */}
+          <label>
+            <input type="radio" name="status" value="Incomplete" /> Incomplete
           </label>
           <label>
-            <input type="radio" name="status" value="pending" /> Pending Approval
+            <input type="radio" name="status" value="Completed" /> Completed
           </label>
-          <label>
+          {/* <label>
             <input type="radio" name="status" value="approved" /> Approved
           </label>
           <label>
             <input type="radio" name="status" value="completed" /> Completed
-          </label>
-          <label>
-            <input type="radio" name="status" value="reopen" /> Re-open
-          </label>
+          </label> */}
         </div>
       </div>
 
-      <div className="table-controls">
-        <span>
-          Show
-          <select className="entries-select">
-            <option>10</option>
-            <option>25</option>
-            <option>50</option>
-          </select>{" "}
-          entries
-        </span>
+      {/* <div className="table-controls">
         <div className="export-buttons">
           <button className="export-btn">📄</button>
-          <button className="export-btn">📊</button>
         </div>
-      </div>
+      </div> */}
 
       <div className="assessments-table">
         <table>
           <thead>
             <tr>
-              <th>Student Name</th>
               <th>Subject & Level</th>
-              <th>Stage</th>
-              <th>Reviewer</th>
+              <th>Student Name</th>
               <th>Due Date</th>
               <th>Progress</th>
-              <th>Is Reopen</th>
-              <th>Last Remark</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -267,29 +157,27 @@ const MyAssignments = ({ initialSection = "shared" }) => {
           <tbody>
             {assessments.map((assessment) => (
               <tr key={assessment.id}>
-                <td>
-                  <div className="student-info">
-                    <strong>{assessment.studentName}</strong>
-                    <br />
-                    <small>{assessment.age}</small>
-                  </div>
-                </td>
                 <td>{assessment.subject}</td>
-                <td>{assessment.stage}</td>
-                <td>{assessment.reviewer}</td>
+                <td>{assessment.teacher}</td>
                 <td>{assessment.dueDate}</td>
                 <td>
                   <div className="progress-info">
                     <div>{assessment.progress}</div>
                   </div>
                 </td>
-                <td>{assessment.isReopen ? "Yes" : "No"}</td>
-                <td>{assessment.lastRemark}</td>
                 <td>
-                  <span className="status-badge pending">{assessment.status}</span>
+                  <span className={`status-badge ${assessment.status.toLowerCase().replace(' ', '')}`}>{assessment.status}</span>
                 </td>
                 <td>
-                  <button className="action-view-btn">👁 View</button>
+                  {assessment.actions.map((action) => (
+                    <button
+                      key={action}
+                      className={`action-view-btn ${action === "Submited" ? "completed" : ""}`}
+                      onClick={action === "View" ? () => handleViewClick(assessment.id) : undefined}
+                    >
+                      {action}
+                    </button>
+                  ))}
                 </td>
               </tr>
             ))}
@@ -298,7 +186,7 @@ const MyAssignments = ({ initialSection = "shared" }) => {
       </div>
 
       <div className="pagination">
-        <span>Showing 1 to 10 of 13 entries</span>
+        {/* <span>Showing 1 to 10 of 13 entries</span> */}
         <div className="pagination-controls">
           <button>Previous</button>
           <button className="active">1</button>
@@ -309,34 +197,71 @@ const MyAssignments = ({ initialSection = "shared" }) => {
     </div>
   )
 
+  const renderForm = () => (
+    <div className="assessment-form-overlay">
+      <div className="assessment-form-container">
+        <div className="form-header">
+          <h2>🎵 Weekly Music Assessment <span className="music-icon">🎼</span></h2>
+          <button className="close-btn" onClick={() => setShowForm(false)}>×</button>
+        </div>
+        <form onSubmit={handleFormSubmit} className="assessment-form">
+          {questions.map((question, index) => (
+            <div key={index} className="question-item">
+              <p className="question-text">🎼 {index + 1}. {question}</p>
+              {index === 10 ? (
+                <textarea
+                  className="feedback-textarea"
+                  value={formAnswers[index] || ""}
+                  onChange={(e) => handleAnswerChange(index, e.target.value)}
+                  placeholder="Please share your feedback about the teacher..."
+                  rows="4"
+                  required
+                />
+              ) : (
+                <div className="answer-options">
+                  <label className="option-label yes-option">
+                    <input
+                      type="radio"
+                      name={`question-${index}`}
+                      value="Yes"
+                      checked={formAnswers[index] === "Yes"}
+                      onChange={() => handleAnswerChange(index, "Yes")}
+                      required
+                    />
+                    <span className="option-text">Yes 👍</span>
+                  </label>
+                  <label className="option-label no-option">
+                    <input
+                      type="radio"
+                      name={`question-${index}`}
+                      value="No"
+                      checked={formAnswers[index] === "No"}
+                      onChange={() => handleAnswerChange(index, "No")}
+                      required
+                    />
+                    <span className="option-text">No 👎</span>
+                  </label>
+                </div>
+              )}
+            </div>
+          ))}
+          <div className="form-actions">
+            <button type="submit" className="submit-btn">🚀 Submit My Assessment!</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+
   return (
     <div className="my-assignments-container">
-      <div className="assignments-nav">
-        <button
-          className={`nav-btn ${activeSection === "shared" ? "active" : ""}`}
-          onClick={() => setActiveSection("shared")}
-        >
-          Shared With Me
-        </button>
-        <button
-          className={`nav-btn ${activeSection === "uploads" ? "active" : ""}`}
-          onClick={() => setActiveSection("uploads")}
-        >
-          My Uploads
-        </button>
-        <button
-          className={`nav-btn ${activeSection === "assessments" ? "active" : ""}`}
-          onClick={() => setActiveSection("assessments")}
-        >
-          Assessments
-        </button>
+      <div className="content-header3">
+        <h1>MY ASSIGNMENTS</h1>
       </div>
-
       <div className="assignments-content">
-        {activeSection === "shared" && renderSharedAssignments()}
-        {activeSection === "uploads" && renderMyUploads()}
-        {activeSection === "assessments" && renderAssessments()}
+        {renderAssessments()}
       </div>
+      {showForm && renderForm()}
     </div>
   )
 }

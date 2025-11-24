@@ -5,7 +5,16 @@ import "./punctuality-report.css"
 import "./Dashboard.css"
 
 const sessionTypes = ["All Classes", "Regular", "Special", "Demo"]
-const slotStatuses = ["All Slots", "As schedule", "Early-Out", "Behind schedule", "As schedule", "Late-Out"]
+const slotStatuses = [
+  "All Slots",
+  "As schedule",
+  "Late-In",
+  "Late-Out",
+  "Early-In",
+  "On Time",
+  "Behind schedule",
+  "Early-Out"
+]
 
 function toCsv(rows) {
   const headers = [
@@ -58,9 +67,19 @@ function makeDummyRow(i) {
   const ampm = i % 2 === 0 ? "AM" : "PM"
   const sessionType = ["Regular", "Special", "Demo"][i % 3]
   const classType = ["Group Class", "Individual Class", "Group Demo", "Individual Demo"][i % 4]
-  const slotStatus = ["As schedule", "Early-Out", "Behind schedule", "Late-Out", "As schedule"][i % 5]
-  const checkinStatus = ["As schedule", "Behind schedule", "As schedule"][i % 3]
-  const checkoutStatus = ["As schedule", "Early-Out", "Late-Out"][i % 3]
+  const slotStatus = ["As schedule","Behind schedule","After schedule"][i % 3]
+  const checkinStatus = [
+    "As scheduled",    // renamed from 'As schedule'
+    "After Scheduled",
+    "After Scheduled",
+  ][i % 3]
+
+  const checkoutStatus = [
+    "As scheduled",    // renamed from 'As schedule'
+    "After scheduled",
+    "Behind schedule"
+  ][i % 3]
+
   const duration = `${30 + (i % 10) * 3} min.`
   const reason = slotStatus.includes("Behind") ? "Traffic" : slotStatus.includes("Early") ? "Left early" : ""
 
@@ -194,7 +213,7 @@ export default function PunctualityReport() {
                 <th>Check-in Status</th>
                 <th>Checkout Status</th>
                 <th>Class Duration</th>
-                <th>Reason</th>
+                {/* <th>Reason</th> */}
               </tr>
             </thead>
             <tbody>
@@ -223,7 +242,7 @@ export default function PunctualityReport() {
                     </span>
                   </td>
                   <td>{r.duration}</td>
-                  <td>{r.reason || "-"}</td>
+                  {/* <td>{r.reason || "-"}</td> */}
                 </tr>
               ))}
             </tbody>
