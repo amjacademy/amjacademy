@@ -1,7 +1,7 @@
 // controllers/messagesControllers.js
 const messagesModel = require("../models/messagesModels");
 const asyncHandler = require("../utils/asyncHandler");
-const { streamUpload } = require("../config/cloudinaryConfig");
+const { messageUploadFile } = require("../config/cloudinaryConfig");
 
 // Create or get conversation between two users
 exports.createOrGetConversation = asyncHandler(async (req, res) => {
@@ -137,22 +137,41 @@ exports.uploadFile = async (req, res) => {
       return res.status(400).json({ error: "No file uploaded" });
     }
 
-    // Upload to Cloudinary using buffer
-    const cloudinaryResult = await streamUpload(req.file.buffer);
-
-    const secureUrl = cloudinaryResult.secure_url;
-    const originalName = req.file.originalname;
-    const fileSize = req.file.size;
-    const mime = req.file.mimetype;
-
-    return res.json({
-      fileUrl: secureUrl,
-      fileName: originalName,
-      fileSize: fileSize,
-      mimeType: mime,
+    const cloudinaryResult = await messageUploadFile(
+      req.file.buffer,
+      req.file.mimetype,
+      req.file.originalname
+    );
+    console.log("CLOUDINARY RESULT:", cloudinaryResult);
+    res.json({
+      fileUrl: cloudinaryResult.secure_url,
+      fileName: req.file.originalname,
+      fileSize: req.file.size,
+      mimeType: req.file.mimetype,
     });
   } catch (err) {
     console.error("Message File Upload Error:", err);
     return res.status(500).json({ error: "Failed to upload file" });
   }
 };
+
+
+
+
+// Get chat history for a user (only teachers student has chatted with)
+exports.getMyChats = asyncHandler(async (req, res) => {
+  const userId = req.query.userId;
+
+  if (!userId) {
+    return res.status(400).json({ error: "userId is required" });
+  }
+
+  try {
+    const chats = await messagesModel.getChatHistory(userId);
+    res.json(chats);
+  } catch (err) {
+    console.error("🔥 getMyChats error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+

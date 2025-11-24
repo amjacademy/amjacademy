@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import "./Message.css";
 
-const API_BASE = "http://localhost:5000/api/messages";
+const API_BASE = "https://amjacademy-working.onrender.com/api/messages";
 // If you deploy, you can change this to: const API_BASE = "/api/messages";
 
 const Message = () => {
@@ -22,6 +22,8 @@ const Message = () => {
   const [conversationId, setConversationId] = useState(null);
   const messagesRef = useRef(null);
   const [modalFileName, setModalFileName] = useState("");
+  const [chatContacts, setChatContacts] = useState([]);
+  const [modalMimeType, setModalMimeType] = useState("");
 
 
   // Map backend message -> UI message
@@ -104,22 +106,42 @@ const Message = () => {
         }))
       );
 
-      if (teachers && teachers.length > 0) {
-        setSelectedContact(teachers[0].id);
-      }
+      
     } catch (err) {
       console.error("Failed to load teachers", err);
     }
   };
+ 
+  const loadChatHistory = async () => {
+  const id = localStorage.getItem("user_id");
+  if (!id) return;
+
+  try {
+    const res = await fetch(
+      `${API_BASE}/my-chats?userId=${id}`,
+      { method: "GET", credentials: "include" }
+    );
+
+    if (!res.ok) throw new Error("Failed to fetch chat history");
+
+    const chats = await res.json();
+    console.log("Loaded chat history:", chats);
+    setChatContacts(chats);
+  } catch (err) {
+    console.error("Chat history error", err);
+  }
+};
 
   // On mount: set current user from localStorage and load teachers
-  useEffect(() => {
-    const id = localStorage.getItem("user_id");
-    const name = localStorage.getItem("username");
+useEffect(() => {
+  const id = localStorage.getItem("user_id");
+  const name = localStorage.getItem("username");
 
-    setCurrentUser({ id: id || "", name: name || "" });
-    loadTeachers();
-  }, []);
+  setCurrentUser({ id: id || "", name: name || "" });
+  loadTeachers();        // All teachers → for dropdown
+  loadChatHistory();     // Only chats → for contacts-list
+}, []);
+
 
   // Load announcements from localStorage (unchanged)
   useEffect(() => {
@@ -280,14 +302,14 @@ const Message = () => {
   };
 
 
-function createDownloadUrl(url) {
+/* function createDownloadUrl(url) {
   if (!url) return null;
 
   const split = url.split("/upload/");
   if (split.length < 2) return url;
 
   return `${split[0]}/upload/fl_attachment/${split[1]}`;
-}
+} */
 
   // Upload file to server (optional, falls back if 404)
   const uploadFileToServer = async (file) => {
@@ -515,6 +537,61 @@ function createDownloadUrl(url) {
     );
   };
 
+function createDownloadUrl(url, fileName) {
+  if (!url) return null;
+  return `${url}?fl_attachment=${encodeURIComponent(fileName)}`;
+}
+
+function ensureCorrectExtension(fileName, mimeType) {
+  const extFromName = fileName.split(".").pop();
+
+  // If filename already has an extension, keep it
+  if (extFromName && extFromName.length <= 5 && fileName.includes(".")) {
+    return fileName;
+  }
+
+  const map = {
+    "application/pdf": ".pdf",
+    "application/msword": ".doc",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
+    "application/vnd.ms-excel": ".xls",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+    "application/vnd.ms-powerpoint": ".ppt",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation": ".pptx",
+    "text/plain": ".txt",
+    "text/csv": ".csv",
+  };
+
+  const ext = map[mimeType] || "";
+  return fileName + ext;
+}
+
+const getActiveTeacherInfo = () => {
+  // 1. If teacher exists in chat history
+  const fromChats = chatContacts.find(c => c.teacherId === selectedContact);
+  if (fromChats) {
+    return {
+      id: fromChats.teacherId,
+      name: fromChats.teacherName,
+      avatar: fromChats.avatar || "/placeholder.svg",
+    };
+  }
+
+  // 2. If teacher exists in dropdown list (unchatted)
+  const fromTeachers = contacts.find(t => t.id === selectedContact);
+  if (fromTeachers) {
+    return {
+      id: fromTeachers.id,
+      name: fromTeachers.name,
+      avatar: fromTeachers.profile || "/placeholder.svg",
+    };
+  }
+
+  // default fallback
+  return { id: "", name: "Teacher", avatar: "/placeholder.svg" };
+};
+
+
   return (
     <div className="message-container">
       <div className="content-header2">
@@ -558,43 +635,40 @@ function createDownloadUrl(url) {
             </div>
 
             <div className="contacts-list">
-              {contacts.map((contact) => (
-                <div
-                  key={contact.id}
-                  className={`contact-item ${
-                    selectedContact === contact.id ? "active" : ""
-                  }`}
-                  onClick={() => handleContactClick(contact.id)}
-                >
-                  <div className="contact-avatar">
-                    <img src={contact.avatar} alt={contact.name} />
-                    {contact.online && (
-                      <div className="online-indicator"></div>
-                    )}
-                  </div>
-                  <div className="contact-info">
-                    <div className="contact-name">
-                      {isScreenshotAttempt ? "███" : contact.name}
-                    </div>
-                    <div className="contact-last-message">
-                      {isScreenshotAttempt ? "███" : contact.lastMessage}
-                    </div>
-                  </div>
-                  <div className="contact-time-container">
-                    {contact.time && (
-                      <div className="contact-time">
-                        {isScreenshotAttempt ? "███" : contact.time}
-                      </div>
-                    )}
-                    {contact.unreadCount > 0 && (
-                      <div className="unread-count">
-                        {isScreenshotAttempt ? "███" : contact.unreadCount}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+  {chatContacts.map((chat) => (
+  <div
+    key={chat.teacherId}
+    className={`contact-item ${selectedContact === chat.teacherId ? "active" : ""}`}
+    onClick={() => handleContactClick(chat.teacherId)}
+  >
+    <div className="contact-avatar">
+      <img src={chat.avatar} alt={chat.teacherName} />
+    </div>
+
+    <div className="contact-info">
+      <div className="contact-name">{chat.teacherName}</div>
+      <div className="contact-last-message">{chat.lastMessage}</div>
+    </div>
+
+    <div className="contact-time-container">
+      {chat.lastMessageTime && (
+        <div className="contact-time">
+          {new Date(chat.lastMessageTime).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </div>
+      )}
+
+      {chat.unreadCount > 0 && (
+        <div className="unread-count">{chat.unreadCount}</div>
+      )}
+    </div>
+  </div>
+))}
+
+</div>
+
           </div>
 
           {/* Chat Area */}
@@ -602,37 +676,35 @@ function createDownloadUrl(url) {
             {isChatOpen ? (
               <>
                 <div className="chat-header">
-                  <button
-                    className="back-button"
-                    onClick={() => setIsChatOpen(false)}
-                    style={{
-                      display: window.innerWidth <= 768 ? "block" : "none",
-                    }}
-                  >
-                    ← Back
-                  </button>
-                  <div className="chat-contact-info">
-                    <img
-                      src="anto-logo.jpg"
-                      alt="avatar"
-                      className="chat-avatar"
-                    />
-                    <div>
-                      <span className="chat-contact-name">
-                        {isScreenshotAttempt
-                          ? "███"
-                          : contacts.find((c) => c.id === selectedContact)
-                              ?.name || "Teacher"}
-                      </span>
-                      <div className="chat-contact-status">
-                        {isScreenshotAttempt
-                          ? "███"
-                          : contacts.find((c) => c.id === selectedContact)
-                              ?.status || "Last seen recently"}
-                      </div>
+                    <button
+                      className="back-button"
+                      onClick={() => setIsChatOpen(false)}
+                      style={{ display: window.innerWidth <= 768 ? "block" : "none" }}
+                    >
+                      ← Back
+                    </button>
+
+                    <div className="chat-contact-info">
+                     {(() => {
+  const teacherInfo = getActiveTeacherInfo();
+  return (
+    <>
+      <img
+        src={teacherInfo.avatar}
+        alt={teacherInfo.name}
+        className="chat-avatar"
+      />
+
+      <div>
+        <span className="chat-contact-name">{teacherInfo.name}</span>
+        <div className="chat-contact-status">ID: {teacherInfo.id}</div>
+      </div>
+    </>
+  );
+})()}
                     </div>
                   </div>
-                </div>
+
 
                 <div
                   className="chat-messages"
@@ -749,15 +821,14 @@ function createDownloadUrl(url) {
                                 className="document-download-btn"
                                 
                                 
-                               onClick={() => {
-                                e.stopPropagation();
+                            onClick={(e) => {
+  e.stopPropagation();
   setModalContent(message.fileUrl);
   setModalFileName(message.fileName || "document");
+  setModalMimeType(message.mimeType || "");   // ⭐ ADD THIS
   setModalType("document");
   setShowModal(true);
 }}
-
-
 
                                 title="Download document"
                               >
@@ -937,20 +1008,42 @@ function createDownloadUrl(url) {
                   <p>This document cannot be previewed in the browser.</p>
                 </div>
                 <div className="document-actions">
-                  <button
+              <button
   className="download-btn"
-  onClick={() => {
-    const downloadUrl = createDownloadUrl(modalContent);
-    const link = document.createElement("a");
-    link.href = downloadUrl;
-    link.setAttribute("download", modalFileName || "document");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  onClick={async () => {
+    try {
+      const finalName = ensureCorrectExtension(modalFileName, modalMimeType);
+
+      const response = await fetch(modalContent);
+      if (!response.ok) {
+        console.error("HTTP error:", response.status);
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = finalName;    // ⭐ NOW HAS REAL EXTENSION
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download failed:", err);
+    }
   }}
 >
   📥 Download Document
 </button>
+
+
+
+
+
+
                 </div>
               </div>
             ) : null}

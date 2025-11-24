@@ -221,17 +221,116 @@ exports.getTeachersForStudent = async (studentId) => {
 
   if (teacherIds.length === 0) return [];
 
-  const { data: teachers, error: err2 } = await supabase
-    .from("users")
-    .select("id, name")
-    .in("id", teacherIds);
+// FETCH TEACHER DETAILS FROM TEACHERS TABLE (NOT USERS)
+const { data: teachers, error: err2 } = await supabase
+  .from("teachers")
+  .select("id, name, profile")
+  .in("id", teacherIds);
 
-  if (err2) {
-    console.error("🔥 USERS TABLE ERROR:", err2);
-    throw err2;
-  }
+if (err2) {
+  console.error("🔥 TEACHERS TABLE ERROR:", err2);
+  throw err2;
+}
 
   console.log("🟩 teachers result:", teachers);
 
   return teachers || [];
 };
+
+
+// Get chat history for a user (teachers the student has chatted with before)
+exports.getChatHistory = async (userId) => {
+  console.log("🟦 getChatHistory called with:", userId);
+
+  // 1. Get conversations where user participates
+  const { data: convList, error: convErr } = await supabase
+    .from("conversation_participants")
+    .select("conversation_id")
+    .eq("user_id", userId);
+
+  console.log("conversation_participants RESULT:", convList, "ERROR:", convErr);
+
+  if (convErr) throw convErr;
+  if (!convList || convList.length === 0) return [];
+
+  const chatList = [];
+
+  for (const conv of convList) {
+    const convId = conv.conversation_id;
+
+    // 2. Get BOTH participants of this conversation
+    const { data: participants, error: participantsErr } = await supabase
+      .from("conversation_participants")
+      .select("user_id, role")
+      .eq("conversation_id", convId);
+
+    if (participantsErr) throw participantsErr;
+
+    // Identify teacher (other user)
+    const teacher = participants.find((p) => p.user_id !== userId);
+    if (!teacher) continue;
+
+    // 3. Get teacher details
+   const { data: teacherInfo, error: teacherErr } = await supabase
+  .from("teachers")
+  .select("id, profile,name")
+  .eq("id", teacher.user_id)
+  .single();
+
+if (teacherErr) throw teacherErr;
+
+
+// 4. Last message (IMPORTANT: skip if none)
+const { data: lastMsgArr, error: lastMsgErr } = await supabase
+  .from("messages")
+  .select("id, content, created_at, sender_id")
+  .eq("conversation_id", convId)
+  .order("created_at", { ascending: false })
+  .limit(1);
+
+if (lastMsgErr) throw lastMsgErr;
+
+// ❗ Skip conversations with no messages
+if (!lastMsgArr || lastMsgArr.length === 0) {
+  continue;
+}
+
+const lastMsg = lastMsgArr[0];
+
+
+    // 5. unread_count from conversation_unread_counts
+    const { data: unreadObj, error: unreadErr } = await supabase
+      .from("conversation_unread_counts")
+      .select("unread_count")
+      .eq("user_id", userId)
+      .eq("conversation_id", convId)
+      .single();
+
+    if (unreadErr && unreadErr.code !== "PGRST116") {
+      // ignore "row not found"
+      throw unreadErr;
+    }
+
+    chatList.push({
+      teacherId: teacherInfo.id,
+      teacherName: teacherInfo.name,
+      avatar: teacherInfo.profile || "/placeholder.svg",
+      lastMessage: lastMsg ? lastMsg.content : "",
+      lastMessageTime: lastMsg ? lastMsg.created_at : null,
+      unreadCount: unreadObj?.unread_count || 0,
+      conversationId: convId,
+    });
+  }
+
+  // Sort by last message time (newest first)
+chatList.sort((a, b) => {
+  const t1 = a.lastMessageTime ? new Date(a.lastMessageTime).getTime() : 0;
+  const t2 = b.lastMessageTime ? new Date(b.lastMessageTime).getTime() : 0;
+  return t2 - t1; // descending order
+});
+
+return chatList;
+
+};
+
+

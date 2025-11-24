@@ -2,34 +2,30 @@
 const express = require("express");
 const router = express.Router();
 const messagesController = require("../controllers/messagesControllers");
-// const auth = require("../middleware/auth"); // if you add auth later
 const multer = require("multer");
 
-// memoryStorage → file.buffer
 const upload = multer({ storage: multer.memoryStorage() });
 
-// If you enable auth later:
-// router.use(auth);
-
-// Get teachers assigned to student
+// STATIC ROUTES FIRST — ALWAYS FIRST
+router.get("/my-chats", messagesController.getMyChats);
 router.get("/my-teachers", messagesController.getMyTeachers);
 
-// Get conversation messages
-router.get("/:conversationId", messagesController.getMessages);
-
-// Send a message
+// Send message
 router.post("/send", messagesController.sendMessage);
 
-// Mark message as read
+// Mark read
 router.post("/read", messagesController.markAsRead);
 
-// Mark messages as delivered for a user in a conversation
+// Mark delivered
 router.post("/delivered", messagesController.markAsDelivered);
 
-// Create or get conversation between logged in user & other user
+// Create or get conversation
 router.post("/conversation", messagesController.createOrGetConversation);
 
-// Upload file for message
+// Upload file
 router.post("/upload", upload.single("file"), messagesController.uploadFile);
+
+// ⛔ MUST BE LAST — DYNAMIC ROUTE
+router.get("/:conversationId", messagesController.getMessages);
 
 module.exports = router;

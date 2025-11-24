@@ -41,6 +41,44 @@ const streamUpload = (fileBuffer) => {
   });
 };
 
+// ===============================
+// MESSAGE FILE UPLOAD (Documents + Images + Videos)
+// ===============================
+// MASTER UPLOADER FOR MESSAGES
+// MESSAGE FILE UPLOAD (Documents + Images + Videos)
+const messageUploadFile = (fileBuffer, mimetype, fileName) => {
+  return new Promise((resolve, reject) => {
+    let resourceType = "raw";
+
+    if (mimetype.startsWith("image/")) {
+      resourceType = "image";
+    } else if (mimetype.startsWith("video/")) {
+      resourceType = "video";
+    }
+
+    cloudinary.uploader.upload_stream(
+      {
+        folder: "message-uploads",
+        resource_type: resourceType,
+
+        // ⭐ THESE THREE FIX THE FILENAME PROBLEM ⭐
+        use_filename: true,
+        filename_override: fileName,     // keeps original file name
+        unique_filename: false,         // do NOT randomize name
+      },
+      (err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      }
+    ).end(fileBuffer);
+  });
+};
+
+
+
+
+
 const parser = multer({ storage });
 
-module.exports = { cloudinary, parser, streamUpload  };
+module.exports = { cloudinary, parser, streamUpload, messageUploadFile };
+
