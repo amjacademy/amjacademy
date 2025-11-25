@@ -5,8 +5,8 @@ import { useNavigate } from "react-router-dom"
 import "./Login.css"
 
 const LoginForm = () => {
-  const API_BASE = "https://amjacademy-working.onrender.com/api/users";
-  /* const API_BASE = "http://localhost:5000/api/users"; */
+  const MAIN = "https://amjacademy-working.onrender.com/api/users";
+  const TEST = "http://localhost:5000/api/users"; 
   const [userType, setUserType] = useState("student");
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -80,7 +80,7 @@ const LoginForm = () => {
 
   try {
     formData.role = userType; // Ensure role is set
-    const res = await fetch(`${API_BASE}/login`, {
+    const res = await fetch(`${MAIN}/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...formData }),
@@ -119,7 +119,7 @@ const handleVerifyClick = async () => {
   }
   try {
     setLoading(true);
-    const res = await fetch(`${API_BASE}/sendotp`, {
+    const res = await fetch(`${MAIN}/sendotp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: formData.username, email: formData.email, role: formData.role }),
@@ -162,7 +162,7 @@ const handleOtpSubmit = async (e) => {
   e.preventDefault();
   const otp = otpDigits.join("");
   try {
-    const res = await fetch(`${API_BASE}/verifyotp`, {
+    const res = await fetch(`${MAIN}/verifyotp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: formData.email, otp }),
@@ -265,12 +265,7 @@ const handleOtpSubmit = async (e) => {
               placeholder="Enter your email"
             />
             {errors.email && <span className="error-message">{errors.email}</span>}
-            <button
-              type="button"
-              className={`verify-btn ${otpVerified ? "verify-btn-verified" : ""}`}
-              onClick={handleVerifyClick}
-              disabled={loading}
-            >
+            <button type="button" className="verify-btn" onClick={handleVerifyClick} disabled={loading}>
               {loading ? "Verifying..." : otpVerified ? "Verified" : "Verify"}
             </button>
           </div>
@@ -293,8 +288,8 @@ const handleOtpSubmit = async (e) => {
             </div>
           )}
 
-          <button type="submit" className="login-btn" disabled={loading}>
-            {loading ? "Signing In..." : `Sign In as ${userType === "student" ? "student" : "teacher"}`}
+          <button type="submit" className="login-btn">
+            Sign In as {userType === "student" ? "student" : "teacher"}
           </button>
         </form>
 
