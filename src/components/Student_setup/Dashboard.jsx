@@ -16,8 +16,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const userType="Student";
   const userId=localStorage.getItem('user_id');
-  const API_BASE = "https://amjacademy-working.onrender.com/api/student";
-  /* const API_BASE = "http://localhost:5000/api/student"; */
+  const MAIN = "https://amjacademy-working.onrender.com/api/student";
+  const TEST="http://localhost:5000/api/student";
 
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeTab, setActiveTab] = useState("dashboard") // This would come from auth context
@@ -88,11 +88,11 @@ const formatDate = (dateStr) => {
       hour12: true
     });
   };
-
+//announcement
   useEffect(() => {
     const fetchAnnouncements = async () => {
       try {
-        const res = await fetch(`${API_BASE}/fetchannouncements?`, {
+        const res = await fetch(`${MAIN}/fetchannouncements?`, {
           credentials: "include",
         });
         if (!res.ok) throw new Error("Failed to fetch announcements");
@@ -150,7 +150,7 @@ const formatDate = (dateStr) => {
       try {
         setLoading(true);
 
-        const response = await fetch(`${API_BASE}/upcoming-classes`, {
+        const response = await fetch(`${MAIN}/upcoming-classes`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -277,7 +277,7 @@ const formatDate = (dateStr) => {
         reason: leaveData.reason || "",
       };
 
-      const response = await fetch(`${API_BASE}/actions/submit`, {
+      const response = await fetch(`${MAIN}/actions/submit`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -319,7 +319,7 @@ const formatDate = (dateStr) => {
       window.open(classItem.link, "_blank");
       setOngoingClass(classItem);
 
-      const response = await fetch(`${API_BASE}/class-status`, {
+      const response = await fetch(`${MAIN}/class-status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ class_id: classItem.class_id, status: "ongoing", user_id: userId }),

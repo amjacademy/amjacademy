@@ -265,7 +265,12 @@ const handleOtpSubmit = async (e) => {
               placeholder="Enter your email"
             />
             {errors.email && <span className="error-message">{errors.email}</span>}
-            <button type="button" className="verify-btn" onClick={handleVerifyClick} disabled={loading}>
+            <button
+              type="button"
+              className={`verify-btn ${otpVerified ? "verify-btn-verified" : ""}`}
+              onClick={handleVerifyClick}
+              disabled={loading}
+            >
               {loading ? "Verifying..." : otpVerified ? "Verified" : "Verify"}
             </button>
           </div>
@@ -288,8 +293,8 @@ const handleOtpSubmit = async (e) => {
             </div>
           )}
 
-          <button type="submit" className="login-btn">
-            Sign In as {userType === "student" ? "student" : "teacher"}
+          <button type="submit" className="login-btn" disabled={loading}>
+            {loading ? "Signing In..." : `Sign In as ${userType === "student" ? "student" : "teacher"}`}
           </button>
         </form>
 

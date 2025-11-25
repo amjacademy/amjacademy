@@ -18,8 +18,12 @@ const GroupController = {
     try {
       const { groupData, students, sessions } = req.body;
 
-      // 1. Create main group record
-      const group = await GroupModel.createGroup(groupData);
+      const fixedGroupData = {
+        ...groupData,
+        teacher_name: groupData.teacher_name || "",   // ✅ ensure field exists
+      };
+
+      const group = await GroupModel.createGroup(fixedGroupData);
 
       // 2. Insert many students
       await GroupModel.addStudents(group.id, students);
@@ -50,8 +54,13 @@ const GroupController = {
       const groupId = req.params.id;
       const { groupData, students, sessions } = req.body;
 
-      // 1. Update main group info
-      await GroupModel.updateGroup(groupId, groupData);
+      const fixedGroupData = {
+        ...groupData,
+        teacher_name: groupData.teacher_name || "",
+      };
+
+      await GroupModel.updateGroup(groupId, fixedGroupData);
+
 
       // 2. Replace students
       await GroupModel.deleteStudents(groupId);

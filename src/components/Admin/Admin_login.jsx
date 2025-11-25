@@ -15,8 +15,6 @@ export default function AdminLogin() {
 
   const navigate = useNavigate()
 
-
-
   const onChange = (e) => {
     const { name, value } = e.target
     setFormData((p) => ({ ...p, [name]: value }))
@@ -32,34 +30,34 @@ export default function AdminLogin() {
   }
 
   const onSubmit = async (e) => {
-  e.preventDefault()
-  if (!validate()) return
+    e.preventDefault()
+    if (!validate()) return
 
-  try {
-    setLoading(true)
+    try {
+      setLoading(true)
 
-    const res = await fetch(`${MAIN}/api/admin/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include", // important: send/receive cookies
-      body: JSON.stringify(formData),
-    })
+      const res = await fetch(`${MAIN}/api/admin/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // important: send/receive cookies
+        body: JSON.stringify(formData),
+      })
 
-    const data = await res.json()
+      const data = await res.json()
 
-    if (res.ok && data.success) {
-      navigate("/admin-dashboard", { replace: true })
-    } else {
-      console.log("Login failed:", data.message)
-      setErrors({ username: "", password: data.message || "Invalid username or password" })
+      if (res.ok && data.success) {
+        navigate("/admin-dashboard", { replace: true })
+      } else {
+        console.log("Login failed:", data.message)
+        setErrors({ username: "", password: data.message || "Invalid username or password" })
+      }
+    } catch (err) {
+      console.error("Error during login:", err)
+      setErrors({ username: "", password: "Server error, please try again" })
+    } finally {
+      setLoading(false)
     }
-  } catch (err) {
-    console.error("Error during login:", err)
-    setErrors({ username: "", password: "Server error, please try again" })
-  } finally {
-    setLoading(false)
   }
-}
 
 
   return (
@@ -139,7 +137,8 @@ export default function AdminLogin() {
             </div>
 
             <button type="submit" className="admin-login-btn" disabled={loading}>
-              {loading ? "Signing in..." : "Sign in to Admin"}
+              {loading && <span className="admin-btn-spinner" aria-hidden="true"></span>}
+              {loading ? " Signing in..." : "Sign in to Admin"}
             </button>
           </form>
         </section>

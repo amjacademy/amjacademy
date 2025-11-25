@@ -283,6 +283,15 @@ body {
   box-shadow: 0 4px 12px rgba(255, 154, 158, 0.3);
 }
 
+/* Verify Button Verified State */
+.verify-btn-verified {
+  background: linear-gradient(135deg, #32CD32, #228B22); /* limegreen to forestgreen gradient */
+  color: white;
+  cursor: default;
+  box-shadow: none;
+  pointer-events: none;
+}
+
 /* OTP Modal */
 .otp-modal {
   position: fixed;

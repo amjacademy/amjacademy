@@ -231,6 +231,24 @@
   }
 }
 
+/* Spinner inside button */
+.admin-btn-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  border: 2.5px solid rgba(255, 154, 158, 0.7);
+  border-top-color: #ff9a9e;
+  border-radius: 50%;
+  animation: admin-btn-spin 1s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes admin-btn-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 @media (max-width: 480px) {
   .admin-login-card {
     padding: 22px 18px;
