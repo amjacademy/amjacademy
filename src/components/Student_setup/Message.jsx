@@ -635,39 +635,39 @@ const getActiveTeacherInfo = () => {
             </div>
 
             <div className="contacts-list">
-  {chatContacts.map((chat) => (
-  <div
-    key={chat.teacherId}
-    className={`contact-item ${selectedContact === chat.teacherId ? "active" : ""}`}
-    onClick={() => handleContactClick(chat.teacherId)}
-  >
-    <div className="contact-avatar">
-      <img src={chat.avatar} alt={chat.teacherName} />
-    </div>
+              {chatContacts.map((chat) => (
+                    <div
+                      key={chat.teacherId}
+                      className={`contact-item ${selectedContact === chat.teacherId ? "active" : ""}`}
+                      onClick={() => handleContactClick(chat.teacherId)}
+                    >
+                      <div className="contact-avatar">
+                        <img src={chat.avatar} alt={chat.teacherName} />
+                      </div>
 
-    <div className="contact-info">
-      <div className="contact-name">{chat.teacherName}</div>
-      <div className="contact-last-message">{chat.lastMessage}</div>
-    </div>
+                      <div className="contact-info">
+                        <div className="contact-name">{chat.teacherName}</div>
+                        <div className="contact-last-message">{chat.lastMessage}</div>
+                      </div>
 
-    <div className="contact-time-container">
-      {chat.lastMessageTime && (
-        <div className="contact-time">
-          {new Date(chat.lastMessageTime).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </div>
-      )}
+                      <div className="contact-time-container">
+                        {chat.lastMessageTime && (
+                          <div className="contact-time">
+                            {new Date(chat.lastMessageTime).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </div>
+                        )}
 
-      {chat.unreadCount > 0 && (
-        <div className="unread-count">{chat.unreadCount}</div>
-      )}
-    </div>
-  </div>
-))}
+                        {chat.unreadCount > 0 && (
+                          <div className="unread-count">{chat.unreadCount}</div>
+                        )}
+                      </div>
+                    </div>
+                     ))}
 
-</div>
+              </div>
 
           </div>
 
