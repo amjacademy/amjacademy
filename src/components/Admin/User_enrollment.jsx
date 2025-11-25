@@ -167,6 +167,8 @@ function EmptyState({ title, subtitle }) {
 }
 
 export default function User_enrollment({ students, setStudents, teachers, setTeachers, editingRow, setEditingRow }) {
+  const [isLoading, setIsLoading] = useState(false); // loading state added
+
   // If editingRow is passed, populate the form
   /* console.log("Editing row:", editingRow); */
   useEffect(() => {
@@ -282,10 +284,12 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
  const onSubmit = async (e) => {
   e.preventDefault();
   setError("");
+  setIsLoading(true); // set loading true at start
 
   // Validation
   if (!id || !name || !age || !phone || !email || !password || !username || (!batchType && role === "student") || (!plan && role === "student") || (!level && role === "student") || (role === "teacher" && !experienceLevel)) {
     setError("Please fill all required fields.");
+    setIsLoading(false); // set loading false due to validation fail
     return;
   }
 
@@ -319,6 +323,7 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
       const data = await response.json();
       if (!response.ok) {
         setError(data.error || "Failed to update user");
+        setIsLoading(false); // set loading false on error
         return;
       }
 
@@ -326,6 +331,7 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
 
     if (!updatedUser) {
       console.warn("⚠️ No updated record returned from backend");
+      setIsLoading(false); // set loading false if no data
       return;
     }
 
@@ -338,16 +344,19 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
 
     // Reset form
     resetForm();
+    setIsLoading(false); // set loading false on success
 
     } catch (error) {
       console.error(error);
       setError("Failed to update. Try again.");
+      setIsLoading(false); // set loading false on catch
     }
   } else {
     // Create new entry
     const exists = list.some((x) => x.id === id);
     if (exists) {
       setError("ID already exists in this module.");
+      setIsLoading(false); // set loading false due to error
       return;
     }
 
@@ -382,6 +391,7 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
       if (!response.ok) {
   // Use data.message safely (it’s a string now)
   setError(data.message || "Something went wrong");
+  setIsLoading(false); // set loading false on error
   return;
 }
 // ✅ data.user is the actual user record returned
@@ -392,10 +402,12 @@ if (data.success && data.user) {
   console.warn("No user record returned from server");
 }
 resetForm();
+setIsLoading(false); // loading false after success
 
     } catch (err) {
   console.error("Error submitting enrollment:", err);
   alert("Server error. Please try again.");
+  setIsLoading(false); // loading false on catch
 }
   }
 };
@@ -537,9 +549,21 @@ const onDelete = async (id) => {
             className="input"
             type="tel"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            maxLength={25}
+            onChange={(e) => {
+              // Allow digits, space, (, ), #, -, +
+              const allowedChars = /^[0-9\s(),#\-\+]*$/;
+              if (allowedChars.test(e.target.value) || e.target.value === "") {
+                setPhone(e.target.value);
+                setError(""); // clear error if any
+              } else {
+                setError("Phone number contains invalid characters. Allowed: digits, space, (, ), #, -, +");
+              }
+            }}
             placeholder="e.g. +1 555 123 4567"
             aria-label="Phone number"
+            pattern="[\d\s(),#\-\+]*"
+            title="Allowed characters: digits, space, (, ), #, -, +"
             required
           />
         </div>
@@ -655,8 +679,18 @@ const onDelete = async (id) => {
         )}
         <ImagePicker value={image} onChange={setImage} label="Profile Image" />
         <div className="field form-actions">
-          <button type="submit" className="btn btn-primary">
-            {editingId ? "Update" : "Enroll"}
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={isLoading} // disable button while loading
+          >
+            {editingId
+              ? isLoading
+                ? "Updating..."
+                : "Update"
+              : isLoading
+              ? "Enrolling..."
+              : "Enroll"}
           </button>
                     {editingId && (
                       <button
