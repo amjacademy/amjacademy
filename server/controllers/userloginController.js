@@ -218,41 +218,92 @@ exports.Logout = (req, res) => {
 exports.verifyLogin = async (req, res) => {
   try {
     const userToken = req.cookies?.userToken;
-    if (!userToken)
-      return res.status(401).json({ success: false, message: "Unauthorized: No token found" });
+    const adminToken = req.cookies?.adminToken;
+     // 1️⃣ Admin token check (no database verification)
+    if (adminToken) {
+      try {
+        const decodedAdmin = jwt.verify(adminToken, process.env.ADMIN_JWT_SECRET);
 
-    const decoded = jwt.verify(userToken, USER_JWT);
-    const { id, role } = decoded;
+        return res.status(200).json({
+          success: true,
+          role: "admin",
+          redirect: "/admin-dashboard",
+          user: { username: decodedAdmin.user  },
+        });
+      } catch (err) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid or expired admin token",
+        });
+      }
+    }
 
-    const { data: user, error } = await supabase
-      .from("users")
-      .select("id, username, email, role")
-      .eq("id", id)
-      .single();
+    // 2️⃣ User token check (Student / Teacher)
+    if (userToken) {
+      try {
+        const decodedUser = jwt.verify(userToken, process.env.USER_JWT_SECRET);
+        const { id, role } = decodedUser;
 
-    if (error || !user)
-      return res.status(404).json({ success: false, message: "User not found" });
+        if (!id || !role) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid user token payload",
+          });
+        }
 
-    const redirectPath =
-      role === "student"
-        ? "/student-dashboard"
-        : role === "teacher"
-        ? "/teacher-dashboard"
-        : role === "admin"
-        ? "/admin-dashboard"
-        : null;
+        // Both Student & Teacher are in 'enrollments' table
+        const { data: user, error } = await supabase
+          .from("users")
+          .select("id, username, email, role")
+          .eq("id", id)
+          .single();
 
-    if (!redirectPath)
-      return res.status(401).json({ success: false, message: "Unauthorized role" });
+        if (error || !user) {
+          return res.status(404).json({
+            success: false,
+            message: "User not found",
+          });
+        }
 
-    return res.status(200).json({
-      success: true,
-      role,
-      redirect: redirectPath,
-      user,
+        // Redirect based on role
+        const redirectPath =
+          role === "Student"
+            ? "/student-dashboard"
+            : role === "Teacher"
+            ? "/teacher-dashboard"
+            : null;
+
+        if (!redirectPath) {
+          return res.status(401).json({
+            success: false,
+            message: "Unauthorized: Invalid role",
+          });
+        }
+
+        return res.status(200).json({
+          success: true,
+          role,
+          redirect: redirectPath,
+          user,
+        });
+      } catch (err) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid or expired user token",
+        });
+      }
+    }
+
+    // 3️⃣ Neither adminToken nor userToken found
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized: No valid token found",
     });
   } catch (err) {
-    console.error("verifyLogin error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    console.error("verifyLogin error:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error during verification",
+    });
   }
 };

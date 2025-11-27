@@ -5,11 +5,13 @@ export default function ProtectedRoute({ children }) {
   const [loading, setLoading] = useState(true);
   const [isAuth, setIsAuth] = useState(false);
   const navigate = useNavigate();
+  const MAIN = "https://amjacademy-working.onrender.com";
+  const TEST= "http://localhost:5000";
 
   useEffect(() => {
     const verify = async () => {
       try {
-        const res = await fetch("https://amjacademy-working.onrender.com/api/admin/check-auth", {
+        const res = await fetch(`${MAIN}/api/admin/check-auth`, {
           method: "GET",
           credentials: "include", // 🧠 send cookies
         });

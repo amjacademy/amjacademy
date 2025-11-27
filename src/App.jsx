@@ -28,11 +28,14 @@ import { motion } from "framer-motion";
 function HomePage({ onOpenRegistration }) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true); // splash loading state
+  const MAIN = "https://amjacademy-working.onrender.com";
+  const TEST= "http://localhost:5000";
+
 
 useEffect(() => {
   const checkPersistentLogin = async () => {
     try {
-      const res = await fetch("https://amjacademy-working.onrender.com/api/users/verifylogin", {
+      const res = await fetch(`${MAIN}/api/users/verifylogin`, {
         method: "GET",
         credentials: "include", // ✅ include cookies
       });

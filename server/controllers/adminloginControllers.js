@@ -22,19 +22,13 @@ exports.Login = async (req, res) => {
   sameSite: "None"
 }); */
     // Set JWT in HttpOnly cookie
-  res.cookie("adminToken", token, {
-  httpOnly: true,
-  /* secure: true,          // required if SameSite=None
-  sameSite: "None",   */ 
-  secure: process.env.NODE_ENV === "production", // only secure in production
-  sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-   // allow cross-origin
-  path: "/",
-  maxAge: 172800 * 60 * 1000, // 4 months
-               // ensure cookie is available everywhere
-});
-
-
+res.cookie("adminToken", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      path: "/",
+      maxAge: 172800 * 60 * 1000,
+    });
 
 
     return res.json({
