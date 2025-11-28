@@ -4,15 +4,18 @@ import { useState, useEffect } from "react";
 import "./class-report.css";
 
 const ClassReport = () => {
+  const MAIN = "https://amjacademy-working.onrender.com";
+  const TEST = "http://localhost:5000";
+
   const [activeTab, setActiveTab] = useState("upcoming");
   const [filterBy, setFilterBy] = useState("all");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [classData, setClassData] = useState([]);
   const [loading, setLoading] = useState(false);
-
+  const image="/images/amj-logo.png";
   // Demo data for each tab
-  const getDemoData = (tab) => {
+ /*  const getDemoData = (tab) => {
     switch (tab) {
       case "upcoming":
         return [
@@ -26,8 +29,8 @@ const ClassReport = () => {
               subject: "Keyboard",
               date: "2025-01-15",
               day: "Monday",
-              time: "14:00:00"
-            }
+              time: "14:00:00",
+            },
           },
           {
             id: 2,
@@ -39,9 +42,9 @@ const ClassReport = () => {
               subject: "Piano",
               date: "2025-01-16",
               day: "Tuesday",
-              time: "16:30:00"
-            }
-          }
+              time: "16:30:00",
+            },
+          },
         ];
       case "completed":
         return [
@@ -55,8 +58,8 @@ const ClassReport = () => {
               subject: "Keyboard",
               date: "2025-01-10",
               day: "Wednesday",
-              time: "14:00:00"
-            }
+              time: "14:00:00",
+            },
           },
           {
             id: 4,
@@ -68,9 +71,9 @@ const ClassReport = () => {
               subject: "Piano",
               date: "2025-01-11",
               day: "Thursday",
-              time: "16:30:00"
-            }
-          }
+              time: "16:30:00",
+            },
+          },
         ];
       case "Missing":
         return [
@@ -85,8 +88,8 @@ const ClassReport = () => {
               subject: "Keyboard",
               date: "2025-01-08",
               day: "Monday",
-              time: "14:00:00"
-            }
+              time: "14:00:00",
+            },
           },
           {
             id: 6,
@@ -99,8 +102,8 @@ const ClassReport = () => {
               subject: "Piano",
               date: "2025-01-09",
               day: "Tuesday",
-              time: "16:30:00"
-            }
+              time: "16:30:00",
+            },
           },
           {
             id: 7,
@@ -113,28 +116,30 @@ const ClassReport = () => {
               subject: "Keyboard",
               date: "2025-01-07",
               day: "Sunday",
-              time: "10:00:00"
-            }
-          }
+              time: "10:00:00",
+            },
+          },
         ];
       default:
         return [];
     }
-  };
+  }; */
 
   // Map frontend tab to backend status in arrangements table
-  const getStatusValue = (tab) => {
-    switch (tab) {
-      case "upcoming":
-        return "upcoming";
-      case "completed":
-        return "completed";
-      case "Missing":
-        return "Missing"; // backend should return leave/cancel/notshown
-      default:
-        return "upcoming";
-    }
-  };
+const getStatusValue = (tab) => {
+  switch (tab) {
+    case "upcoming":
+      return "upcoming";
+    case "completed":
+      return "completed";
+    case "Missing":
+      return "missing"; // send keyword Missing only
+ // ✅ send all 3 to backend
+    default:
+      return "upcoming";
+  }
+};
+
 
   // Fetch classes from backend
   const fetchClasses = async () => {
@@ -149,22 +154,34 @@ const ClassReport = () => {
 
       const status = getStatusValue(activeTab);
 
-      const queryParams = new URLSearchParams({
-        user_id: userId,
-        status,
-        subject: filterBy,
-        date_from: fromDate,
-        date_to: toDate,
-      });
+    const subjectMap = {
+  all: "all",
+  keyboard: "Keyboard",
+  piano: "Piano",
+  guitar: "Guitar",
+  violin: "Violin",
+  drums: "Drums",
+};
 
+const subjectFilter = subjectMap[filterBy] || "all";
+
+const queryParams = new URLSearchParams({
+  user_id: userId,
+  status,
+  subject: subjectFilter,
+  date_from: fromDate,
+  date_to: toDate,
+});
       const response = await fetch(
-        `https://amjacademy-working.onrender.com/api/classreport/fetchclasses?${queryParams}`, {
-  credentials: "include", // ✅ add this line
-}
+        `${MAIN}/api/classreport/fetchclasses?${queryParams}`,
+        {
+          credentials: "include", // ✅ add this line
+        }
       );
       const data = await response.json();
 
-      if (!response.ok) throw new Error(data.error || "Failed to fetch classes");
+      if (!response.ok)
+        throw new Error(data.error || "Failed to fetch classes");
 
       setClassData(data);
     } catch (err) {
@@ -176,21 +193,23 @@ const ClassReport = () => {
   };
 
   useEffect(() => {
-    // Use demo data instead of fetching from backend
-    setClassData(getDemoData(activeTab));
+    fetchClasses();
   }, [activeTab, filterBy, fromDate, toDate]);
-
   // Badge helpers
-  const getStatusBadge = (status) => {
-    const statusClasses = {
-      upcoming: "status-not-started",
-      completed: "status-completed",
-      leave: "status-cancelled",
-      cancel: "status-missed",
-      notshown: "status-notshown",
-    };
-    return statusClasses[status] || "status-default";
+ const getStatusBadge = (status) => {
+  const cleanStatus = status.replace(/\s+/g, "").toLowerCase();
+
+  const statusClasses = {
+    upcoming: "status-not-started",
+    completed: "status-completed",
+    leave: "status-cancelled",
+    cancel: "status-missed",
+    "not shown": "status-notshown",
   };
+
+  return statusClasses[cleanStatus] || "status-default";
+};
+
 
   const getSubjectBadge = (subject) => {
     const subjectClasses = {
@@ -274,9 +293,8 @@ const ClassReport = () => {
           </button>
         ))}
         <div className="total-classes">
-          Total{" "}
-          {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Classes:{" "}
-          <span className="count">{classData.length}</span>
+          Total {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}{" "}
+          Classes: <span className="count">{classData.length}</span>
         </div>
       </div>
 
@@ -302,7 +320,7 @@ const ClassReport = () => {
               <div key={classItem.id} className="class-item">
                 <div className="class-image">
                   <img
-                    src={getSubjectImage(arrangements.subject)}
+                    src={image}
                     alt={arrangements.subject}
                   />
                 </div>
@@ -335,28 +353,36 @@ const ClassReport = () => {
                     </span>
                   </div>
 
-                  <div className="class-curriculum">
+                  {/* <div className="class-curriculum">
                     Curriculum Stamp: {classItem.curriculum || "N/A"}
-                  </div>
+                  </div> */}
                   <div className="class-instructor">
-                    Instructor: {classItem.teacher_id || "N/A"}
+                   Instructor: {classItem.instructor_name || "N/A"}
                   </div>
 
                   {/* Missing tab details */}
                   {activeTab === "Missing" && (
                     <>
                       <p className="class-status-detail">
-                        {classItem.status === "leave"
-                          ? "Leave"
-                          : classItem.status === "cancel"
-                          ? "Last Minute Cancel"
-                          : classItem.status === "notshown"
-                          ? "Not Shown"
-                          : "Missing"}
+                        {(() => {
+  const s = classItem.status.replace(/\s+/g, "").toLowerCase();
+  if (s === "leave") return "Leave";
+  if (s === "cancel") return "Last Minute Cancel";
+  if (s === "notshown") return "Not Shown";
+  return "Missing";
+})()}
                       </p>
                       <p className="class-reason">
                         <strong>Reason:</strong>{" "}
                         {classItem.reason || "No reason provided"}
+                      </p>
+                      <p className="class-reason">
+                        <strong>Applied By:</strong>{" "}
+                        {classItem.issuer_name|| "No reason provided"}
+                      </p>
+                      <p className="class-reason">
+                        <strong>Role:</strong>{" "}
+                        {classItem.issuer_role || "No reason provided"}
                       </p>
                     </>
                   )}
