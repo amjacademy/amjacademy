@@ -198,6 +198,7 @@ app.use("/",require("./routes/profileRoutes"));
 
 app.use("/api/messages", require("./routes/messagesRoutes"));
 
+app.use("/api/punctuality", require("./routes/punctualityRoutes"));
 
 //Teacher Routes
 app.use("/api/teacher",require("./routes/teacher/teacherRoutes"));
