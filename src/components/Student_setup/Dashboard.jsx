@@ -11,7 +11,7 @@ import ClassReport from "./class-report.jsx"
 import MyAssignments from "./my-assignments.jsx"
 import PunctualityReport from "./punctuality-repot.jsx"
 import LeaveModal from "../common/LeaveModal.jsx"
-
+import { supabase } from "../../supabaseClient.js";
 const Dashboard = () => {
   const navigate = useNavigate();
   const userType="Student";
@@ -122,7 +122,7 @@ const formatDate = (dateStr) => {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-    }, 1000); // every 1 second
+    }, 1000*60); // every 1 minute
 
     return () => clearInterval(timer); // cleanup
   }, []);
@@ -145,6 +145,62 @@ const formatDate = (dateStr) => {
 
   const [studentId]=useState(1);
 
+  const fetchOngoingClass = async () => {
+  try {
+    const res = await fetch(`${MAIN}/ongoing-class`, {
+      headers: { user_id: userId },
+      credentials: "include"
+    });
+
+    const data = await res.json();
+    if (!data.success || !data.ongoingClass) return;
+
+    const cls = data.ongoingClass;
+
+    const sessionAt =
+      makeSessionAtFromDateTime(cls.date, cls.time) ||
+      cls.time ||
+      cls.session_at;
+
+    const formatted = {
+      title: `${cls.subject} Class`,
+      time: sessionAt,
+      teachers: [cls.teacher_name],
+      duration: "45 mins",
+      batch: cls.batch_type,
+      level: "",
+      plan: "",
+      teacherId: cls.teacher_id,
+      image: "/images/amj-logo.png",
+      link: cls.link,
+    };
+
+    setOngoingClass(formatted);
+  } catch (err) {
+    console.error("Failed ongoing fetch:", err);
+  }
+};
+
+
+const refreshUpcomingClasses = async () => {
+  try {
+    const res = await fetch(`${MAIN}/upcoming-classes`, {
+      headers: { user_id: userId },
+      credentials: "include"
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setUpcomingClasses(data.upcomingClasses);
+    }
+  } catch (err) {
+    console.error("Failed upcoming refresh:", err);
+  }
+};
+
+
+  //upcoming classes
   useEffect(() => {
     const fetchUpcomingClasses = async () => {
       try {
@@ -166,6 +222,7 @@ const formatDate = (dateStr) => {
         const data = await response.json();
 
         if (data.success) {
+         /*  console.log("Raw upcoming classes data:", data.upcomingClasses); */
           // Map backend data to unify with group classes by adding sessionAt
           const classes = data.upcomingClasses.map((cls) => {
             // create sessionAt as ISO string
@@ -205,6 +262,7 @@ const formatDate = (dateStr) => {
     fetchUpcomingClasses();
   }, [userId]);
 
+  //group classes
   useEffect(() => {
     const fetchGroupClasses = async () => {
       try {
@@ -244,6 +302,85 @@ const formatDate = (dateStr) => {
 
     fetchGroupClasses();
   }, [userId]);
+
+useEffect(() => {
+  if (!userId) return;
+
+  const channel = supabase
+    .channel("class-status-listener")
+    .on(
+      "postgres_changes",
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: "class_statuses",
+        filter: `user_id=eq.${userId}`
+      },
+      (payload) => {
+        const newStatus = payload.new.status;
+
+        if (newStatus === "ongoing") {
+          fetchOngoingClass(); // show card
+        } else {
+          setOngoingClass(null); // hide card
+        }
+
+        refreshUpcomingClasses(); // refresh upcoming
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, [userId]);
+
+
+  //ongoing class
+  useEffect(() => {
+  const fetchOngoing = async () => {
+    try {
+      const response = await fetch(`${MAIN}/ongoing-class`, {
+        headers: {
+          "Content-Type": "application/json",
+          "user_id": userId,
+        },
+        credentials: "include",
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.ongoingClass) {
+        const cls = data.ongoingClass;
+
+        // convert date + time → ISO
+        const sessionAt =
+          makeSessionAtFromDateTime(cls.date, cls.time) ||
+          cls.time ||
+          cls.session_at;
+
+        const formatted = {
+          title: `${cls.subject} Class`,
+          time: sessionAt,
+          teachers: [cls.teacher_name],
+          duration: "45 mins",
+          batch: cls.batch_type,
+          level: "",
+          plan: "",
+          teacherId: cls.teacher_id,
+          image: "/images/amj-logo.png",
+          link: cls.link,
+        };
+
+        setOngoingClass(formatted);
+      }
+    } catch (err) {
+      console.error("Error fetching ongoing class:", err);
+    }
+  };
+
+  fetchOngoing();
+}, [userId]);
 
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: "🏠" },
@@ -398,7 +535,9 @@ const formatDate = (dateStr) => {
   // filter out classes whose sessionAt is in the past
   const futureClasses = merged.filter(cls => {
     const date = new Date(cls.sessionAt);
-    return date > now; // only upcoming
+    const fifteenMinutesAfter = new Date(date.getTime() + 15 * 60000);
+    return fifteenMinutesAfter > now;
+
   });
 
   // sort closest to now (earliest future class first)
@@ -561,9 +700,9 @@ const formatDate = (dateStr) => {
                     </p>
                     <p>Duration: {ongoingClass.duration}</p>
                     <p>Batch: {ongoingClass.batch}</p>
-                    <p>Level: {ongoingClass.level}</p>
+                    {/* <p>Level: {ongoingClass.level}</p> */}
                     <p>Teacher ID: {ongoingClass.teacherId}</p>
-                    <p>Plan: {ongoingClass.plan}</p>
+                    {/* <p>Plan: {ongoingClass.plan}</p> */}
                   </div>
                   <div className="class-actions">
                     <button className="rejoin-btn" onClick={() => window.open(ongoingClass.link, "_blank")}>

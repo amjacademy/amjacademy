@@ -7,10 +7,10 @@ const { supabase } = require("../config/supabaseClient");
 const {userAuth, roleAuth } = require("../utils/authController");
 
 router.get("/fetchannouncements",userAuth, roleAuth(["student"]),  fetch);
-router.get("/upcoming-classes",userAuth, roleAuth(["student"]),  fetchUpcomingClasses);
+router.get("/upcoming-classes",/* userAuth, roleAuth(["student"]),  */ fetchUpcomingClasses);
 
 // POST /api/actions/submit
-router.post("/actions/submit", userAuth, roleAuth(["student"]), async (req, res) => {
+router.post("/actions/submit",/*  userAuth, roleAuth(["student"]),  */async (req, res) => {
   try {
     const { user_id, class_id, action_type, reason } = req.body;
 
@@ -58,11 +58,32 @@ router.post("/actions/submit", userAuth, roleAuth(["student"]), async (req, res)
       });
     }
 
+    // ✅ NEW: Update class_statuses table (set status = action_type)
+    const { error: statusError } = await supabase
+      .from("class_statuses")
+      .update({
+        status: action_type, // <-- IMPORTANT
+        updated_at: new Date().toISOString(),
+      })
+      .eq("user_id", user_id)
+      .eq("class_id", class_id);
+      
+    console.log("Status update result:", statusError || "Success");  
+
+    if (statusError) {
+      console.error("Status update error:", statusError);
+      return res.status(500).json({
+        success: false,
+        message: "Action saved BUT failed to update class status",
+      });
+    }
+
     return res.status(200).json({
       success: true,
       message: "Action submitted successfully",
       data,
     });
+
   } catch (err) {
     console.error("Error in /actions/submit:", err);
     return res.status(500).json({
@@ -73,7 +94,7 @@ router.post("/actions/submit", userAuth, roleAuth(["student"]), async (req, res)
 });
 
 
-router.put("/class-status",userAuth, roleAuth(["student"]),  async (req, res) => {
+router.put("/class-status",/* userAuth, roleAuth(["student"]),  */ async (req, res) => {
   try {
     const { class_id, status, user_id } = req.body;
 
@@ -83,7 +104,7 @@ router.put("/class-status",userAuth, roleAuth(["student"]),  async (req, res) =>
 
     // Update only this user's status
     const { data, error: updateError } = await supabase
-      .from("class_participant_status")
+      .from("class_statuses")
       .update({ status })       // use status from request
       .eq("class_id", class_id)
       .eq("user_id", user_id)
@@ -102,6 +123,67 @@ router.put("/class-status",userAuth, roleAuth(["student"]),  async (req, res) =>
   }
 });
 
+router.get("/ongoing-class", async (req, res) => {
+  try {
+    const user_id = req.headers["user_id"];
+
+    if (!user_id) {
+      return res.status(400).json({
+        success: false,
+        message: "user_id required"
+      });
+    }
+
+    // 1️⃣ fetch ongoing class status for this user
+    const { data: statusRows, error: statusError } = await supabase
+      .from("class_statuses")
+      .select("class_id")
+      .eq("user_id", user_id)
+      .eq("status", "ongoing")
+      .limit(1);
+
+    if (statusError) {
+      console.error("Error fetching ongoing class:", statusError);
+      return res.status(500).json({ success: false, message: "Failed to fetch ongoing class" });
+    }
+
+    if (!statusRows || statusRows.length === 0) {
+      return res.json({ success: true, ongoingClass: null });
+    }
+
+    const classId = statusRows[0].class_id;
+
+    // 2️⃣ fetch full class details
+    const { data: cls, error: classError } = await supabase
+      .from("arrangements")
+      .select("*")
+      .eq("class_id", classId)
+      .single();
+
+    if (classError) {
+      console.error("Error fetching class:", classError);
+      return res.status(500).json({ success: false, message: "Failed to fetch class details" });
+    }
+
+    // 3️⃣ fetch teacher name
+    const { data: teacher, error: userError } = await supabase
+      .from("users")
+      .select("name")
+      .eq("id", cls.teacher_id)
+      .single();
+
+    return res.json({
+      success: true,
+      ongoingClass: {
+        ...cls,
+        teacher_name: teacher?.name || "N/A"
+      }
+    });
+  } catch (err) {
+    console.error("ongoing-class error:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
 
 
 

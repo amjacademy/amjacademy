@@ -9,27 +9,37 @@ exports.fetchUpcomingClasses = async (req, res) => {
       return res.status(400).json({ success: false, message: "user_id required" });
     }
 
-   /*  console.log("Fetching upcoming classes for:", userId); */
+    // 1️⃣ Fetch upcoming class-status entries for this user
+    const { data: statusRows, error: statusError } = await supabase
+      .from("class_statuses")
+      .select("class_id, start_time, role, status")
+      .eq("user_id", userId)
+      .eq("status", "upcoming");  // <-- KEY CHANGE
 
-    // 1️⃣ Fetch classes where user is student1/student2/teacher AND status = upcoming
-    const { data: classes, error: classError } = await supabase
-      .from("arrangements")
-      .select("*")
-      .eq("status", "upcoming")
-      .or(
-        `student1_id.eq.${userId},student2_id.eq.${userId},teacher_id.eq.${userId}`
-      );
-
-    if (classError) {
-      console.error("Error fetching classes:", classError);
-      return res.status(500).json({ success: false, message: "Failed to fetch class details" });
+    if (statusError) {
+      console.error("Fetch error:", statusError);
+      return res.status(500).json({ success: false, message: "Failed to fetch classes" });
     }
 
-    if (!classes || classes.length === 0) {
+    if (!statusRows || statusRows.length === 0) {
       return res.json({ success: true, upcomingClasses: [] });
     }
 
-    // 2️⃣ Collect all involved user IDs
+    // Extract all class_ids
+    const classIds = statusRows.map(r => r.class_id);
+
+    // 2️⃣ Fetch arrangements details for those class_ids
+    const { data: classes, error: classError } = await supabase
+      .from("arrangements")
+      .select("*")
+      .in("class_id", classIds);
+
+    if (classError) {
+      console.error("Error fetching class details:", classError);
+      return res.status(500).json({ success: false, message: "Failed to fetch class details" });
+    }
+
+    // 3️⃣ Collect all involved user IDs for name/profession lookup
     const userIds = [
       ...new Set(
         classes.flatMap(c => [
@@ -40,7 +50,6 @@ exports.fetchUpcomingClasses = async (req, res) => {
       )
     ];
 
-    // 3️⃣ Fetch user details
     const { data: userInfo, error: usersError } = await supabase
       .from("users")
       .select("id, name, profession")
@@ -57,7 +66,6 @@ exports.fetchUpcomingClasses = async (req, res) => {
     const upcomingClasses = classes.map(cls => {
       const teacher = userMap[cls.teacher_id] || {};
       const student1 = userMap[cls.student1_id] || {};
-      // student2 also available but frontend does not need it
 
       return {
         id: cls.id,
@@ -71,22 +79,18 @@ exports.fetchUpcomingClasses = async (req, res) => {
         rescheduled: cls.rescheduled,
         status: cls.status,
 
-        // FRONTEND REQUIRED FIELDS:
         student1_id: cls.student1_id,
         teacher_id: cls.teacher_id,
 
         teacher_name: teacher.name || "N/A",
         profession: student1.profession || "",
 
-        // Since DB has no "level" or "plan", send empty string:
         level: "",
         plan: "",
-
-        // Duration always same:
         duration: "45 mins"
       };
     });
-
+/*  console.log("upcomingClasses:", upcomingClasses); */
     return res.json({
       success: true,
       upcomingClasses
