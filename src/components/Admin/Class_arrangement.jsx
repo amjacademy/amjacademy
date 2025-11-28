@@ -975,32 +975,33 @@ const onEdit = async (schedule) => {
             </thead>
             <tbody>
               {[...schedules]
-                .filter((s) => {
-  // Student filter
+               .filter((s) => {
+  // Safe Student name
   const studentName =
     s.batch_type === "dual"
-      ? `${lookupStudentName(s.student1_id)} & ${lookupStudentName(s.student2_id)}`
+      ? `${lookupStudentName(s.student1_id)} & ${lookupStudentName(
+          s.student2_id
+        )}`
       : lookupStudentName(s.student1_id);
 
-  if (
-    studentFilter &&
-    !studentName.toLowerCase().includes(studentFilter.toLowerCase())
-  ) {
+  const safeStudentName = (studentName || "").toLowerCase();
+  const safeStudentFilter = (studentFilter || "").toLowerCase();
+
+  if (safeStudentFilter && !safeStudentName.includes(safeStudentFilter)) {
     return false;
   }
 
-  // Teacher filter
+  // Safe Teacher name
   const teacherName = lookupTeacherName(s.teacher_id);
-  if (
-    teacherFilter &&
-    !teacherName.toLowerCase().includes(teacherFilter.toLowerCase())
-  ) {
+  const safeTeacherName = (teacherName || "").toLowerCase();
+  const safeTeacherFilter = (teacherFilter || "").toLowerCase();
+
+  if (safeTeacherFilter && !safeTeacherName.includes(safeTeacherFilter)) {
     return false;
   }
 
-  // ✅ Fixed Date filter for DATE + TIMESTAMPTZ combo
+  // Safe Date filter (this part was already correct)
   if (dateFilter) {
-    // Safely convert any format (ISO, plain date, timestamptz) into YYYY-MM-DD
     const scheduleDate = new Date(s.date).toISOString().split("T")[0];
     const filterDate = new Date(dateFilter).toISOString().split("T")[0];
     if (scheduleDate !== filterDate) {
@@ -1008,7 +1009,6 @@ const onEdit = async (schedule) => {
     }
   }
 
-  // ✅ Show all by default (no subject/class filtering)
   return true;
 })
 
