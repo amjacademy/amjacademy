@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Notification from "./Notification.jsx";
 import GroupArrangement from "./group_arrangement.jsx";
@@ -56,26 +56,28 @@ const duration = (row) => {
       {announcements.length === 0 ? (
         <p>No announcements available.</p>
       ) : (
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Message</th>
-              <th>Receiver</th>
-              <th>Duration</th>
-            </tr>
-          </thead>
-          <tbody>
-            {announcements.map((a) => (
-              <tr key={a.id}>
-                <td>{a.title}</td>
-                <td>{a.message}</td>
-                <td>{a.receiver}</td>
-                <td>{duration(a)}</td>
+        <div className="table-wrap">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Message</th>
+                <th>Receiver</th>
+                <th>Duration</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {announcements.map((a) => (
+                <tr key={a.id}>
+                  <td>{a.title}</td>
+                  <td>{a.message}</td>
+                  <td>{a.receiver}</td>
+                  <td>{duration(a)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
@@ -118,48 +120,50 @@ function SchedulesTable({ schedules, onBack, onViewSchedule }) {
       {schedules.length === 0 ? (
         <p>No schedules available.</p>
       ) : (
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Student</th>
-              <th>Teacher</th>
-              <th>Subject</th>
-              <th>Batch</th>
-              <th>Date</th>
-              <th>Time</th>
-              <th>Link</th>
-            </tr>
-          </thead>
-          <tbody>
-            {schedules.map((s) => (
-              <tr key={s.id}>
-                <td>
-                  {s.batch_type === "dual"
-                    ? `${lookupStudentName(s.student1_id)} & ${lookupStudentName(s.student2_id)}`
-                    : lookupStudentName(s.student1_id)}
-                </td>
-                <td>{lookupTeacherName(s.teacher_id)}</td>
-                <td>{s.subject || "—"}</td>
-                <td>{s.batch_type === "dual" ? "Dual" : "Individual"}</td>
-                <td>{s.date}</td>
-                <td>
-                  {new Date(s.time).toLocaleTimeString(undefined, {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: true,
-                  })}
-                </td>
-                <td>
-                  {s.link ? (
-                    <a href={s.link} target="_blank" rel="noreferrer">Join</a>
-                  ) : (
-                    "—"
-                  )}
-                </td>
+        <div className="table-wrap">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Teacher</th>
+                <th>Subject</th>
+                <th>Batch</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Link</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {schedules.map((s) => (
+                <tr key={s.id}>
+                  <td>
+                    {s.batch_type === "dual"
+                      ? `${lookupStudentName(s.student1_id)} & ${lookupStudentName(s.student2_id)}`
+                      : lookupStudentName(s.student1_id)}
+                  </td>
+                  <td>{lookupTeacherName(s.teacher_id)}</td>
+                  <td>{s.subject || "—"}</td>
+                  <td>{s.batch_type === "dual" ? "Dual" : "Individual"}</td>
+                  <td>{s.date}</td>
+                  <td>
+                    {new Date(s.time).toLocaleTimeString(undefined, {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                    })}
+                  </td>
+                  <td>
+                    {s.link ? (
+                      <a href={s.link} target="_blank" rel="noreferrer">Join</a>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
@@ -174,40 +178,42 @@ function StudentsTable({ students, onBack, onView }) {
       {students.length === 0 ? (
         <p>No students available.</p>
       ) : (
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Avatar</th>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Age</th>
-              <th>Profession</th>
-              <th>Phone</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {students.map((row, index) => (
-              <tr key={row.id || `${row.name}-${index}`}>
-                <td>
-                 {row.image ? (
-  <img src={row.image} alt={row.name} className="avatar-sm" />
-) : (
-  <div className="avatar-sm avatar-sm--placeholder" />
-)}
-                </td>
-                <td>{row.id}</td>
-                <td>{row.name}</td>
-                <td>{row.profession || "—"}</td>
-                <td>{row.age || "—"}</td>
-                <td>{row.phone_number}</td>
-                <td>
-                  <button onClick={() => onView?.(row)} style={{ backgroundColor: '#007bff', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>View</button>
-                </td>
+        <div className="table-wrap">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Avatar</th>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Profession</th>
+                <th>Phone</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {students.map((row, index) => (
+                <tr key={row.id || `${row.name}-${index}`}>
+                  <td>
+                   {row.image ? (
+    <img src={row.image} alt={row.name} className="avatar-sm" />
+  ) : (
+    <div className="avatar-sm avatar-sm--placeholder" />
+  )}
+                  </td>
+                  <td>{row.id}</td>
+                  <td>{row.name}</td>
+                  <td>{row.profession || "—"}</td>
+                  <td>{row.age || "—"}</td>
+                  <td>{row.phone_number}</td>
+                  <td>
+                    <button onClick={() => onView?.(row)} style={{ backgroundColor: '#007bff', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>View</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

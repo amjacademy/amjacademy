@@ -995,6 +995,16 @@
   .main-content {
     padding: 20px 16px;
   }
+
+  /* Hide less important columns on tablets */
+  .table th:nth-child(4),
+  .table td:nth-child(4),
+  .table th:nth-child(5),
+  .table td:nth-child(5),
+  .table th:nth-child(6),
+  .table td:nth-child(6) {
+    display: none;
+  }
 }
 
 @media (max-width: 540px) {
@@ -1004,7 +1014,69 @@
   .tab-btn {
     flex: 1 1 auto;
   }
+
+  /* Make tables fully responsive on mobile */
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .table {
-    min-width: 640px;
+    min-width: 100%;
+    font-size: 12px;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .table th,
+  .table td {
+    padding: 6px 8px;
+    white-space: nowrap;
+  }
+
+  .table th {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Hide non-essential columns on mobile */
+  .table th:nth-child(4),
+  .table td:nth-child(4),
+  .table th:nth-child(5),
+  .table td:nth-child(5),
+  .table th:nth-child(6),
+  .table td:nth-child(6) {
+    display: none;
+  }
+
+  /* Make action buttons more compact */
+  .col-actions {
+    min-width: 80px;
+  }
+
+  .col-actions button {
+    padding: 4px 6px;
+    font-size: 11px;
+    margin: 1px 0;
+    width: 100%;
+    min-height: 28px;
+  }
+
+  /* Ensure avatar images are smaller */
+  .avatar-sm {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* Make table rows more compact */
+  .table tbody tr {
+    min-height: 40px;
+  }
+
+  /* Improve readability */
+  .table tbody td {
+    vertical-align: middle;
   }
 }
