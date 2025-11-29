@@ -143,46 +143,48 @@ const MyAssignments = () => {
       </div> */}
 
       <div className="assessments-table">
-        <table>
-          <thead>
-            <tr>
-              <th>Subject & Level</th>
-              <th>Teacher Name</th>
-              <th>Due Date</th>
-              <th>Progress</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {assessments.map((assessment) => (
-              <tr key={assessment.id}>
-                <td>{assessment.subject}</td>
-                <td>{assessment.teacher}</td>
-                <td>{assessment.dueDate}</td>
-                <td>
-                  <div className="progress-info">
-                    <div>{assessment.progress}</div>
-                  </div>
-                </td>
-                <td>
-                  <span className={`status-badge ${assessment.status.toLowerCase().replace(' ', '')}`}>{assessment.status}</span>
-                </td>
-                <td>
-                  {assessment.actions.map((action) => (
-                    <button
-                      key={action}
-                      className={`action-view-btn ${action === "Submited" ? "completed" : ""}`}
-                      onClick={action === "View" ? () => handleViewClick(assessment.id) : undefined}
-                    >
-                      {action}
-                    </button>
-                  ))}
-                </td>
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Subject & Level</th>
+                <th>Teacher Name</th>
+                <th>Due Date</th>
+                <th>Progress</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {assessments.map((assessment) => (
+                <tr key={assessment.id}>
+                  <td>{assessment.subject}</td>
+                  <td>{assessment.teacher}</td>
+                  <td>{assessment.dueDate}</td>
+                  <td>
+                    <div className="progress-info">
+                      <div>{assessment.progress}</div>
+                    </div>
+                  </td>
+                  <td>
+                    <span className={`status-badge ${assessment.status.toLowerCase().replace(' ', '')}`}>{assessment.status}</span>
+                  </td>
+                  <td>
+                    {assessment.actions.map((action) => (
+                      <button
+                        key={action}
+                        className={`action-view-btn ${action === "Submited" ? "completed" : ""}`}
+                        onClick={action === "View" ? () => handleViewClick(assessment.id) : undefined}
+                      >
+                        {action}
+                      </button>
+                    ))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div className="pagination">
