@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Notification from "./Notification.jsx";
 import GroupArrangement from "./group_arrangement.jsx";
+import PopupNotification from "../common/PopupNotification.jsx";
 
 const BASE = /* "http://localhost:5000" */"https://amjacademy-working.onrender.com";
 
@@ -271,6 +272,7 @@ export default function Dashboard({
 }) {
   const [selectedModule, setSelectedModule] = useState(null);
   const [showNotificationMenu, setShowNotificationMenu] = useState(false);
+  const [notification, setNotification] = useState(null);
 
   const [students, setStudents] = useState(preload.students || []);
   const [teachers, setTeachers] = useState(preload.teachers || []);
@@ -291,8 +293,9 @@ const handleView = async (user) => {
       if (typeof onView === "function") {
         onView(data);
       }
+      setNotification({ message: "User data loaded successfully.", type: "success" });
     } else {
-      alert("User data not found.");
+      setNotification({ message: "User data not found.", type: "error" });
     }
   } catch (err) {
     console.error("Error fetching user data:", err);
@@ -423,6 +426,14 @@ const handleView = async (user) => {
           <button onClick={handleBack} style={{ backgroundColor: '#00008B', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', marginBottom: '10px' }}>Back</button>
           <GroupArrangement />
         </div>
+      )}
+
+      {notification && (
+        <PopupNotification
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification(null)}
+        />
       )}
     </>
   );

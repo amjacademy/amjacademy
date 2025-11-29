@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import "./Announcements.css";
 
-export default function Announcements() {
-  const [announcements, setAnnouncements] = useState([]);
+export default function Announcements({ announcements, setAnnouncements, notification, setNotification }) {
   const [receiver, setReceiver] = useState("Students");
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
@@ -113,6 +112,7 @@ useEffect(() => { fetchAnnouncements(); }, [receiver]);
 
     if (selectedDateTime <= now) {
       setError("Cannot schedule announcement in the past. Please select a future date and time.");
+      setNotification({ message: "Cannot schedule announcement in the past. Please select a future date and time.", type: "error" });
       // Reset to current date and time
       const current = new Date();
       setDate(current.toISOString().split('T')[0]);
@@ -138,7 +138,7 @@ useEffect(() => { fetchAnnouncements(); }, [receiver]);
 
       if (!res.ok) {
         console.log("Error response:", data);
-        setError(data.error || "Failed to create announcement.");
+        setNotification({ message: data.error || "Failed to create announcement.", type: "error" });
       } else {
         // make sure data.announcements exists and is an array
 fetchAnnouncements();
@@ -150,6 +150,7 @@ fetchAnnouncements();
         setHour("12");
         setMinute("00");
         setAmpm("AM");
+        setNotification({ message: "Announcement posted successfully!", type: "success" });
       }
     } catch (err) {
       console.error(err);
@@ -169,12 +170,15 @@ fetchAnnouncements();
       if (!res.ok) {
         const errData = await res.json();
         console.error("Delete failed:", errData.error);
+        setNotification({ message: errData.error || "Failed to delete announcement.", type: "error" });
         return;
       }
 
       setAnnouncements(announcements.filter((a) => a.id !== id));
+      setNotification({ message: "Announcement deleted successfully!", type: "success" });
     } catch (err) {
       console.error("Error deleting announcement:", err);
+      setNotification({ message: "Server error. Try again later.", type: "error" });
     }
   };
 

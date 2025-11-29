@@ -1,15 +1,12 @@
-# TODO: Replicate Student Dashboard for Teacher Dashboard
+# TODO: Add Popup Notifications for Admin Actions
 
-## Tasks
-- [x] Update userType to "Teacher" and userId to teacher_id from localStorage
-- [x] Update imports (add axios if needed, adjust components)
-- [x] Update announcements fetching to use teacher API endpoint
-- [x] Update upcoming classes fetching to use teacher API endpoint
-- [x] Adapt class data mapping for teacher view (student names, etc.)
-- [x] Update menu items to match teacher features
-- [x] Update renderContent: add ongoing class section, adapt class display
-- [x] Replace JOIN CLASS with START CLASS, add LEAVE and LAST MINUTE CANCEL buttons
-- [x] Add real-time clock functionality
-- [x] Update header navigation links
-- [x] Update announcements display to handle multiple announcements like student
-- [x] Test the dashboard functionality
+## Overview
+Implement popup notifications in the bottom right corner for admin pages when performing update, enroll, and add actions. Notifications should be styled as message forms with green for success and red for failure.
+
+## Steps
+- [ ] Create a reusable PopupNotification component in src/components/common/
+- [ ] Create CSS for the popup notification (bottom right, message form style, green/red colors)
+- [ ] Integrate PopupNotification into User_enrollment.jsx for enroll/update actions
+- [x] Integrate PopupNotification into Announcements.jsx for post announcement action
+- [ ] Integrate PopupNotification into Class_arrangement.jsx for add/update schedule actions
+- [ ] Test the notifications in all admin components
