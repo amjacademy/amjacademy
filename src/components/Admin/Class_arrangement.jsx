@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios"; // make sure axios is installed
 import "./Class_arrangement.css";
+import PopupNotification from "../common/PopupNotification.jsx";
 
 function EmptyState({ title, subtitle }) {
   return (
@@ -25,12 +26,14 @@ export default function Class_arrangement({ schedules, setSchedules }) {
   const [ampm, setAmpm] = useState("AM");
   const [link, setLink] = useState("");
   const [error, setError] = useState("");
+  const [notification, setNotification] = useState(null);
   const [rescheduleChecked, setRescheduleChecked] = useState(false);
   const [scheduleFor, setScheduleFor] = useState("12");
   const [sessionDates, setSessionDates] = useState([""]);
   const [sessionForWeek, setSessionForWeek] = useState("1 day");
   const [secondDay, setSecondDay] = useState("");
   const [loading, setLoading] = useState(false);
+  const [editingLoading, setEditingLoading] = useState(false);
   const [deletingIds, setDeletingIds] = useState(new Set());
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -225,7 +228,7 @@ export default function Class_arrangement({ schedules, setSchedules }) {
     (isDual && !secondStudentId) ||
     (sessionForWeek === "2 days" && !secondDay)
   ) {
-    setError("Please fill all required fields.");
+    setNotification({ type: "error", message: "Please fill all required fields." });
     setLoading(false);
     return;
   }
@@ -308,7 +311,7 @@ export default function Class_arrangement({ schedules, setSchedules }) {
   });
 
   if (conflict) {
-    setError("Conflict: This student or teacher already has a schedule at the same time.");
+    setNotification({ type: "error", message: "Conflict: This student or teacher already has a schedule at the same time." });
     setLoading(false);
     return;
   }
@@ -359,15 +362,17 @@ export default function Class_arrangement({ schedules, setSchedules }) {
       setSchedules(
         schedules.map((s) => (s.id === editingId ? newSchedules[0] : s))
       );
+      setNotification({ type: "success", message: "Schedule updated successfully." });
     } else {
       setSchedules([...schedules, ...newSchedules]);
+      setNotification({ type: "success", message: "Schedule added successfully." });
     }
 
     resetForm();
     setLoading(false);
   } catch (err) {
     console.error("Error saving schedule:", err);
-    setError("Failed to save schedule.");
+    setNotification({ type: "error", message: "Failed to save schedule." });
     setLoading(false);
   }
 };
@@ -383,11 +388,13 @@ export default function Class_arrangement({ schedules, setSchedules }) {
         }
       );
       setSchedules(schedules.filter((s) => s.id !== id));
+      setNotification({ message: "Schedule deleted successfully.", type: "success" });
       if (isEditing && editingId === id) {
         resetForm();
       }
     } catch (err) {
       console.error("Error deleting schedule:", err);
+      setNotification({ message: "Failed to delete schedule.", type: "error" });
     } finally {
       setDeletingIds((prev) => {
         const newSet = new Set(prev);
@@ -418,11 +425,13 @@ export default function Class_arrangement({ schedules, setSchedules }) {
       setSchedules(schedules.filter((s) => !idsToDelete.includes(s.id)));
       setSelectedIds(new Set());
       setIsSelecting(false);
+      setNotification({ message: "Selected schedules deleted successfully.", type: "success" });
       if (isEditing && idsToDelete.includes(editingId)) {
         resetForm();
       }
     } catch (err) {
       console.error("Error deleting selected schedules:", err);
+      setNotification({ message: "Failed to delete selected schedules.", type: "error" });
     } finally {
       setDeletingIds((prev) => {
         const newSet = new Set(prev);
@@ -456,7 +465,7 @@ const onEdit = async (schedule) => {
   try {
     setIsEditing(true);
     setEditingId(schedule.id);
-    setLoading(true);
+    setEditingLoading(true);
 
     // ✅ Fetch the original record from backend
     const res = await axios.get(
@@ -498,7 +507,7 @@ const onEdit = async (schedule) => {
     console.error("❌ Error loading full record:", err);
     setError("Unable to load original data from database.");
   } finally {
-    setLoading(false);
+    setEditingLoading(false);
   }
 };
 
@@ -826,11 +835,7 @@ const onEdit = async (schedule) => {
         </div>
         <div className="field form-actions">
           <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading
-              ? "Adding..."
-              : isEditing
-              ? "Update Schedule"
-              : "Add to Schedule"}
+            {loading ? "Loading..." : isEditing ? "Update Schedule" : "Add to Schedule"}
           </button>
           {isEditing && (
             <button
@@ -1076,8 +1081,9 @@ const onEdit = async (schedule) => {
                       <button
                         className="btn btn-primary"
                         onClick={() => onEdit(s)}
+                        disabled={editingId === s.id && editingLoading}
                       >
-                        Edit
+                        {editingId === s.id && editingLoading ? "Loading..." : "Edit"}
                       </button>
                       <button
                         className="btn btn-danger"
@@ -1094,6 +1100,14 @@ const onEdit = async (schedule) => {
           </table>
         )}
       </div>
+      {notification && (
+        <PopupNotification
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification(null)}
+          duration={5000}
+        />
+      )}
     </section>
   );
 }

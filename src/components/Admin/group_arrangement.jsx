@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import "./group_arrangement.css";
+import PopupNotification from "../common/PopupNotification.jsx";
 
 const GroupArrangement = () => {
 
@@ -31,6 +32,7 @@ const GroupArrangement = () => {
   const [showForm, setShowForm] = useState(false);
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState(null);
 
   const [studentFilter, setStudentFilter] = useState("");
 
@@ -215,7 +217,7 @@ const GroupArrangement = () => {
       formData.students.length === 0 ||
       !formData.classLink
     ) {
-      alert("Please fill all required fields");
+      setNotification({ type: "error", message: "Please fill all required fields" });
       setLoading(false);
       return;
     }
@@ -283,7 +285,7 @@ const GroupArrangement = () => {
       setArrangements(data);
       /* console.log("FINAL PAYLOAD:", JSON.stringify(payload, null, 2)); */
 
-      alert("Saved successfully!");
+      setNotification({ type: "success", message: "Saved successfully!" });
     } catch (err) {
       console.error("Submit error:", err);
       alert("Error saving group");
@@ -294,8 +296,8 @@ const GroupArrangement = () => {
   };
 
   // -------------------------
-  // 🔗 DELETE GROUP
-  // -------------------------
+// 🔗 DELETE GROUP
+// -------------------------
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this group?")) return;
 
@@ -309,9 +311,10 @@ const GroupArrangement = () => {
 }
       );
       setArrangements(data);
+      setNotification({ type: "success", message: "Group deleted successfully!" });
     } catch (err) {
       console.error("Delete error:", err);
-      alert("Failed to delete");
+      setNotification({ type: "error", message: "Failed to delete" });
     }
   };
 
@@ -845,6 +848,14 @@ const GroupArrangement = () => {
           </div>
         )}
       </div>
+      {notification && (
+        <PopupNotification
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification(null)}
+          duration={5000}
+        />
+      )}
     </div>
   );
 };

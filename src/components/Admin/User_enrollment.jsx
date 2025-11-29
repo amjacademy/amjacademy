@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import "./User_enrollment.css"
+import PopupNotification from "../common/PopupNotification.jsx"
 
 function IdTools({ value, onChange, students, teachers, role, setStudents, setTeachers  }) {
   const [disabled, setDisabled] = useState(false)
@@ -166,7 +167,7 @@ function EmptyState({ title, subtitle }) {
   )
 }
 
-export default function User_enrollment({ students, setStudents, teachers, setTeachers, editingRow, setEditingRow }) {
+export default function User_enrollment({ students, setStudents, teachers, setTeachers, editingRow, setEditingRow, notification, setNotification }) {
   const [isLoading, setIsLoading] = useState(false); // loading state added
 
   // If editingRow is passed, populate the form
@@ -288,7 +289,7 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
 
   // Validation
   if (!id || !name || !age || !phone || !email || !password || !username || (!batchType && role === "student") || (!plan && role === "student") || (!level && role === "student") || (role === "teacher" && !experienceLevel)) {
-    setError("Please fill all required fields.");
+    setNotification({ message: "Please fill all required fields.", type: "error" });
     setIsLoading(false); // set loading false due to validation fail
     return;
   }
@@ -322,7 +323,7 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
 
       const data = await response.json();
       if (!response.ok) {
-        setError(data.error || "Failed to update user");
+        setNotification({ message: data.error || "Failed to update user", type: "error" });
         setIsLoading(false); // set loading false on error
         return;
       }
@@ -342,13 +343,15 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
 
     console.log("✅ Updated successfully:", updatedUser);
 
+    setNotification({ message: "User updated successfully.", type: "success" });
+
     // Reset form
     resetForm();
     setIsLoading(false); // set loading false on success
 
     } catch (error) {
       console.error(error);
-      setError("Failed to update. Try again.");
+      setNotification({ message: "Failed to update. Try again.", type: "error" });
       setIsLoading(false); // set loading false on catch
     }
   } else {
@@ -390,7 +393,7 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
       console.log("Server response:", data);
       if (!response.ok) {
   // Use data.message safely (it’s a string now)
-  setError(data.message || "Something went wrong");
+  setNotification({ message: data.message || "Something went wrong", type: "error" });
   setIsLoading(false); // set loading false on error
   return;
 }
@@ -406,7 +409,7 @@ setIsLoading(false); // loading false after success
 
     } catch (err) {
   console.error("Error submitting enrollment:", err);
-  alert("Server error. Please try again.");
+  setNotification({ message: "Server error. Please try again.", type: "error" });
   setIsLoading(false); // loading false on catch
 }
   }
@@ -445,7 +448,10 @@ const onDelete = async (id) => {
       credentials: "include"
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.message);
+    if (!response.ok) {
+      setNotification({ message: data.message || "Failed to delete user.", type: "error" });
+      return;
+    }
 
     // Update state
     if (role === "student") {
@@ -455,43 +461,45 @@ const onDelete = async (id) => {
     }
 
     setList(list.filter((x) => x.id !== id));
+    setNotification({ message: "User deleted successfully.", type: "success" });
 
   } catch (err) {
     console.error("Error deleting:", err);
+    setNotification({ message: err.message || "Failed to delete user.", type: "error" });
   }
 };
 
 
   return (
     <section className="card card--pad">
-      <header className="section-header">
-        <div className="section-title">
-          <h3>User Enrollment</h3>
-          <span className="badge">{role}</span>
-        </div>
-        <div className="role-switch">
-          <label className={`switch ${role === "student" ? "switch--active" : ""}`}>
-            <input
-              type="radio"
-              name="role"
-              checked={role === "student"}
-              onChange={() => setRole("student")}
-              aria-label="Student module"
-            />
-            Student
-          </label>
-          <label className={`switch ${role === "teacher" ? "switch--active" : ""}`}>
-            <input
-              type="radio"
-              name="role"
-              checked={role === "teacher"}
-              onChange={() => setRole("teacher")}
-              aria-label="Teacher module"
-            />
-            Teacher
-          </label>
-        </div>
-      </header>
+        <header className="section-header">
+          <div className="section-title">
+            <h3>User Enrollment</h3>
+            <span className="badge">{role}</span>
+          </div>
+          <div className="role-switch">
+            <label className={`switch ${role === "student" ? "switch--active" : ""}`}>
+              <input
+                type="radio"
+                name="role"
+                checked={role === "student"}
+                onChange={() => setRole("student")}
+                aria-label="Student module"
+              />
+              Student
+            </label>
+            <label className={`switch ${role === "teacher" ? "switch--active" : ""}`}>
+              <input
+                type="radio"
+                name="role"
+                checked={role === "teacher"}
+                onChange={() => setRole("teacher")}
+                aria-label="Teacher module"
+              />
+              Teacher
+            </label>
+          </div>
+        </header>
 
       <form className="form-grid" onSubmit={onSubmit}>
         <div className="field">
@@ -775,5 +783,5 @@ const onDelete = async (id) => {
         )}
       </div>
     </section>
-  )
+)
 }

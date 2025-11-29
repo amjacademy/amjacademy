@@ -9,6 +9,7 @@ import Announcements from "./Announcements.jsx";
 import Class_arrangement from "./Class_arrangement.jsx";
 import GroupArrangement from "./group_arrangement.jsx";
 import Notification from "./Notification.jsx";
+import PopupNotification from "../common/PopupNotification.jsx";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -57,6 +58,7 @@ export default function Admin_Dashboard() {
   const [showNotificationSubmenu, setShowNotificationSubmenu] = useState(false);
   const [apiCounts, setApiCounts] = useState({});
   const [loading, setLoading] = useState(true);
+  const [notification, setNotification] = useState(null);
 
   // pick editing row from router state
   useEffect(() => {
@@ -83,11 +85,11 @@ export default function Admin_Dashboard() {
           withCredentials: true,
         });
         if (!res.data.success) {
-          alert("Session expired. Please login again.");
+          setNotification({ type: "error", message: "Session expired. Please login again." });
           navigate("/AdminLogin");
         }
       } catch {
-        alert("Session expired. Please login again.");
+        setNotification({ type: "error", message: "Session expired. Please login again." });
         navigate("/AdminLogin");
       }
     };
@@ -206,6 +208,8 @@ setApiCounts(prev => ({
             setTeachers={setTeachers}
             editingRow={editingRow}
             setEditingRow={setEditingRow} // ✅ pass setter down
+            notification={notification}
+            setNotification={setNotification}
           />
         );
       case "announcements":
@@ -213,6 +217,8 @@ setApiCounts(prev => ({
           <Announcements
             announcements={announcements}
             setAnnouncements={setAnnouncements}
+            notification={notification}
+            setNotification={setNotification}
           />
         );
       case "notifications":
@@ -450,6 +456,14 @@ setApiCounts(prev => ({
             </div>
           </div>
         </div>
+      )}
+
+      {notification && (
+        <PopupNotification
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification(null)}
+        />
       )}
     </div>
   );
