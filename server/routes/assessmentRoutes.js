@@ -125,19 +125,26 @@ router.post("/submit", async (req, res) => {
       });
     }
 
-    // 2️⃣ Save the JSON answers
-    const { error: respErr } = await supabase
-      .from("assessment_responses")
-      .insert([
-        {
-          assessment_id,
-          user_id,
-          answers,          // ⬅ JSONB saved here
-          submitted_at: new Date(),
-        }
-      ]);
+   // Count YES values from object keys
+const user_count = Object.values(answers).filter(val =>
+  val?.trim().toLowerCase().startsWith("yes")
+).length;
 
-    if (respErr) throw respErr;
+// 2️⃣ Save the JSON answers
+const { error: respErr } = await supabase
+  .from("assessment_responses")
+  .insert([
+    {
+      assessment_id,
+      user_id,
+      answers,      // JSONB
+      user_count,   // YES count
+      submitted_at: new Date(),
+    }
+  ]);
+
+if (respErr) throw respErr;
+
 
     // 3️⃣ Mark assessment completed
     await supabase

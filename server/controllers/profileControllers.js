@@ -7,6 +7,7 @@ const {
   updateAvatar,
   getStoryCharacters,
   getMediaList,
+  getAssessmentResponsesByUserId,
 } = require("../models/profileModels");
 
 const { streamUpload } = require("../config/cloudinaryConfig");
@@ -16,31 +17,64 @@ exports.getProfile = async (req, res) => {
   const { userId } = req.params;
 
   try {
+    // 1️⃣ Fetch user
     const { data: user, error: userError } = await getUserById(userId);
     if (userError) return res.status(500).json({ error: userError.message });
     if (!user) return res.status(404).json({ error: "User not found" });
 
+    // 2️⃣ Fetch student details
     const { data: student, error: studentError } = await getStudentById(userId);
     if (studentError)
       return res.status(500).json({ error: studentError.message });
 
+    // 3️⃣ Fetch media
     const { data: media, error: mediaError } = await getMediaByUserId(userId);
     if (mediaError) return res.status(500).json({ error: mediaError.message });
 
-    const photos = media
-      ?.filter((m) => m.resource_type === "photo")
-      .map((m) => ({
-        name: m.original_filename,
-        url: m.secure_url,
-      })) || [];
+    const photos =
+      media
+        ?.filter((m) => m.resource_type === "photo")
+        .map((m) => ({
+          name: m.original_filename,
+          url: m.secure_url,
+        })) || [];
 
-    const videos = media
-      ?.filter((m) => m.resource_type === "video")
-      .map((m) => ({
-        name: m.original_filename,
-        url: m.secure_url,
-      })) || [];
+    const videos =
+      media
+        ?.filter((m) => m.resource_type === "video")
+        .map((m) => ({
+          name: m.original_filename,
+          url: m.secure_url,
+        })) || [];
 
+    // ---------------------------------------------------------
+    // ⭐ 4️⃣ Fetch Ratings from assessment_responses table
+    // ---------------------------------------------------------
+    const { data: responses, error: responsesError } =
+      await getAssessmentResponsesByUserId(userId);
+
+    if (responsesError)
+      return res.status(500).json({ error: responsesError.message });
+
+    let rating = 0;
+
+    if (responses && responses.length > 0) {
+      const totalYes = responses.reduce(
+        (sum, row) => sum + (row.user_count || 0),
+        0
+      );
+
+      const numberOfEntries = responses.length; // total entries
+      const maxPossibleYes = numberOfEntries * 10; // each assessment has 10 questions
+
+      rating = maxPossibleYes > 0 ? (totalYes / maxPossibleYes) * 5 : 0;
+
+      rating = Number(rating.toFixed(1)); // Example: 2.5, 4.3, etc.
+    }
+
+    // ---------------------------------------------------------
+
+    // 5️⃣ Final Response
     res.json({
       id: user.id,
       name: user.name,
@@ -52,6 +86,11 @@ exports.getProfile = async (req, res) => {
       achievements: student?.achievements || 0,
       enrolledSubjects: student?.profession || " ",
       unlocked: (student?.unlocked || []).map(Number),
+
+      // Attach Rating
+      rating,
+
+      // Media
       media: { photos, videos },
     });
   } catch (err) {

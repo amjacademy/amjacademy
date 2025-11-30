@@ -6,7 +6,7 @@ import "./Profile.css"
 const Profile = () => {
 
   const MAIN="https://amjacademy-working.onrender.com";
-  const LOCAL="http://localhost:5000";
+  const TEST="http://localhost:5000";
 
   const [activeSection, setActiveSection] = useState("videos")
   const [newProfileImage, setNewProfileImage] = useState(null)
@@ -51,7 +51,7 @@ const [unlockedCharacters, setUnlockedCharacters] = useState([]);
             totalClassesAttended: data.totalClassesAttended || 0,
             progress: data.progress || "0%",
             achievements: data.achievements || 0,
-            ratings: data.ratings || 0,
+            ratings: data.rating || 0,
             videos: data.media?.videos || [],
             photos: data.media?.photos || [],
 
@@ -267,10 +267,10 @@ const handlePhotoUpload = async (e) => {
               { icon:"📧", label:"Email", value:userProfile.email },
               { icon:"👤", label:"Username", value:userProfile.username },
               { icon:"🎓", label:"Classes Attended", value:userProfile.totalClassesAttended },
-              { icon:"⭐", label:"Ratings", value:userProfile.ratings },
+              { icon:"⭐", label:"Ratings", value: `${userProfile.ratings}/5` },
               { icon:"📊", label:"Progress", value:userProfile.progress },
-              { icon:"🏆", label:"Achievements", value:userProfile.achievements },
-              { icon:"📚", label:"Subjects", value:userProfile.enrolledSubjects || "None" }
+              { icon:"🏆", label:"Achievements", value: `${unlockedCharacters.length}`/* userProfile.achievements */ },
+              { icon:"📚", label:"Subject", value:userProfile.enrolledSubjects || "None" }
             ].map((card,i)=>(
               <div key={i} className={`info-card info-card-${i}`} >
                 <div className="info-icon">{card.icon}</div>

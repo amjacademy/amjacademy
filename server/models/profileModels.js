@@ -64,3 +64,11 @@ exports.getMediaList = async (userId) => {
     .eq("user_id", userId)
     .order("uploaded_at", { ascending: false });
 };
+
+// ---------------------- GET USER ASSESSMENT RESPONSES ----------------------
+exports.getAssessmentResponsesByUserId = async (userId) => {
+  return await supabase
+    .from("assessment_responses")
+    .select("user_count")
+    .eq("user_id", userId);
+};
