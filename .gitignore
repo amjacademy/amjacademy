@@ -27,3 +27,5 @@ dist-ssr
 /server/.env 
 /src/assets/server1.js 
 /src/assets/1.txt
+
+/.env

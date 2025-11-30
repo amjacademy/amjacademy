@@ -749,9 +749,9 @@ body {
   background: linear-gradient(135deg, #a29bfe, #6c5ce7);
   color: white;
   border: none;
-  padding: 12px 24px;
+  padding: 12px 24px ;
   border-radius: 20px;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;

@@ -1079,4 +1079,15 @@
   .table tbody td {
     vertical-align: middle;
   }
+
+  /* Hide back buttons on mobile */
+  .back-button {
+    display: none;
+  }
+
+  /* Hide header navigation buttons on mobile */
+  .back-btn,
+  .forward-btn {
+    display: none;
+  }
 }
