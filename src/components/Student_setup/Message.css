@@ -862,11 +862,27 @@
     height: 100vh;
   }
 }
-@media (max-width: 400px) {
-  .contact-item {
-    width: 150px;
-    padding: 10px 15px;
+@media (max-width: 460px) {
+  .main_container {
+    padding-right: 100px;
   }
+  .chat-placeholder{
+    display: none;
+  }
+  .contact-item {
+    width: auto;
+    height: auto;
+    padding: 25px 23px 23px 15px;
+  }
+
+  .contact-avatar img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .contrat-list {
+    padding: 5px 0;
+  } 
 
   .contact-name {
     font-size: 1rem;
