@@ -4,10 +4,33 @@ const { supabase } = require("../config/supabaseClient");
 const { adminAuth } = require("../utils/authController");
 const router = express.Router();
 
+
+//GET LAST ARRANGEMENT ID (for frontend generator)
+router.get("/last-arrangement-id", adminAuth, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("arrangements")
+      .select("arrangement_id")
+      .not("arrangement_id", "is", null)
+      .order("arrangement_id", { ascending: false })
+      .limit(1);
+
+    if (error) throw error;
+
+    return res.status(200).json({
+      lastArrangementId: data?.[0]?.arrangement_id || null,
+    });
+  } catch (err) {
+    console.error("❌ Error fetching last arrangement ID:", err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 // CREATE arrangement
 router.post("/create", async (req, res) => {
   try {
     const {
+      arrangement_id,
       batch_type,
       student1_id,
       student2_id,
@@ -25,11 +48,17 @@ router.post("/create", async (req, res) => {
       subject,
     } = req.body;
 
+    
+    if (!arrangement_id) {
+      return res.status(400).json({ error: "arrangement_id is required" });
+    }
+
     // 1️⃣ Insert into arrangements table
     const { data, error } = await supabase
       .from("arrangements")
       .insert([
         {
+          arrangement_id,
           batch_type,
           student1_id,
           student2_id: batch_type === "dual" ? student2_id : null,
@@ -66,6 +95,96 @@ router.post("/create", async (req, res) => {
       );
       if (inc2Err) throw inc2Err;
     }
+// ============================================
+// 4️⃣ CREATE ASSESSMENTS ONLY IF NOT EXIST
+// ============================================
+
+// Check if assessments already exist for this arrangement_id
+const { data: existingAssessments, error: checkErr } = await supabase
+  .from("assessments")
+  .select("id")
+  .eq("arrangement_id", arrangement_id);
+
+if (checkErr) throw checkErr;
+
+const shouldCreateAssessments = existingAssessments.length === 0;
+
+if (shouldCreateAssessments) {
+  console.log("🚀 Creating assessments for:", arrangement_id);
+
+  // Generate checkpoints (every 8 sessions)
+  const checkpoints = [];
+  for (let cp = 8; cp <= no_of_sessions; cp += 8) {
+    checkpoints.push(cp);
+  }
+
+  for (const cp of checkpoints) {
+    // ---------------------------------------------------
+    // 1️⃣ CREATE student_to_teacher (students evaluate the teacher)
+    // ---------------------------------------------------
+    const { data: stuToTeach, error: s2tErr } = await supabase
+      .from("assessments")
+      .insert([
+        {
+          arrangement_id,
+          session_checkpoint: cp,
+          type: "student_to_teacher",
+          due_time: null,
+          is_opened: false,
+        },
+      ])
+      .select()
+      .single();
+
+    if (s2tErr) throw s2tErr;
+
+    // STUDENTS must be the ones answering (targets)
+    const stt_targets = [
+      { assessment_id: stuToTeach.id, user_id: student1_id, role: "student" },
+    ];
+
+    if (batch_type === "dual" && student2_id) {
+      stt_targets.push({
+        assessment_id: stuToTeach.id,
+        user_id: student2_id,
+        role: "student",
+      });
+    }
+
+    await supabase.from("assessment_targets").insert(stt_targets);
+
+    // ---------------------------------------------------
+    // 2️⃣ CREATE teacher_to_student (teacher evaluates the student(s))
+    // ---------------------------------------------------
+    const { data: teachToStu, error: t2sErr } = await supabase
+      .from("assessments")
+      .insert([
+        {
+          arrangement_id,
+          session_checkpoint: cp,
+          type: "teacher_to_student",
+          due_time: null,
+          is_opened: false,
+        },
+      ])
+      .select()
+      .single();
+
+    if (t2sErr) throw t2sErr;
+
+    // The TEACHER must be the one answering (target)
+    await supabase.from("assessment_targets").insert([
+      {
+        assessment_id: teachToStu.id,
+        user_id: teacher_id,
+        role: "teacher",
+      },
+    ]);
+  }
+} else {
+  console.log("⚠️ Assessments already exist for", arrangement_id);
+}
+
 
     return res.status(200).json({
       success: true,

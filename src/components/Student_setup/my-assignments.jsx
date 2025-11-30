@@ -1,41 +1,21 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import "./my-assignments.css"
+import { useState, useEffect } from "react";
+import "./my-assignments.css";
 
 const MyAssignments = () => {
-  const [showForm, setShowForm] = useState(false)
-  const [formAnswers, setFormAnswers] = useState({})
-  const [currentAssessmentId, setCurrentAssessmentId] = useState(null)
-  const [assessments, setAssessments] = useState([
-    {
-      id: 1,
-      subject: "Keyboard | Intermediate ",
-      teacher: "Anto maria joshua",
-      dueDate: "22 Apr, 2025",
-      progress: "Overall: 31/33, Current: 8/10",
-      status: "Incomplete",
-      actions: ["View"],
-    },
-    {
-      id: 2,
-      subject: "Keyboard | Beginner",
-      teacher: "Developer1",
-      dueDate: "30 Apr, 2025",
-      progress: "Overall: 24/24, Current: 24/24",
-      status: "Completed",
-      actions: ["Submited"],
-    },
-    {
-      id: 3,
-      subject: "Keyboard | Beginner",
-      teacher: "Anto maria joshua",
-      dueDate: "30 Apr, 2025",
-      progress: "Overall: 24/24, Current: 24/24",
-      status: "Completed",
-      actions: ["Submited"],
-    },
-  ])
+
+  const MAIN=import.meta.env.VITE_MAIN;
+  const TEST=import.meta.env.VITE_TEST;
+
+  const [showForm, setShowForm] = useState(false);
+  const [formAnswers, setFormAnswers] = useState({});
+  const [currentAssessmentId, setCurrentAssessmentId] = useState(null);
+  const [filteredAssessments, setFilteredAssessments] = useState([]);
+  const [selectedSubject, setSelectedSubject] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+
+ const [assessments, setAssessments] = useState([]);
 
   const questions = [
     "Did you come prepared for each class?",
@@ -48,43 +28,118 @@ const MyAssignments = () => {
     "Did you cooperate during group or pair activities?",
     "Did you practice the assigned piece/exercise at home?",
     "Did you feel more confident compared to last week's session?",
-    "Your feedback about the teacher:"
-  ]
+    "Your feedback about the teacher:",
+  ];
+
+  const applyFilters = () => {
+    let data = [...assessments];
+    //subject filtering
+    if (selectedSubject !== "all") {
+  data = data.filter(a => a.subject === selectedSubject);
+}
+
+
+    // Status Filter
+    if (selectedStatus !== "all") {
+      data = data.filter((a) => a.status === selectedStatus);
+    }
+
+    setFilteredAssessments(data);
+  };
+
+  const fetchAssessments = async () => {
+  const userId = localStorage.getItem("user_id");
+
+  const res = await fetch(
+    `${MAIN}/api/assessments/user/${userId}`,
+    { method: "GET", credentials: "include" }
+  );
+
+  const json = await res.json();
+
+  if (json.success) {
+    const formatted = json.data.map((a) => ({
+      id: a.id,
+      subject: a.subject.toLowerCase(),   // ensure lowercase
+      level: a.level,
+      teacher: a.teacher_name,
+      dueDate: a.due_date
+        ? new Date(a.due_date).toDateString()
+        : "No Due Date",
+      progress: `Checkpoint: ${a.progress}`,
+      no_of_classes: a.no_of_classes,
+      total_attended_classes: a.total_attended_classes,
+      status: a.is_completed ? "Completed" : "Incomplete",
+      actions: [a.is_completed ? "Submited" : "View"],
+    }));
+
+    setAssessments(formatted);
+    setFilteredAssessments(formatted);
+  }
+};
+
+useEffect(() => {
+  fetchAssessments();
+}, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [selectedSubject, selectedStatus, assessments]);
+
+ const handleRefresh = async () => {
+  setSelectedSubject("all");
+  setSelectedStatus("all");
+
+  await fetchAssessments();  // fetch new data from backend
+};
+
 
   const handleViewClick = (assessmentId) => {
-    setCurrentAssessmentId(assessmentId)
-    setShowForm(true)
-  }
+    setCurrentAssessmentId(assessmentId);
+    setShowForm(true);
+  };
 
-  const handleFormSubmit = (e) => {
-    e.preventDefault()
-    console.log("Form submitted with answers:", formAnswers)
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    const userId = localStorage.getItem("user_id");
 
-    // Update the assessment status and actions
-    setAssessments(prevAssessments =>
-      prevAssessments.map(assessment =>
-        assessment.id === currentAssessmentId
-          ? {
-              ...assessment,
-              status: "Completed",
-              actions: ["Submited"]
-            }
-          : assessment
+    const res = await fetch(`${MAIN}/api/assessments/submit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        assessment_id: currentAssessmentId,
+        user_id: userId,
+        answers: formAnswers, // JSON sent as-is
+      }),
+      credentials: "include",
+    });
+
+    const json = await res.json();
+    if (!json.success) {
+      alert(json.error);
+      return;
+    }
+
+    // Update UI
+    setAssessments((prev) =>
+      prev.map((a) =>
+        a.id === currentAssessmentId
+          ? { ...a, status: "Completed", actions: ["Submited"] }
+          : a
       )
-    )
+    );
 
-    // Here you can handle the submission, e.g., send to API
-    setShowForm(false)
-    setFormAnswers({})
-    setCurrentAssessmentId(null)
-  }
+    setShowForm(false);
+    setFormAnswers({});
+    setCurrentAssessmentId(null);
+  };
 
   const handleAnswerChange = (questionIndex, answer) => {
-    setFormAnswers(prev => ({
+    setFormAnswers((prev) => ({
       ...prev,
-      [questionIndex]: answer
-    }))
-  }
+      [questionIndex]: answer,
+    }));
+  };
 
   const renderAssessments = () => (
     <div className="assessments-section">
@@ -96,24 +151,38 @@ const MyAssignments = () => {
         <div className="filter-row">
           <span>Filter By</span>
           <span>Due Date</span>
-          <select className="subject-select">
-            <option>Select Subject</option>
-            <option>Keyboard</option>
-            <option>Piano</option>
-            {/* <option>Guitar</option> */}
+          <select
+            className="subject-select"
+            value={selectedSubject}
+            onChange={(e) => setSelectedSubject(e.target.value)}
+          >
+            <option value="all">Select Subject</option>
+            <option value="keyboard">Keyboard</option>
+            <option value="piano">Piano</option>
           </select>
+
+          {/* <option>Guitar</option> */}
           {/* <select className="stage-select">
             <option>Select level</option>
             <option>Beginner</option>
             <option>Intermediate</option>
             <option>Advanced</option>
           </select> */}
-          <button className="refresh-btn">🔄</button>
+          <button className="refresh-btn" onClick={handleRefresh}>
+            🔄
+          </button>
         </div>
 
         <div className="status-filters">
           <label>
-            <input type="radio" name="status" value="all" defaultChecked /> All
+            <input
+              type="radio"
+              name="status"
+              value="all"
+              checked={selectedStatus === "all"}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+            />
+            All
           </label>
           {/* <label>
             <input type="radio" name="status" value="due" /> Due
@@ -122,10 +191,24 @@ const MyAssignments = () => {
             <input type="radio" name="status" value="overdue" /> Overdue
           </label> */}
           <label>
-            <input type="radio" name="status" value="Incomplete" /> Incomplete
+            <input
+              type="radio"
+              name="status"
+              value="Incomplete"
+              checked={selectedStatus === "Incomplete"}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+            />
+            Incomplete
           </label>
           <label>
-            <input type="radio" name="status" value="Completed" /> Completed
+            <input
+              type="radio"
+              name="status"
+              value="Completed"
+              checked={selectedStatus === "Completed"}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+            />
+            Completed
           </label>
           {/* <label>
             <input type="radio" name="status" value="approved" /> Approved
@@ -156,25 +239,40 @@ const MyAssignments = () => {
               </tr>
             </thead>
             <tbody>
-              {assessments.map((assessment) => (
+              {filteredAssessments.map((assessment) => (
                 <tr key={assessment.id}>
-                  <td>{assessment.subject}</td>
+                  <td>{`${assessment.subject} | ${assessment.level}`}</td>
                   <td>{assessment.teacher}</td>
                   <td>{assessment.dueDate}</td>
                   <td>
                     <div className="progress-info">
-                      <div>{assessment.progress}</div>
+                      <div>
+                        {assessment.total_attended_classes}/
+                        {assessment.no_of_classes}
+                      </div>
                     </div>
                   </td>
                   <td>
-                    <span className={`status-badge ${assessment.status.toLowerCase().replace(' ', '')}`}>{assessment.status}</span>
+                    <span
+                      className={`status-badge ${assessment.status
+                        .toLowerCase()
+                        .replace(" ", "")}`}
+                    >
+                      {assessment.status}
+                    </span>
                   </td>
                   <td>
                     {assessment.actions.map((action) => (
                       <button
-                        key={action}
-                        className={`action-view-btn ${action === "Submited" ? "completed" : ""}`}
-                        onClick={action === "View" ? () => handleViewClick(assessment.id) : undefined}
+                        key={`${assessment.id}-${action}`}
+                        className={`action-view-btn ${
+                          action === "Submited" ? "completed" : ""
+                        }`}
+                        onClick={
+                          action === "View"
+                            ? () => handleViewClick(assessment.id)
+                            : undefined
+                        }
                       >
                         {action}
                       </button>
@@ -197,19 +295,25 @@ const MyAssignments = () => {
         </div>
       </div>
     </div>
-  )
+  );
 
   const renderForm = () => (
     <div className="assessment-form-overlay">
       <div className="assessment-form-container">
         <div className="form-header">
-          <h2>🎵 Weekly Music Assessment <span className="music-icon">🎼</span></h2>
-          <button className="close-btn" onClick={() => setShowForm(false)}>×</button>
+          <h2>
+            🎵 Weekly Music Assessment <span className="music-icon">🎼</span>
+          </h2>
+          <button className="close-btn" onClick={() => setShowForm(false)}>
+            ×
+          </button>
         </div>
         <form onSubmit={handleFormSubmit} className="assessment-form">
           {questions.map((question, index) => (
             <div key={index} className="question-item">
-              <p className="question-text">🎼 {index + 1}. {question}</p>
+              <p className="question-text">
+                🎼 {index + 1}. {question}
+              </p>
               {index === 10 ? (
                 <textarea
                   className="feedback-textarea"
@@ -248,24 +352,24 @@ const MyAssignments = () => {
             </div>
           ))}
           <div className="form-actions">
-            <button type="submit" className="submit-btn">🚀 Submit My Assessment!</button>
+            <button type="submit" className="submit-btn">
+              🚀 Submit My Assessment!
+            </button>
           </div>
         </form>
       </div>
     </div>
-  )
+  );
 
   return (
     <div className="my-assignments-container">
       <div className="content-header3">
         <h1>MY ASSIGNMENTS</h1>
       </div>
-      <div className="assignments-content">
-        {renderAssessments()}
-      </div>
+      <div className="assignments-content">{renderAssessments()}</div>
       {showForm && renderForm()}
     </div>
-  )
-}
+  );
+};
 
-export default MyAssignments
+export default MyAssignments;

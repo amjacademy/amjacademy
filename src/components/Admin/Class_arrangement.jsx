@@ -13,6 +13,10 @@ function EmptyState({ title, subtitle }) {
 }
 
 export default function Class_arrangement({ schedules, setSchedules }) {
+
+  const MAIN="https://amjacademy-working.onrender.com";
+  const TEST="http://localhost:5000";
+
   const [classType, setClassType] = useState("Piano");
   const [batchType, setBatchType] = useState("individual");
   const [studentId, setStudentId] = useState("");
@@ -119,7 +123,7 @@ export default function Class_arrangement({ schedules, setSchedules }) {
     const fetchSchedules = async () => {
       try {
         const res = await axios.get(
-          "https://amjacademy-working.onrender.com/api/arrangements/getdetails",
+          `${MAIN}/api/arrangements/getdetails`,
           {
             withCredentials: true, // important to send cookies
           }
@@ -142,7 +146,7 @@ export default function Class_arrangement({ schedules, setSchedules }) {
   const fetchUsers = async () => {
     try {
       const { data } = await axios.get(
-        "https://amjacademy-working.onrender.com/api/arrangements/fetchusers",
+        `${MAIN}/api/arrangements/fetchusers`,
         { withCredentials: true }
       );
 
@@ -210,171 +214,198 @@ export default function Class_arrangement({ schedules, setSchedules }) {
 
   // onSubmit: create schedules
   const onSubmit = async (e) => {
-  e.preventDefault();
-  setError("");
-  setLoading(true);
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-  const isDual = batchType === "dual";
+      const isDual = batchType === "dual";
 
-  if (
-    !studentId ||
-    !teacherId ||
-    !day ||
-    !date ||
-    !hour ||
-    !minute ||
-    !ampm ||
-    !link ||
-    (isDual && !secondStudentId) ||
-    (sessionForWeek === "2 days" && !secondDay)
-  ) {
-    setNotification({ type: "error", message: "Please fill all required fields." });
-    setLoading(false);
-    return;
-  }
-
-  const convertTo24Local = (hourVal, minuteVal, ampmVal) => {
-    let h = parseInt(hourVal, 10);
-    if (ampmVal === "PM" && h !== 12) h += 12;
-    if (ampmVal === "AM" && h === 12) h = 0;
-    return `${h.toString().padStart(2, "0")}:${minuteVal
-      .toString()
-      .padStart(2, "0")}`;
-  };
-  const time24 = convertTo24Local(hour, minute, ampm);
-
-  const sessions = getSessions(scheduleFor);
-  const scheduleDates = [];
-
-  const daysPerWeek = sessionForWeek === "2 days" ? 2 : 1;
-  const totalWeeks = Math.ceil(sessions / daysPerWeek);
-
-  const endDateObj = new Date(date);
-  const startDateObj = new Date(endDateObj);
-  startDateObj.setDate(endDateObj.getDate() - (totalWeeks - 1) * 7);
-
-  const chosenDays = sessionForWeek === "2 days" ? [day, secondDay] : [day];
-
-  for (let week = 0; week < totalWeeks; week++) {
-    const weekBase = new Date(startDateObj);
-    weekBase.setDate(startDateObj.getDate() + week * 7);
-
-    for (const chosenDayName of chosenDays) {
-      const scheduledDate = getDateForDay(
-        weekBase.toISOString().split("T")[0],
-        chosenDayName
-      );
-      scheduleDates.push({ date: scheduledDate, day: chosenDayName });
-    }
-  }
-
-  const trimmedScheduleDates = scheduleDates.slice(0, sessions);
-
-  const newStudents = isDual
-    ? [studentId, secondStudentId].filter(Boolean)
-    : [studentId];
-
-  // --- ✅ Smart Conflict Check ---
-  const conflict = trimmedScheduleDates.some(({ date: schedDate }) => {
-    const localDateTimeStr = `${schedDate}T${time24}:00`;
-    const newScheduleTime = new Date(localDateTimeStr).getTime();
-
-    return schedules.some((s) => {
-      const sameRecord = String(s.id) === String(editingId);
-
-      // 🧩 Same batch = same teacher + student1 + end_date → ignore conflicts
-      const sameBatch =
-        String(s.teacher_id) === String(teacherId) &&
-        String(s.student1_id) === String(studentId) &&
-        s.end_date === date;
-
-      if (sameRecord || sameBatch) return false;
-
-      const existingTime = new Date(s.time).getTime();
-      if (s.date === schedDate && existingTime === newScheduleTime) {
-        // Same teacher, same time/date → conflict
-        if (String(s.teacher_id) === String(teacherId)) return true;
-
-        // Same student(s), same time/date → conflict
-        const existingStudents =
-          s.batch_type === "dual"
-            ? [s.student1_id, s.student2_id].filter(Boolean).map(String)
-            : [String(s.student1_id)];
-
-        return existingStudents.some((id) =>
-          newStudents.map(String).includes(id)
-        );
+      if (
+        !studentId ||
+        !teacherId ||
+        !day ||
+        !date ||
+        !hour ||
+        !minute ||
+        !ampm ||
+        !link ||
+        (isDual && !secondStudentId) ||
+        (sessionForWeek === "2 days" && !secondDay)
+      ) {
+        setNotification({ type: "error", message: "Please fill all required fields." });
+        setLoading(false);
+        return;
       }
 
-      return false;
-    });
-  });
+      const generateArrangementId = async () => {
+      try {
+        const res = await axios.get(
+          `${MAIN}/api/arrangements/last-arrangement-id`,
+          { withCredentials: true }
+        );
 
-  if (conflict) {
-    setNotification({ type: "error", message: "Conflict: This student or teacher already has a schedule at the same time." });
-    setLoading(false);
-    return;
-  }
+        const lastId = res.data?.lastArrangementId; // example: arg-027
 
-  const newSchedules = [];
-  try {
-    for (let i = 0; i < trimmedScheduleDates.length; i++) {
-      const { date: schedDate, day: schedDay } = trimmedScheduleDates[i];
-      const localDateTimeStr = `${schedDate}T${time24}:00`;
-      const utcTime = new Date(localDateTimeStr).toISOString();
+        let nextNumber = 1;
 
-      const scheduleData = {
-        subject: classType,
-        batch_type: batchType,
-        student1_id: studentId,
-        student2_id: isDual ? secondStudentId : null,
-        teacher_id: teacherId,
-        day: schedDay,
-        date: schedDate,
-        time: utcTime,
-        link,
-        rescheduled: rescheduleChecked,
-        no_of_sessions_week: sessionForWeek === "2 days" ? 2 : 1,
-        no_of_sessions: sessions,
-        first_day: day,
-        second_day: sessionForWeek === "2 days" ? secondDay : null,
-        end_date: date,
+        if (lastId) {
+          const numericPart = parseInt(lastId.split("-")[1], 10);
+          nextNumber = numericPart + 1;
+        }
+
+        const formatted = String(nextNumber).padStart(3, "0"); // 000 → 001 → 002
+        return `arg-${formatted}`;
+      } catch (err) {
+        console.error("Error generating arrangement id", err);
+        return `arg-${String(Date.now()).slice(-3)}`; // fallback to avoid break
+      }
+    };
+
+      const convertTo24Local = (hourVal, minuteVal, ampmVal) => {
+        let h = parseInt(hourVal, 10);
+        if (ampmVal === "PM" && h !== 12) h += 12;
+        if (ampmVal === "AM" && h === 12) h = 0;
+        return `${h.toString().padStart(2, "0")}:${minuteVal
+          .toString()
+          .padStart(2, "0")}`;
       };
+      const time24 = convertTo24Local(hour, minute, ampm);
 
-      if (isEditing && i === 0) {
-        const res = await axios.put(
-          `https://amjacademy-working.onrender.com/api/arrangements/update/${editingId}`,
-          scheduleData,
-          { withCredentials: true }
-        );
-        newSchedules.push(res.data);
-      } else if (!isEditing) {
-        const res = await axios.post(
-          "https://amjacademy-working.onrender.com/api/arrangements/create",
-          scheduleData,
-          { withCredentials: true }
-        );
-        newSchedules.push(res.data);
+      const sessions = getSessions(scheduleFor);
+      const scheduleDates = [];
+
+      const daysPerWeek = sessionForWeek === "2 days" ? 2 : 1;
+      const totalWeeks = Math.ceil(sessions / daysPerWeek);
+
+      const endDateObj = new Date(date);
+      const startDateObj = new Date(endDateObj);
+      startDateObj.setDate(endDateObj.getDate() - (totalWeeks - 1) * 7);
+
+      const chosenDays = sessionForWeek === "2 days" ? [day, secondDay] : [day];
+
+      for (let week = 0; week < totalWeeks; week++) {
+        const weekBase = new Date(startDateObj);
+        weekBase.setDate(startDateObj.getDate() + week * 7);
+
+        for (const chosenDayName of chosenDays) {
+          const scheduledDate = getDateForDay(
+            weekBase.toISOString().split("T")[0],
+            chosenDayName
+          );
+          scheduleDates.push({ date: scheduledDate, day: chosenDayName });
+        }
       }
-    }
 
-    if (isEditing) {
-      setSchedules(
-        schedules.map((s) => (s.id === editingId ? newSchedules[0] : s))
-      );
-      setNotification({ type: "success", message: "Schedule updated successfully." });
-    } else {
-      setSchedules([...schedules, ...newSchedules]);
-      setNotification({ type: "success", message: "Schedule added successfully." });
-    }
+      const trimmedScheduleDates = scheduleDates.slice(0, sessions);
 
-    resetForm();
-    setLoading(false);
-  } catch (err) {
-    console.error("Error saving schedule:", err);
-    setNotification({ type: "error", message: "Failed to save schedule." });
-    setLoading(false);
-  }
+      const newStudents = isDual
+        ? [studentId, secondStudentId].filter(Boolean)
+        : [studentId];
+
+      // --- ✅ Smart Conflict Check ---
+      const conflict = trimmedScheduleDates.some(({ date: schedDate }) => {
+        const localDateTimeStr = `${schedDate}T${time24}:00`;
+        const newScheduleTime = new Date(localDateTimeStr).getTime();
+
+        return schedules.some((s) => {
+          const sameRecord = String(s.id) === String(editingId);
+
+          // 🧩 Same batch = same teacher + student1 + end_date → ignore conflicts
+          const sameBatch =
+            String(s.teacher_id) === String(teacherId) &&
+            String(s.student1_id) === String(studentId) &&
+            s.end_date === date;
+
+          if (sameRecord || sameBatch) return false;
+
+          const existingTime = new Date(s.time).getTime();
+          if (s.date === schedDate && existingTime === newScheduleTime) {
+            // Same teacher, same time/date → conflict
+            if (String(s.teacher_id) === String(teacherId)) return true;
+
+            // Same student(s), same time/date → conflict
+            const existingStudents =
+              s.batch_type === "dual"
+                ? [s.student1_id, s.student2_id].filter(Boolean).map(String)
+                : [String(s.student1_id)];
+
+            return existingStudents.some((id) =>
+              newStudents.map(String).includes(id)
+            );
+          }
+
+          return false;
+        });
+      });
+
+      if (conflict) {
+        setNotification({ type: "error", message: "Conflict: This student or teacher already has a schedule at the same time." });
+        setLoading(false);
+        return;
+      }
+      // 🚀  Generate a unique arrangement_id BEFORE creating schedules
+    const arrangementId = await generateArrangementId();
+
+      const newSchedules = [];
+      try {
+        for (let i = 0; i < trimmedScheduleDates.length; i++) {
+          const { date: schedDate, day: schedDay } = trimmedScheduleDates[i];
+          const localDateTimeStr = `${schedDate}T${time24}:00`;
+          const utcTime = new Date(localDateTimeStr).toISOString();
+
+          const scheduleData = {
+            arrangement_id: arrangementId,   // 🚀 ADD THIS
+            subject: classType,
+            batch_type: batchType,
+            student1_id: studentId,
+            student2_id: isDual ? secondStudentId : null,
+            teacher_id: teacherId,
+            day: schedDay,
+            date: schedDate,
+            time: utcTime,
+            link,
+            rescheduled: rescheduleChecked,
+            no_of_sessions_week: sessionForWeek === "2 days" ? 2 : 1,
+            no_of_sessions: sessions,
+            first_day: day,
+            second_day: sessionForWeek === "2 days" ? secondDay : null,
+            end_date: date,
+          };
+
+          if (isEditing && i === 0) {
+            const res = await axios.put(
+              `https://amjacademy-working.onrender.com/api/arrangements/update/${editingId}`,
+              scheduleData,
+              { withCredentials: true }
+            );
+            newSchedules.push(res.data);
+          } else if (!isEditing) {
+            const res = await axios.post(
+              "http://localhost:5000/api/arrangements/create",
+              scheduleData,
+              { withCredentials: true }
+            );
+            newSchedules.push(res.data);
+          }
+        }
+
+        if (isEditing) {
+          setSchedules(
+            schedules.map((s) => (s.id === editingId ? newSchedules[0] : s))
+          );
+          setNotification({ type: "success", message: "Schedule updated successfully." });
+        } else {
+          setSchedules([...schedules, ...newSchedules]);
+          setNotification({ type: "success", message: "Schedule added successfully." });
+        }
+
+        resetForm();
+        setLoading(false);
+      } catch (err) {
+        console.error("Error saving schedule:", err);
+        setNotification({ type: "error", message: "Failed to save schedule." });
+        setLoading(false);
+      }
 };
 
 
@@ -382,7 +413,7 @@ export default function Class_arrangement({ schedules, setSchedules }) {
     setDeletingIds((prev) => new Set(prev).add(id));
     try {
       await axios.delete(
-        `https://amjacademy-working.onrender.com/api/arrangements/delete/${id}`,
+        `${MAIN}/api/arrangements/delete/${id}`,
         {
           withCredentials: true, // important to send cookies
         }
@@ -415,7 +446,7 @@ export default function Class_arrangement({ schedules, setSchedules }) {
       await Promise.all(
         idsToDelete.map((id) =>
           axios.delete(
-            `https://amjacademy-working.onrender.com/api/arrangements/delete/${id}`,
+            `${MAIN}/api/arrangements/delete/${id}`,
             {
               withCredentials: true, // important to send cookies
             }
@@ -469,7 +500,7 @@ const onEdit = async (schedule) => {
 
     // ✅ Fetch the original record from backend
     const res = await axios.get(
-      `https://amjacademy-working.onrender.com/api/arrangements/get/${schedule.id}`,
+      `${MAIN}/api/arrangements/get/${schedule.id}`,
       { withCredentials: true }
     );
     const fullRecord = res.data;
