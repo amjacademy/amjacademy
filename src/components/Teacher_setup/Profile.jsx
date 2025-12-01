@@ -101,25 +101,25 @@ const Profile = () => {
                   <span className="stat-label">Total students:</span>
                   <span className="stat-value">
                     $ {userProfile.totalStudents}
-                    <span className="stat-change">+{userProfile.previousStudents}</span>
+                    {/* <span className="stat-change">+{userProfile.previousStudents}</span> */}
                   </span>
                   <span className="stat-subtext">for {userProfile.totalClasses} classes</span>
                 </div>
-                <div className="stat-item">
+                {/* <div className="stat-item">
                   <span className="stat-label">Reviews:</span>
                   <span className="stat-value">{userProfile.reviews}</span>
-                </div>
+                </div> */}
                 <div className="stat-item">
                   <span className="stat-label">Rating:</span>
                   <div className="rating-container">
-                    <div className="stars">
+                    {/* <div className="stars">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <span key={star} className={`star ${star <= userProfile.rating ? "filled" : ""}`}>
                           ★
                         </span>
                       ))}
-                    </div>
-                    <span className="rating-text">{userProfile.totalRatings} Ratings</span>
+                    </div> */}
+                    <span className="rating-text">{userProfile.totalRatings}</span>
                   </div>
                 </div>
               </div>

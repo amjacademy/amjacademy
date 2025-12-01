@@ -63,9 +63,9 @@ const MyAssignments = () => {
       subject: a.subject.toLowerCase(),   // ensure lowercase
       level: a.level,
       teacher: a.teacher_name,
-      dueDate: a.due_date
-        ? new Date(a.due_date).toDateString()
-        : "No Due Date",
+      // dueDate: a.due_date
+      //   ? new Date(a.due_date).toDateString()
+      //   : "No Due Date",
       progress: `Checkpoint: ${a.progress}`,
       no_of_classes: a.no_of_classes,
       total_attended_classes: a.total_attended_classes,
@@ -232,7 +232,7 @@ useEffect(() => {
               <tr>
                 <th>Subject & Level</th>
                 <th>Teacher Name</th>
-                <th>Due Date</th>
+                {/* <th>Due Date</th> */}
                 <th>Progress</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -243,7 +243,7 @@ useEffect(() => {
                 <tr key={assessment.id}>
                   <td>{`${assessment.subject} | ${assessment.level}`}</td>
                   <td>{assessment.teacher}</td>
-                  <td>{assessment.dueDate}</td>
+                  {/* <td>{assessment.dueDate}</td> */}
                   <td>
                     <div className="progress-info">
                       <div>
