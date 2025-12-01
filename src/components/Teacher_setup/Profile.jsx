@@ -18,7 +18,7 @@ const Profile = () => {
     email: "",
     username: "",
     avatar: "images/Profile_pic.jpg?height=200&width=200",
-    totalStudents: 0,
+    salary: 0,
     previousStudents: 0,
     totalClasses: 0,
     reviews: "NA",
@@ -39,6 +39,7 @@ const Profile = () => {
         email: profileData.email || "",
         username: profileData.username || "",
         avatar: profileData.image || prev.avatar,
+        salary: profileData.salary || prev.salary,
         subjects: [profileData.profession || "Piano"],
       }))
     }
@@ -98,12 +99,12 @@ const Profile = () => {
               </div>
               <div className="profile-stats">
                 <div className="stat-item">
-                  <span className="stat-label">Total students:</span>
+                  <span className="stat-label">Salary</span>
                   <span className="stat-value">
-                    $ {userProfile.totalStudents}
+                    $ {userProfile.salary}
                     {/* <span className="stat-change">+{userProfile.previousStudents}</span> */}
                   </span>
-                  <span className="stat-subtext">for {userProfile.totalClasses} classes</span>
+                  {/* <span className="stat-subtext">for {userProfile.totalClasses} classes</span> */}
                 </div>
                 {/* <div className="stat-item">
                   <span className="stat-label">Reviews:</span>

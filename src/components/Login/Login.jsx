@@ -89,7 +89,10 @@ const LoginForm = () => {
     const data = await res.json();
     if (data.success) {
       localStorage.setItem("username", formData.username);
-      localStorage.setItem("user_id", data.id); 
+      localStorage.setItem("user_id", data.id);
+      if (data.profile && formData.role === "teacher") {
+        localStorage.setItem("profile_teacher", JSON.stringify(data.profile));
+      }
       if (formData.role === "student") {
         navigate("/student-dashboard");
         } else if (formData.role === "teacher") {

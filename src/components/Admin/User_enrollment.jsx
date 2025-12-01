@@ -190,6 +190,7 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
       setPlan(editingRow.plan || "3month");
       setLevel(editingRow.level || "Beginner");
       setExperienceLevel(editingRow.experiencelevel || "");
+      setSalary(editingRow.salary || "");
       setRole(editingRow.role);
     }, 50); // ⏱ short delay to ensure data is ready
   }
@@ -210,6 +211,7 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
   const [plan, setPlan] = useState("3month")
   const [level, setLevel] = useState("Beginner")
   const [experienceLevel, setExperienceLevel] = useState("")
+  const [salary, setSalary] = useState("")
   const [query, setQuery] = useState("")
   const [error, setError] = useState("")
   const [editingId, setEditingId] = useState(null)
@@ -310,7 +312,8 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
       batchtype: role === "student" ? batchType : null,
       plan: role === "student" ? plan : null,
       level: role === "student" ? level : null,
-      experiencelevel: role === "teacher" ? experienceLevel : null
+      experiencelevel: role === "teacher" ? experienceLevel : null,
+      salary: role === "teacher" ? salary : null
     };
 
     try {
@@ -378,7 +381,8 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
       batchtype: role === "student" ? batchType : null,
       plan: role === "student" ? plan : null,
       level: role === "student" ? level : null,
-      experiencelevel: role === "teacher" ? experienceLevel : null
+      experiencelevel: role === "teacher" ? experienceLevel : null,
+      salary: role === "teacher" ? salary : null
     };
 
     try {
@@ -419,7 +423,7 @@ const resetForm = () => {
   setId(""); setName(""); setAge(""); setProfession(""); setPhone("");
   setEmail(""); setAdditionalEmail(""); setImage(""); setPassword(""); setUsername("");
   setBatchType("individual"); setPlan("3month"); setLevel("Beginner");
-  setExperienceLevel(""); setEditingId(null);
+  setExperienceLevel(""); setSalary(""); setEditingId(null);
 };
 
 const onEdit = (row) => {
@@ -438,6 +442,7 @@ const onEdit = (row) => {
   setPlan(row.plan || "3month");
   setLevel(row.level || "Beginner");
   setExperienceLevel(row.experiencelevel || "");
+  setSalary(row.salary || "");
   setRole(row.role);
 };
 
@@ -673,17 +678,30 @@ const onDelete = async (id) => {
             </div>
           </>
         ) : (
-          <div className="field">
-            <label className="label">Experience Level</label>
-            <input
-              className="input"
-              type="text"
-              value={experienceLevel}
-              onChange={(e) => setExperienceLevel(e.target.value)}
-              placeholder="Enter experience level"
-              aria-label="Experience Level"
-            />
-          </div>
+          <>
+            <div className="field">
+              <label className="label">Experience Level</label>
+              <input
+                className="input"
+                type="text"
+                value={experienceLevel}
+                onChange={(e) => setExperienceLevel(e.target.value)}
+                placeholder="Enter experience level"
+                aria-label="Experience Level"
+              />
+            </div>
+            <div className="field">
+              <label className="label">Salary</label>
+              <input
+                className="input"
+                type="number"
+                value={salary}
+                onChange={(e) => setSalary(e.target.value)}
+                placeholder="Enter salary"
+                aria-label="Salary"
+              />
+            </div>
+          </>
         )}
         <ImagePicker value={image} onChange={setImage} label="Profile Image" />
         <div className="field form-actions">

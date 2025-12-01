@@ -150,6 +150,13 @@ exports.Login = async (req, res) => {
     if (!isMatch)
       return res.status(401).json({ success: false, message: "Incorrect password" });
 
+    // Fetch enrollment data for profile information
+    const { data: enrollment, error: enrollmentError } = await supabase
+      .from("enrollments")
+      .select("*")
+      .eq("id", user.enrollment_id)
+      .single();
+
     const token = jwt.sign(
       { id: user.id, role: user.role },
       USER_JWT,
@@ -166,7 +173,12 @@ exports.Login = async (req, res) => {
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
-    return res.json({ success: true, message: "Login successful", id: user.id });
+    return res.json({
+      success: true,
+      message: "Login successful",
+      id: user.id,
+      profile: enrollment || null
+    });
 
   } catch (err) {
     console.error("Login error:", err);
