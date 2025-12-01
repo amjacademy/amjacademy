@@ -11,13 +11,14 @@ import ClassReport from "./class-report.jsx"
 import MyAssignments from "./my-assignments.jsx"
 import PunctualityReport from "./punctuality-report.jsx"
 import LeaveModal from "../common/LeaveModal.jsx"
-
+import { supabase } from "../../supabaseClient.js";
 const Dashboard = () => {
   const navigate = useNavigate();
-  const userType="Student";
+  const userType="teacher";
   const userId=localStorage.getItem('user_id');
-  const API_BASE = "https://amjacademy-working.onrender.com/api/student";
-  /* const API_BASE = "http://localhost:5000/api/student"; */
+  const MAIN = import.meta.env.VITE_MAIN;
+  const TEST=import.meta.env.VITE_TEST;
+ 
 
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeTab, setActiveTab] = useState("dashboard") // This would come from auth context
@@ -88,11 +89,11 @@ const formatDate = (dateStr) => {
       hour12: true
     });
   };
-
+//Announcement fetch
   useEffect(() => {
     const fetchAnnouncements = async () => {
       try {
-        const res = await fetch(`${API_BASE}/fetchannouncements?`, {
+        const res = await fetch(`${MAIN}/api/teacher/fetchannouncements?`, {
           credentials: "include",
         });
         if (!res.ok) throw new Error("Failed to fetch announcements");
@@ -122,7 +123,7 @@ const formatDate = (dateStr) => {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-    }, 1000); // every 1 second
+    }, 1000*60); // every 1 minute
 
     return () => clearInterval(timer); // cleanup
   }, []);
@@ -145,12 +146,115 @@ const formatDate = (dateStr) => {
 
   const [studentId]=useState(1);
 
+  const fetchOngoingClass = async () => {
+  try {
+    const res = await fetch(`${MAIN}/api/teacher/ongoing-class`, {
+        headers: {
+          "Content-Type": "application/json",
+          "user_id": userId,
+        },
+        credentials: "include",
+      });
+
+    const data = await res.json();
+    if (!data.success || !data.ongoingClass) return;
+
+    const cls = data.ongoingClass;
+
+    const sessionAt =
+      makeSessionAtFromDateTime(cls.date, cls.time) ||
+      cls.time ||
+      cls.session_at;
+
+    const formatted = {
+      title: `${cls.subject} Class`,
+      time: sessionAt,
+      teachers: [cls.teacher_name],
+      duration: "45 mins",
+      batch: cls.batch_type,
+      level: "",
+      plan: "",
+      teacherId: cls.teacher_id,
+      image: "/images/amj-logo.png",
+      link: cls.link,
+    };
+
+    setOngoingClass(formatted);
+  } catch (err) {
+    console.error("Failed ongoing fetch:", err);
+  }
+};
+
+const refreshUpcomingClasses = async () => {
+  try {
+    const res = await fetch(`${MAIN}/api/teacher/upcoming-classes`, {
+      headers: { user_id: userId },
+      credentials: "include"
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setUpcomingClasses(data.upcomingClasses);
+    }
+  } catch (err) {
+    console.error("Failed upcoming refresh:", err);
+  }
+};
+
+//ongoing class
+useEffect(() => {
+  const fetchOngoing = async () => {
+    try {
+      const response = await fetch(`${MAIN}/api/teacher/ongoing-class`, {
+        headers: {
+          "Content-Type": "application/json",
+          "user_id": userId,
+        },
+        credentials: "include",
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.ongoingClass) {
+        const cls = data.ongoingClass;
+
+        // convert date + time → ISO
+        const sessionAt =
+          makeSessionAtFromDateTime(cls.date, cls.time) ||
+          cls.time ||
+          cls.session_at;
+
+        const formatted = {
+  title: `${cls.subject} Class`,
+  time: sessionAt,
+  students: cls.students,        // array already provided by 
+  duration: "45 mins",
+  batch: cls.batch_type,
+  level: cls.level || "",        // backend does NOT send level, 
+  plan: cls.plan || "",          // backend does NOT send plan, 
+  image: "/images/amj-logo.png",
+  link: cls.link,
+};
+
+
+        setOngoingClass(formatted);
+      }
+    } catch (err) {
+      console.error("Error fetching ongoing class:", err);
+    }
+  };
+
+  fetchOngoing();
+}, [userId]);
+
+//Upcoming class fetch
   useEffect(() => {
     const fetchUpcomingClasses = async () => {
       try {
         setLoading(true);
 
-        const response = await fetch(`${API_BASE}/upcoming-classes`, {
+        const response = await fetch(`${MAIN}/api/teacher/upcoming-classes`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -168,28 +272,59 @@ const formatDate = (dateStr) => {
         if (data.success) {
           // Map backend data to unify with group classes by adding sessionAt
           const classes = data.upcomingClasses.map((cls) => {
-            // create sessionAt as ISO string
-            const sessionAt = makeSessionAtFromDateTime(cls.date, cls.time) || cls.time || cls.session_at;
-            return {
-              id: cls.student1_id + "_" + (cls.date || "") + "_" + (cls.time || ""),
-              type: "individual",
-              sessionAt, // ISO
-              rawDate: cls.date,
-              rawTime: cls.time,
-              batch: cls.batch_type,
-              students: [cls.student_name],
-              level: cls.level,
-              plan: cls.plan,
-              duration: cls.duration || "45 mins",
-              studentId: cls.student_id || "AMJT0001",
-              image: "/images/amj-logo.png?height=120&width=200&query=keyboard lesson",
-              title: `${cls.profession} Class`,
-              status: cls.status || "not started",
-              link: cls.link,
-              class_id: cls.class_id,
-              rescheduled: cls.rescheduled,
-            };
-          });
+  const sessionAt =
+    makeSessionAtFromDateTime(cls.date, cls.time) ||
+    cls.time ||
+    cls.session_at;
+
+  // create students array based on batch type
+  const students =
+    cls.batch_type === "dual"
+      ? [cls.student1_name, cls.student2_name].filter(Boolean)
+      : [cls.student1_name];
+
+  // teacher only shows ONE level (your requirement)
+  const level =
+    cls.student1_level ||
+    cls.student2_level ||
+    ""; // pick whichever exists
+
+  // plan also single
+  const plan =
+    cls.student1_plan ||
+    cls.student2_plan ||
+    "";
+
+  return {
+    id:
+      cls.class_id +
+      "_" +
+      (cls.date || "") +
+      "_" +
+      (cls.time || ""),
+    type: "individual",
+    sessionAt,
+    rawDate: cls.date,
+    rawTime: cls.time,
+
+    batch: cls.batch_type,
+    students, // 👈 BOTH student names for dual batch
+
+    level, // 👈 Single level
+    plan, // 👈 Single plan
+
+    duration: cls.duration || "45 mins",
+
+    title: `${cls.student1_profession || ""} Class`,
+
+    status: cls.status || "Upcoming",
+    link: cls.link,
+    class_id: cls.class_id,
+    rescheduled: cls.rescheduled,
+
+    image: "/images/amj-logo.png"
+  };
+});
 
           setUpcomingClasses(classes);
         } else {
@@ -205,16 +340,18 @@ const formatDate = (dateStr) => {
     fetchUpcomingClasses();
   }, [userId]);
 
+//Group class fetch
   useEffect(() => {
     const fetchGroupClasses = async () => {
       try {
-        const response = await fetch(
-          "https://amjacademy-working.onrender.com/api/grouparrangements/student/classes",
-          {
-            headers: { "user_id": userId },
-            credentials: "include"
-          }
-        );
+        const response = await fetch(`${MAIN}/api/teacher/fetchgroupclasses`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "user_id": userId,
+          },
+          credentials: "include",
+        });
 
         const data = await response.json();
 
@@ -225,12 +362,15 @@ const formatDate = (dateStr) => {
               type: "group",
               groupId: cls.group_id,
               groupName: cls.group_arrangements.group_name,
-              studentId: cls.group_arrangements.student_id,
+              students: cls.students,   // ⬅ backend already provides array
               classLink: cls.group_arrangements.class_link,
               sessionAt, // ISO
               sessionNumber: cls.session_number,
               totalSessions: cls.group_arrangements.schedule_for,
               sessionForWeek: cls.group_arrangements.session_for_week,
+              duration: cls.duration,
+              status: cls.status,
+
               // day removed intentionally
             };
           });
@@ -244,6 +384,39 @@ const formatDate = (dateStr) => {
 
     fetchGroupClasses();
   }, [userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const channel = supabase
+      .channel("class-status-listener")
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "class_statuses",
+          filter: `user_id=eq.${userId}`
+        },
+        (payload) => {
+          const newStatus = payload.new.status;
+
+          if (newStatus === "ongoing") {
+            fetchOngoingClass(); // show card
+          } else {
+            setOngoingClass(null); // hide card
+          }
+
+          refreshUpcomingClasses(); // refresh upcoming
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId]);
+
 
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: "🏠" },
@@ -275,9 +448,10 @@ const formatDate = (dateStr) => {
         class_id: selectedLeaveClass.class_id,
         action_type: leaveData.actionType,
         reason: leaveData.reason || "",
+        role:"teacher"
       };
 
-      const response = await fetch(`${API_BASE}/actions/submit`, {
+      const response = await fetch(`${MAIN}/api/student/actions/submit`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -319,7 +493,7 @@ const formatDate = (dateStr) => {
       window.open(classItem.link, "_blank");
       setOngoingClass(classItem);
 
-      const response = await fetch(`${API_BASE}/class-status`, {
+      const response = await fetch(`${MAIN}/api/teacher/joinclass`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ class_id: classItem.class_id, status: "ongoing", user_id: userId }),
@@ -398,7 +572,9 @@ const formatDate = (dateStr) => {
   // filter out classes whose sessionAt is in the past
   const futureClasses = merged.filter(cls => {
     const date = new Date(cls.sessionAt);
-    return date > now; // only upcoming
+    const fifteenMinutesAfter = new Date(date.getTime() + 15 * 60000);
+    return fifteenMinutesAfter > now;
+
   });
 
   // sort closest to now (earliest future class first)
@@ -423,9 +599,21 @@ const formatDate = (dateStr) => {
 
     // unify display fields
     const title = isGroup ? (cls.groupName || "Group Class") : (cls.title || "Class");
-    const studentName = isGroup ? cls.studentId : (cls.students && cls.students.join(", "));
-    const duration = isGroup ? "45 mins" : (cls.duration || "45 mins");
-    const planBadge = isGroup ? `${cls.sessionNumber}/${cls.totalSessions}` : (cls.plan || "");
+// 1️⃣ STUDENT NAME — correct field
+const studentName = Array.isArray(cls.students)
+  ? cls.students.join(", ")
+  : "";
+
+
+// 2️⃣ DURATION — group = 50 mins
+const duration = isGroup
+  ? (cls.duration || "50 mins")                       // <-- FIXED
+  : (cls.duration || "45 mins");
+
+// plan badge already correct for group
+const planBadge = isGroup
+  ? `${cls.sessionNumber}/${cls.totalSessions}`
+  : (cls.plan || "");
 
     return (
       <div
@@ -457,9 +645,14 @@ const formatDate = (dateStr) => {
           </div>
 
           <div className="class-details">
-            <p>Student: {studentName}</p>
+            {isGroup && (
+              <p style={{ fontWeight: "600", marginBottom: "4px" }}>
+                Group Name: {cls.groupName}
+              </p>
+            )}
+            <p>Students: {studentName}</p>
             {!isGroup && <p>Level: {cls.level}</p>}
-            <p>Student ID: {isGroup ? cls.studentId : cls.studentId}</p>
+           {/*  <p>Student ID: {isGroup ? cls.studentId : cls.studentId}</p> */}
             {isGroup ? (
               <p>Duration: {duration}</p>
             ) : (
@@ -468,7 +661,7 @@ const formatDate = (dateStr) => {
           </div>
         </div>
 
-        <div className="class-actions">
+           <div className="class-actions">
           <button
             className="start-class-btn"
             onClick={() => isGroup ? handleJoinGroupClass(cls) : handleJoinClass(cls)}
@@ -550,20 +743,28 @@ const formatDate = (dateStr) => {
                   </div>
                   <div className="class-info">
                     <h3>{ongoingClass.title}</h3>
-                    <p>Student Name: {ongoingClass.students ? ongoingClass.students.join(", ") : ongoingClass.studentId}</p>
                     <p>
-                      Time:{" "}
-                      {new Date(ongoingClass.time).toLocaleTimeString(undefined, {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: true,
-                      })}
-                    </p>
-                    <p>Duration: {ongoingClass.duration}</p>
-                    <p>Batch: {ongoingClass.batch}</p>
+  Student Name:{" "}
+  {ongoingClass.batch === "dual"
+    ? ongoingClass.students.join(" & ")       // Dual shows "A & B"
+    : ongoingClass.students[0]}              
+</p>
+
+<p>
+  Time:{" "}
+  {new Date(ongoingClass.time).toLocaleTimeString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  })}
+</p>
+
+<p>Duration: {ongoingClass.duration}</p>
+<p>Batch: {ongoingClass.batch}</p>
+
                     <p>Level: {ongoingClass.level}</p>
-                    <p>Student ID: {ongoingClass.studentId}</p>
                     <p>Plan: {ongoingClass.plan}</p>
+
                   </div>
                   <div className="class-actions">
                     <button className="rejoin-btn" onClick={() => window.open(ongoingClass.link, "_blank")}>

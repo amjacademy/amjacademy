@@ -12,7 +12,7 @@ router.get("/upcoming-classes",/* userAuth, roleAuth(["student"]),  */ fetchUpco
 // POST /api/actions/submit
 router.post("/actions/submit",/*  userAuth, roleAuth(["student"]),  */async (req, res) => {
   try {
-    const { user_id, class_id, action_type, reason } = req.body;
+    const { user_id, class_id, action_type, reason,role } = req.body;
 
     if (!user_id || !class_id || !action_type) {
       return res.status(400).json({
@@ -41,7 +41,7 @@ router.post("/actions/submit",/*  userAuth, roleAuth(["student"]),  */async (req
         {
           class_id,
           issuer_id: user_id,
-          role: "student",
+          role: role,
           action_type,
           reason: reason || null,
           action_time: new Date().toISOString(),

@@ -14,7 +14,7 @@ import LeaveModal from "../common/LeaveModal.jsx"
 import { supabase } from "../../supabaseClient.js";
 const Dashboard = () => {
   const navigate = useNavigate();
-  const userType="Student";
+  const userType="student";
   const userId=localStorage.getItem('user_id');
   const MAIN = "https://amjacademy-working.onrender.com/api/student";
   const TEST="http://localhost:5000/api/student";
@@ -412,6 +412,7 @@ useEffect(() => {
         class_id: selectedLeaveClass.class_id,
         action_type: leaveData.actionType,
         reason: leaveData.reason || "",
+        role:"student"
       };
 
       const response = await fetch(`${MAIN}/actions/submit`, {

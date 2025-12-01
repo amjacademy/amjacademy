@@ -27,7 +27,7 @@ exports.fetch = async (req, res) => {
       expiryTime.setHours(endHours, endMinutes, endSeconds || 0);
 
       // Only include announcements that haven't expired and are not for teachers
-      return expiryTime > now && a.receiver !== "teachers";
+      return expiryTime > now && a.receiver !== "Teachers";
     });
 
     res.json(activeAnnouncements);

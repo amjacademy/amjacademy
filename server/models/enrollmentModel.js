@@ -60,6 +60,7 @@ async function createUser(userPayload) {
       plan,
       level,
       experiencelevel,
+      salary
     } = userPayload;
 
     // Insert into users
@@ -109,6 +110,7 @@ async function createUser(userPayload) {
     exp_lvl: experiencelevel || null,
     profile: image || null, // ✅ FIXED: Store profile image link for teachers
     profession: profession || null,
+    salary: salary || 0,
   };
   const { error: teacherError } = await supabase.from("teachers").insert([teacherData]);
   if (teacherError) throw teacherError;

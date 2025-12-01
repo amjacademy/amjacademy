@@ -87,6 +87,8 @@ const GroupController = {
       res.status(500).json({ error: err.message });
     }
   },
+
+  // GET student group classes
   async getStudentGroupClasses(req, res) {
   try {
     const studentId = req.headers["user_id"];
