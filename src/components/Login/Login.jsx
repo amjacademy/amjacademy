@@ -301,7 +301,7 @@ const handleOtpSubmit = async (e) => {
             Forgot Password?
           </a>
           <p className="signup-link">
-            Don't have an account? <a href="#">Sign up here.</a>
+            Don't have an account? <a href="#">Sign up here</a>
           </p>
         </div>
       </div>
