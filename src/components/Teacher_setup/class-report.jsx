@@ -4,13 +4,17 @@ import { useState, useEffect } from "react";
 import "./class-report.css";
 
 const ClassReport = () => {
+  const MAIN = import.meta.env.VITE_MAIN;
+  const TEST = import.meta.env.VITE_TEST;
+
   const [activeTab, setActiveTab] = useState("upcoming");
   const [filterBy, setFilterBy] = useState("all");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [classData, setClassData] = useState([]);
   const [loading, setLoading] = useState(false);
-
+  const [students, setStudents] = useState([]);
+  const image = "/images/amj-logo.png";
   // Map frontend tab to backend status in arrangements table
   const getStatusValue = (tab) => {
     switch (tab) {
@@ -41,17 +45,19 @@ const ClassReport = () => {
       const queryParams = new URLSearchParams({
         user_id: userId,
         status,
-        subject: filterBy,
+        student_id: filterBy,
         date_from: fromDate,
         date_to: toDate,
       });
 
       const response = await fetch(
-        `https://amjacademy-working.onrender.com/api/classreport/fetchclasses?${queryParams}`
+        `${MAIN}/api/teacher/classreport/fetchclasses?${queryParams}`,
+        { credentials: "include" }
       );
       const data = await response.json();
 
-      if (!response.ok) throw new Error(data.error || "Failed to fetch classes");
+      if (!response.ok)
+        throw new Error(data.error || "Failed to fetch classes");
 
       setClassData(data);
     } catch (err) {
@@ -65,6 +71,25 @@ const ClassReport = () => {
   useEffect(() => {
     fetchClasses();
   }, [activeTab, filterBy, fromDate, toDate]);
+
+  //Fetch students
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const userId = localStorage.getItem("user_id");
+        const res = await fetch(
+          `${MAIN}/api/teacher/classreport/getstudents?user_id=${userId}`,
+          { credentials: "include" }
+        );
+        const data = await res.json();
+        setStudents(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchStudents();
+  }, []);
 
   // Badge helpers
   const getStatusBadge = (status) => {
@@ -138,10 +163,15 @@ const ClassReport = () => {
             value={filterBy}
             onChange={(e) => setFilterBy(e.target.value)}
           >
-            <option>Filter by Student</option>
-            <option>All Students</option>
-            <option>John Doe</option>
-            <option>Jane Smith</option>
+            <option value="">Filter by Student</option>
+            <option value="all">All Students</option>
+
+            {students.map((stu) => (
+              <option key={stu.id} value={stu.id}>
+                {stu.name}
+              </option>
+            ))}
+
           </select>
         </div>
       </div>
@@ -158,9 +188,8 @@ const ClassReport = () => {
           </button>
         ))}
         <div className="total-classes">
-          Total{" "}
-          {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Classes:{" "}
-          <span className="count">{classData.length}</span>
+          Total {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}{" "}
+          Classes: <span className="count">{classData.length}</span>
         </div>
       </div>
 
@@ -185,10 +214,7 @@ const ClassReport = () => {
             return (
               <div key={classItem.id} className="class-item">
                 <div className="class-image">
-                  <img
-                    src={getSubjectImage(arrangements.subject)}
-                    alt={arrangements.subject}
-                  />
+                  <img src={image} alt={arrangements.subject} />
                 </div>
                 <div className="class-details">
                   <div className="class-date">
@@ -219,28 +245,46 @@ const ClassReport = () => {
                     </span>
                   </div>
 
-                  <div className="class-curriculum">
+                  {/* <div className="class-curriculum">
                     Curriculum Stamp: {classItem.curriculum || "N/A"}
-                  </div>
+                  </div> */}
                   <div className="class-instructor">
-                    Student: {classItem.student_id || "N/A"}
-                  </div>
+  Student:
+  { (classItem.batch_type || classItem.arrangements?.batch_type) === "dual" ? (
+    <>
+      {" "}
+      {classItem.student1_name || "N/A"} & {classItem.student2_name || "N/A"}
+    </>
+  ) : (
+    <> {classItem.student_name || "N/A"} </>
+  )}
+</div>
+
 
                   {/* Missing tab details */}
                   {activeTab === "Missing" && (
                     <>
                       <p className="class-status-detail">
-                        {classItem.status === "leave"
-                          ? "Leave"
-                          : classItem.status === "cancel"
-                          ? "Last Minute Cancel"
-                          : classItem.status === "notshown"
-                          ? "Not Shown"
-                          : "Missing"}
-                      </p>
+  {classItem.status === "leave"
+    ? "Leave"
+    : classItem.status === "cancel"
+    ? "Last Minute Cancel"
+    : classItem.status === "notshown"
+    ? "Not Shown"
+    : "Missing"}
+</p>
+
                       <p className="class-reason">
                         <strong>Reason:</strong>{" "}
                         {classItem.reason || "No reason provided"}
+                      </p>
+                      <p className="class-reason">
+                        <strong>Applied By:</strong>{" "}
+                        {classItem.issuer_name || "No reason provided"}
+                      </p>
+                      <p className="class-reason">
+                        <strong>Role:</strong>{" "}
+                        {classItem.issuer_role || "No reason provided"}
                       </p>
                     </>
                   )}

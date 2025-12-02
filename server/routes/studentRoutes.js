@@ -10,9 +10,9 @@ router.get("/fetchannouncements",userAuth, roleAuth(["student"]),  fetch);
 router.get("/upcoming-classes",/* userAuth, roleAuth(["student"]),  */ fetchUpcomingClasses);
 
 // POST /api/actions/submit
-router.post("/actions/submit",/*  userAuth, roleAuth(["student"]),  */async (req, res) => {
+router.post("/actions/submit", async (req, res) => {
   try {
-    const { user_id, class_id, action_type, reason,role } = req.body;
+    const { user_id, class_id, action_type, reason, role } = req.body;
 
     if (!user_id || !class_id || !action_type) {
       return res.status(400).json({
@@ -21,11 +21,12 @@ router.post("/actions/submit",/*  userAuth, roleAuth(["student"]),  */async (req
       });
     }
 
-    // ✅ Validate: Check if this student belongs to this class
+    // ✅ Validate class exists
     const { data: classData, error: classError } = await supabase
       .from("arrangements")
       .select("*")
       .eq("class_id", class_id)
+      .single();
 
     if (classError || !classData) {
       return res.status(403).json({
@@ -34,9 +35,12 @@ router.post("/actions/submit",/*  userAuth, roleAuth(["student"]),  */async (req
       });
     }
 
-    // ✅ Insert new action in the new table
-    const { data, error } = await supabase
-      .from("notifications") // <-- PUT YOUR NEW TABLE NAME HERE
+    // ⭐ Prepare extra_details (REMOVE status from arrangements)
+    const { status, ...extraDetails } = classData;
+
+    // ⭐ Insert notification WITH extra_details
+    const { data: inserted, error: insertError } = await supabase
+      .from("notifications")
       .insert([
         {
           class_id,
@@ -46,29 +50,30 @@ router.post("/actions/submit",/*  userAuth, roleAuth(["student"]),  */async (req
           reason: reason || null,
           action_time: new Date().toISOString(),
           is_read: false,
+
+          // ⭐ store full class snapshot HERE
+          extra_details: extraDetails,
         },
       ])
       .select();
 
-    if (error) {
-      console.error("Insert error:", error);
+    if (insertError) {
+      console.error("Insert error:", insertError);
       return res.status(500).json({
         success: false,
         message: "Failed to submit action",
       });
     }
 
-    // ✅ NEW: Update class_statuses table (set status = action_type)
+    // ✅ Update class_statuses
     const { error: statusError } = await supabase
       .from("class_statuses")
       .update({
-        status: action_type, // <-- IMPORTANT
+        status: action_type,
         updated_at: new Date().toISOString(),
       })
       .eq("user_id", user_id)
       .eq("class_id", class_id);
-      
-    console.log("Status update result:", statusError || "Success");  
 
     if (statusError) {
       console.error("Status update error:", statusError);
@@ -81,7 +86,7 @@ router.post("/actions/submit",/*  userAuth, roleAuth(["student"]),  */async (req
     return res.status(200).json({
       success: true,
       message: "Action submitted successfully",
-      data,
+      data: inserted,
     });
 
   } catch (err) {
@@ -92,6 +97,7 @@ router.post("/actions/submit",/*  userAuth, roleAuth(["student"]),  */async (req
     });
   }
 });
+
 
 
 router.put("/class-status",/* userAuth, roleAuth(["student"]),  */ async (req, res) => {
