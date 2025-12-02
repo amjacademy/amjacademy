@@ -50,49 +50,46 @@ exports.getProfile = async (req, res) => {
     // ---------------------------------------------------------
     // ⭐ 4️⃣ Fetch Ratings from assessment_responses table
     // ---------------------------------------------------------
-    const { data: responses, error: responsesError } =
-      await getAssessmentResponsesByUserId(userId);
+   // ⭐ Fetch assessment responses
+const responses = await getAssessmentResponsesByUserId(userId);
 
-    if (responsesError)
-      return res.status(500).json({ error: responsesError.message });
+let rating = 0;
 
-    let rating = 0;
+if (responses && responses.length > 0) {
+  const totalYes = responses.reduce(
+    (sum, row) => sum + Number(row.user_count || 0),
+    0
+  );
+ /*  console.log("Total YES:", totalYes); */
 
-    if (responses && responses.length > 0) {
-      const totalYes = responses.reduce(
-        (sum, row) => sum + (row.user_count || 0),
-        0
-      );
+  const numberOfEntries = responses.length;
+  const maxPossibleYes = numberOfEntries * 10;
 
-      const numberOfEntries = responses.length; // total entries
-      const maxPossibleYes = numberOfEntries * 10; // each assessment has 10 questions
+  rating = maxPossibleYes > 0 ? (totalYes / maxPossibleYes) * 5 : 0;
+  rating = Number(rating.toFixed(1));
+} else {
+  console.log("responses:", responses);
+}
 
-      rating = maxPossibleYes > 0 ? (totalYes / maxPossibleYes) * 5 : 0;
+    
 
-      rating = Number(rating.toFixed(1)); // Example: 2.5, 4.3, etc.
-    }
 
-    // ---------------------------------------------------------
+// ⭐ SEND THE RESPONSE (WITH RATING INCLUDED)
+return res.json({
+  id: user.id,
+  name: user.name,
+  email: user.email,
+  username: user.username,
+  profile: student.profile, // from student table
+  enrolledSubjects: student.plan, 
+  progress: student.progress,
+  totalClassesAttended: student.total_attended_classes,
+  achievements: student.achievements,
+  unlocked: student.unlocked,
+  media: { photos, videos },
+  rating: rating, // ⭐ THIS IS NOW SAFE
+});
 
-    // 5️⃣ Final Response
-    res.json({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      username: user.username,
-      profile: student?.profile || null,
-      totalClassesAttended: student?.total_attended_classes || 0,
-      progress: student?.progress || 0,
-      achievements: student?.achievements || 0,
-      enrolledSubjects: student?.profession || " ",
-      unlocked: (student?.unlocked || []).map(Number),
-
-      // Attach Rating
-      rating,
-
-      // Media
-      media: { photos, videos },
-    });
   } catch (err) {
     console.error("Profile Error:", err);
     res.status(500).json({ error: "Server error" });

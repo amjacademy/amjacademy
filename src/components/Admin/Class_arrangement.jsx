@@ -14,8 +14,8 @@ function EmptyState({ title, subtitle }) {
 
 export default function Class_arrangement({ schedules, setSchedules }) {
 
-  const MAIN="https://amjacademy-working.onrender.com";
-  const TEST="http://localhost:5000";
+  const MAIN=import.meta.env.VITE_MAIN;
+  const TEST=import.meta.env.VITE_TEST;
 
   const [classType, setClassType] = useState("Piano");
   const [batchType, setBatchType] = useState("individual");
@@ -374,14 +374,14 @@ export default function Class_arrangement({ schedules, setSchedules }) {
 
           if (isEditing && i === 0) {
             const res = await axios.put(
-              `https://amjacademy-working.onrender.com/api/arrangements/update/${editingId}`,
+              `${MAIN}/api/arrangements/update/${editingId}`,
               scheduleData,
               { withCredentials: true }
             );
             newSchedules.push(res.data);
           } else if (!isEditing) {
             const res = await axios.post(
-              "http://localhost:5000/api/arrangements/create",
+              `${MAIN}/api/arrangements/create`,
               scheduleData,
               { withCredentials: true }
             );

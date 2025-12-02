@@ -59,8 +59,27 @@ exports.getMediaList = async (userId) => {
 
 // ---------------------- GET USER ASSESSMENT RESPONSES ----------------------
 exports.getAssessmentResponsesByUserId = async (userId) => {
-  return await supabase
+  // 1️⃣ Get all assessment_target IDs where the user is the receiver
+  const { data: targets, error: targetErr } = await supabase
+    .from("assessment_targets")
+    .select("id")
+    .eq("receiver_id", userId);
+
+  if (targetErr) throw targetErr;
+
+  if (!targets || targets.length === 0) {
+    return []; // no assessments exist
+  }
+
+  const targetIds = targets.map(t => t.id);
+
+  // 2️⃣ Fetch all responses where assessment_target_id matches
+  const { data: responses, error: respErr } = await supabase
     .from("assessment_responses")
     .select("user_count")
-    .eq("user_id", userId);
+    .in("assessment_target_id", targetIds);
+
+  if (respErr) throw respErr;
+
+  return responses;
 };

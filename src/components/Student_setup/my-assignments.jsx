@@ -14,7 +14,7 @@ const MyAssignments = () => {
   const [filteredAssessments, setFilteredAssessments] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
-
+  const [currentTeacherId, setCurrentTeacherId] = useState(null);
  const [assessments, setAssessments] = useState([]);
 
   const questions = [
@@ -31,115 +31,116 @@ const MyAssignments = () => {
     "Your feedback about the teacher:",
   ];
 
-  const applyFilters = () => {
-    let data = [...assessments];
-    //subject filtering
-    if (selectedSubject !== "all") {
-  data = data.filter(a => a.subject === selectedSubject);
-}
-
-
-    // Status Filter
-    if (selectedStatus !== "all") {
-      data = data.filter((a) => a.status === selectedStatus);
-    }
-
-    setFilteredAssessments(data);
-  };
-
-  const fetchAssessments = async () => {
-  const userId = localStorage.getItem("user_id");
-
-  const res = await fetch(
-    `${MAIN}/api/assessments/user/${userId}`,
-    { method: "GET", credentials: "include" }
-  );
-
-  const json = await res.json();
-
-  if (json.success) {
-    const formatted = json.data.map((a) => ({
-      id: a.id,
-      subject: a.subject.toLowerCase(),   // ensure lowercase
-      level: a.level,
-      teacher: a.teacher_name,
-      // dueDate: a.due_date
-      //   ? new Date(a.due_date).toDateString()
-      //   : "No Due Date",
-      progress: `Checkpoint: ${a.progress}`,
-      no_of_classes: a.no_of_classes,
-      total_attended_classes: a.total_attended_classes,
-      status: a.is_completed ? "Completed" : "Incomplete",
-      actions: [a.is_completed ? "Submited" : "View"],
-    }));
-
-    setAssessments(formatted);
-    setFilteredAssessments(formatted);
+const applyFilters = () => {
+      let data = [...assessments];
+      //subject filtering
+      if (selectedSubject !== "all") {
+    data = data.filter(a => a.subject === selectedSubject);
   }
+      // Status Filter
+      if (selectedStatus !== "all") {
+        data = data.filter((a) => a.status === selectedStatus);
+      }
+
+      setFilteredAssessments(data);
+};
+
+const fetchAssessments = async () => {
+      const userId = localStorage.getItem("user_id");
+
+      const res = await fetch(
+        `${MAIN}/api/assessments/user/${userId}`,
+        { method: "GET", credentials: "include" }
+      );
+
+      const json = await res.json();
+
+      if (json.success) {
+        const formatted = json.data.map((a) => ({
+          id: a.id,
+          subject: a.subject.toLowerCase(),   // ensure lowercase
+          level: a.level,
+          teacher: a.teacher_name,
+          teacher_id: a.teacher_id,
+          // dueDate: a.due_date
+          //   ? new Date(a.due_date).toDateString()
+          //   : "No Due Date",
+          progress: a.progress,
+          no_of_classes: a.no_of_classes,
+          total_attended_classes: a.total_attended_classes,
+          status: a.is_completed ? "Completed" : "Incomplete",
+          actions: [a.is_completed ? "Submited" : "View"],
+        }));
+
+        setAssessments(formatted);
+        setFilteredAssessments(formatted);
+      }
 };
 
 useEffect(() => {
   fetchAssessments();
 }, []);
 
-  useEffect(() => {
+useEffect(() => {
     applyFilters();
-  }, [selectedSubject, selectedStatus, assessments]);
+}, [selectedSubject, selectedStatus, assessments]);
 
  const handleRefresh = async () => {
-  setSelectedSubject("all");
-  setSelectedStatus("all");
+    setSelectedSubject("all");
+    setSelectedStatus("all");
 
-  await fetchAssessments();  // fetch new data from backend
+    await fetchAssessments();  // fetch new data from backend
 };
 
 
-  const handleViewClick = (assessmentId) => {
+const handleViewClick = (assessmentId, teacherId) => {
     setCurrentAssessmentId(assessmentId);
+    setCurrentTeacherId(teacherId);
     setShowForm(true);
+};
+
+const handleFormSubmit = async (e) => {
+      e.preventDefault();
+      const userId = localStorage.getItem("user_id");
+
+      const res = await fetch(`${MAIN}/api/assessments/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          assessment_id: currentAssessmentId,
+          user_id: userId,
+          answers: formAnswers, // JSON sent as-is
+          teacher_id: currentTeacherId,
+        }),
+        credentials: "include",
+      });
+
+      const json = await res.json();
+      if (!json.success) {
+        alert(json.error);
+        return;
+      }
+
+      // Update UI
+      setAssessments((prev) =>
+        prev.map((a) =>
+          a.id === currentAssessmentId
+            ? { ...a, status: "Completed", actions: ["Submited"] }
+            : a
+        )
+      );
+
+      setShowForm(false);
+      setFormAnswers({});
+      setCurrentAssessmentId(null);
   };
 
-  const handleFormSubmit = async (e) => {
-    e.preventDefault();
-    const userId = localStorage.getItem("user_id");
-
-    const res = await fetch(`${MAIN}/api/assessments/submit`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        assessment_id: currentAssessmentId,
-        user_id: userId,
-        answers: formAnswers, // JSON sent as-is
-      }),
-      credentials: "include",
-    });
-
-    const json = await res.json();
-    if (!json.success) {
-      alert(json.error);
-      return;
-    }
-
-    // Update UI
-    setAssessments((prev) =>
-      prev.map((a) =>
-        a.id === currentAssessmentId
-          ? { ...a, status: "Completed", actions: ["Submited"] }
-          : a
-      )
-    );
-
-    setShowForm(false);
-    setFormAnswers({});
-    setCurrentAssessmentId(null);
-  };
-
-  const handleAnswerChange = (questionIndex, answer) => {
-    setFormAnswers((prev) => ({
-      ...prev,
-      [questionIndex]: answer,
-    }));
-  };
+const handleAnswerChange = (questionIndex, answer) => {
+      setFormAnswers((prev) => ({
+        ...prev,
+        [questionIndex]: answer,
+      }));
+};
 
   const renderAssessments = () => (
     <div className="assessments-section">
@@ -241,25 +242,19 @@ useEffect(() => {
             <tbody>
               {filteredAssessments.map((assessment) => (
                 <tr key={assessment.id}>
-                  <td>{`${assessment.subject} | ${assessment.level}`}</td>
+                  <td>{`${assessment.subject} | ${assessment.level}` }</td>
                   <td>{assessment.teacher}</td>
                   {/* <td>{assessment.dueDate}</td> */}
                   <td>
                     <div className="progress-info">
                       <div>
-                        {assessment.total_attended_classes}/
+                        {assessment.progress}/
                         {assessment.no_of_classes}
                       </div>
                     </div>
                   </td>
                   <td>
-                    <span
-                      className={`status-badge ${assessment.status
-                        .toLowerCase()
-                        .replace(" ", "")}`}
-                    >
-                      {assessment.status}
-                    </span>
+                    <span className={`status-badge ${assessment.status.toLowerCase().replace(' ', '')}`}>{assessment.status}</span>
                   </td>
                   <td>
                     {assessment.actions.map((action) => (
@@ -270,7 +265,7 @@ useEffect(() => {
                         }`}
                         onClick={
                           action === "View"
-                            ? () => handleViewClick(assessment.id)
+                            ? () => handleViewClick(assessment.id, assessment.teacher_id)
                             : undefined
                         }
                       >

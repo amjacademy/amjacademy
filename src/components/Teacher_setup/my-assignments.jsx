@@ -4,38 +4,18 @@ import { useState, useEffect } from "react"
 import "./my-assignments.css"
 
 const MyAssignments = () => {
+
+  const MAIN=import.meta.env.VITE_MAIN;
+  const TEST=import.meta.env.VITE_TEST;
+
   const [showForm, setShowForm] = useState(false)
   const [formAnswers, setFormAnswers] = useState({})
   const [currentAssessmentId, setCurrentAssessmentId] = useState(null)
-  const [assessments, setAssessments] = useState([
-    {
-      id: 1,
-      subject: "Keyboard | Intermediate ",
-      teacher: "Student 1",
-      dueDate: "22 Apr, 2025",
-      progress: "Overall: 31/33, Current: 8/10",
-      status: "Incomplete",
-      actions: ["View"],
-    },
-    {
-      id: 2,
-      subject: "Keyboard | Beginner",
-      teacher: "Developer_student",
-      dueDate: "30 Apr, 2025",
-      progress: "Overall: 24/24, Current: 24/24",
-      status: "Completed",
-      actions: ["Submited"],
-    },
-    {
-      id: 3,
-      subject: "Keyboard | Beginner",
-      teacher: "Student 2",
-      dueDate: "30 Apr, 2025",
-      progress: "Overall: 24/24, Current: 24/24",
-      status: "Completed",
-      actions: ["Submited"],
-    },
-  ])
+  const [filteredAssessments, setFilteredAssessments] = useState([]);
+  const [selectedSubject, setSelectedSubject] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [assessments, setAssessments] = useState([]);
+  const [currentStudentId, setCurrentStudentId] = useState(null);
 
   const questions = [
     "Did the student come prepared for the class?",
@@ -51,14 +31,97 @@ const MyAssignments = () => {
     "Teacher’s comments about the student:"
   ]
 
-  const handleViewClick = (assessmentId) => {
-    setCurrentAssessmentId(assessmentId)
-    setShowForm(true)
-  }
 
-  const handleFormSubmit = (e) => {
+const applyFilters = () => {
+      let data = [...assessments];
+      //subject filtering
+      if (selectedSubject !== "all") {
+    data = data.filter(a => a.subject === selectedSubject);
+  }
+      // Status Filter
+      if (selectedStatus !== "all") {
+        data = data.filter((a) => a.status === selectedStatus);
+      }
+
+      setFilteredAssessments(data);
+};
+
+const fetchAssessments = async () => {
+      const userId = localStorage.getItem("user_id");
+
+      const res = await fetch(
+        `${MAIN}/api/teacher/assignment/user/${userId}`,
+        { method: "GET", credentials: "include" }
+      );
+
+      const json = await res.json();
+
+      if (json.success) {
+        const formatted = json.data.map((a) => ({
+          id: a.id,
+          subject: a.subject.toLowerCase(),   // ensure lowercase
+          level: a.student_level,
+          student: a.student_name,
+          student_id: a.student_id,
+          // dueDate: a.due_date
+          //   ? new Date(a.due_date).toDateString()
+          //   : "No Due Date",
+          progress: `Checkpoint: ${a.progress}`,
+          no_of_classes: a.no_of_classes,
+          total_attended_classes: a.total_attended_classes,
+          status: a.is_completed ? "Completed" : "Incomplete",
+          actions: [a.is_completed ? "Submited" : "View"],
+        }));
+
+        setAssessments(formatted);
+        setFilteredAssessments(formatted);
+      }
+};
+
+useEffect(() => {
+  fetchAssessments();
+}, []);
+
+useEffect(() => {
+    applyFilters();
+}, [selectedSubject, selectedStatus, assessments]);
+
+ const handleRefresh = async () => {
+    setSelectedSubject("all");
+    setSelectedStatus("all");
+
+    await fetchAssessments();  // fetch new data from backend
+};
+
+
+  const handleViewClick = (assessmentId, studentId) => {
+  setCurrentAssessmentId(assessmentId);
+  setCurrentStudentId(studentId);
+  setShowForm(true);
+};
+
+
+  const handleFormSubmit = async(e) => {
     e.preventDefault()
-    console.log("Form submitted with answers:", formAnswers)
+    const userId = localStorage.getItem("user_id");
+
+      const res = await fetch(`${MAIN}/api/teacher/assignment/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          assessment_id: currentAssessmentId,
+          user_id: userId,
+          answers: formAnswers, // JSON sent as-is
+          student_id:currentStudentId,
+        }),
+        credentials: "include",
+      });
+
+      const json = await res.json();
+      if (!json.success) {
+        alert(json.error);
+        return;
+      }
 
     // Update the assessment status and actions
     setAssessments(prevAssessments =>
@@ -96,24 +159,37 @@ const MyAssignments = () => {
         <div className="filter-row">
           <span>Filter By</span>
           <span>Due Date</span>
-          <select className="subject-select">
-            <option>Select Subject</option>
-            <option>Keyboard</option>
-            <option>Piano</option>
-            {/* <option>Guitar</option> */}
+          <select
+            className="subject-select"
+            value={selectedSubject}
+            onChange={(e) => setSelectedSubject(e.target.value)}
+          >
+            <option value="all">Select Subject</option>
+            <option value="keyboard">Keyboard</option>
+            <option value="piano">Piano</option>
           </select>
-          <select className="stage-select">
+            {/* <option>Guitar</option> */}
+          {/* <select className="stage-select">
             <option>Select level</option>
             <option>Beginner</option>
             <option>Intermediate</option>
             <option>Advanced</option>
-          </select>
-          <button className="refresh-btn">🔄</button>
+          </select> */}
+          <button className="refresh-btn" onClick={handleRefresh}>
+            🔄
+          </button>
         </div>
 
         <div className="status-filters">
-          <label>
-            <input type="radio" name="status" value="all" defaultChecked /> All
+           <label>
+            <input
+              type="radio"
+              name="status"
+              value="all"
+              checked={selectedStatus === "all"}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+            />
+            All
           </label>
           {/* <label>
             <input type="radio" name="status" value="due" /> Due
@@ -122,10 +198,24 @@ const MyAssignments = () => {
             <input type="radio" name="status" value="overdue" /> Overdue
           </label> */}
           <label>
-            <input type="radio" name="status" value="Incomplete" /> Incomplete
+            <input
+              type="radio"
+              name="status"
+              value="Incomplete"
+              checked={selectedStatus === "Incomplete"}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+            />
+            Incomplete
           </label>
           <label>
-            <input type="radio" name="status" value="Completed" /> Completed
+            <input
+              type="radio"
+              name="status"
+              value="Completed"
+              checked={selectedStatus === "Completed"}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+            />
+            Completed
           </label>
           {/* <label>
             <input type="radio" name="status" value="approved" /> Approved
@@ -149,21 +239,24 @@ const MyAssignments = () => {
               <tr>
                 <th>Subject & Level</th>
                 <th>Student Name</th>
-                <th>Due Date</th>
+                {/* <th>Due Date</th> */}
                 <th>Progress</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {assessments.map((assessment) => (
+              {filteredAssessments.map((assessment) => (
                 <tr key={assessment.id}>
-                  <td>{assessment.subject}</td>
-                  <td>{assessment.teacher}</td>
-                  <td>{assessment.dueDate}</td>
+                  <td>{`${assessment.subject} | ${assessment.level} `}</td>
+                  <td>{assessment.student}</td>
+                  {/* <td>{assessment.dueDate}</td> */}
                   <td>
                     <div className="progress-info">
-                      <div>{assessment.progress}</div>
+                     <div>
+                        {assessment.progress}/
+                        {assessment.no_of_classes}
+                      </div>
                     </div>
                   </td>
                   <td>
@@ -171,10 +264,16 @@ const MyAssignments = () => {
                   </td>
                   <td>
                     {assessment.actions.map((action) => (
-                      <button
-                        key={action}
-                        className={`action-view-btn ${action === "Submited" ? "completed" : ""}`}
-                        onClick={action === "View" ? () => handleViewClick(assessment.id) : undefined}
+                       <button
+                        key={`${assessment.id}-${action}`}
+                        className={`action-view-btn ${
+                          action === "Submited" ? "completed" : ""
+                        }`}
+                        onClick={
+                          action === "View"
+                            ? () => handleViewClick(assessment.id, assessment.student_id)
+                            : undefined
+                        }
                       >
                         {action}
                       </button>
@@ -215,7 +314,7 @@ const MyAssignments = () => {
                   className="feedback-textarea"
                   value={formAnswers[index] || ""}
                   onChange={(e) => handleAnswerChange(index, e.target.value)}
-                  placeholder="Please share your feedback about the teacher..."
+                  placeholder="Please share your feedback about the student..."
                   rows="4"
                   required
                 />

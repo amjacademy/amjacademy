@@ -1,20 +1,12 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import "./punctuality-report.css"
 import "./Dashboard.css"
 
 const sessionTypes = ["All Classes", "Regular", "Special", "Demo"]
-const slotStatuses = [
-  "All Slots",
-  "As schedule",
-  "Late-In",
-  "Late-Out",
-  "Early-In",
-  "On Time",
-  "Behind schedule",
-  "Early-Out"
-]
+const slotStatuses = ["All Slots", "On-time", "Early-Out", "Late-In", "Early-In", "Late-Out"]
+
 
 function toCsv(rows) {
   const headers = [
@@ -95,40 +87,87 @@ function makeDummyRow(i) {
     duration,
     sessionType,
     classType,
-    reason,
+    //reason,
+  }
+}
+
+// Function to map status labels for display
+function mapStatusForDisplay(status) {
+  switch (status) {
+    case "Early-Out":
+      return "Behind Scheduled"
+    case "Late-Out":
+    case "Late-In":
+      return "After Scheduled"
+    case "Early-In":
+    case "On-time":
+      return "As Scheduled"
+    default:
+      return status
   }
 }
 
 export default function PunctualityReport() {
+  const MAIN=import.meta.env.VITE_MAIN;
+  const TEST=import.meta.env.VITE_TEST;
+
   const [ startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
   const [sessionType, setSessionType] = useState("All Classes")
   const [slotStatus, setSlotStatus] = useState("All Slots")
   const [keyword, setKeyword] = useState("")
+  const [allRows, setAllRows] = useState([])
 
-  // generate many rows
-  const allRows = useMemo(() => {
-    const rows = Array.from({ length: 60 }, (_, i) => makeDummyRow(i))
-    return rows
-  }, [])
+// 🔥 Fetch backend data
+useEffect(() => {
+  async function loadData() {
+    try {
+      const query = new URLSearchParams({
+        user_id: localStorage.getItem("user_id"),   // adjust if needed
+        from: startDate || "",
+        to: endDate || "",
+        sessionType,
+        slotStatus,
+        keyword
+      });
 
-  const filtered = useMemo(() => {
-    return allRows.filter((r) => {
-      const matchSession = sessionType === "All Classes" || r.sessionType === sessionType
-      const matchSlot = slotStatus === "All Slots" || r.slotStatus === slotStatus
-      const matchKeyword =
-        !keyword ||
-        r.students.join(" ").toLowerCase().includes(keyword.toLowerCase()) ||
-        r.classType.toLowerCase().includes(keyword.toLowerCase())
-      // simple date filter by detecting day number in dateTime text
-      const dayNum = Number.parseInt(r.dateTime.slice(5, 7), 10) || 20
-      const sd = startDate ? Number.parseInt(startDate.split("-")[2], 10) : null
-      const ed = endDate ? Number.parseInt(endDate.split("-")[2], 10) : null
-      const matchStart = sd ? dayNum >= sd : true
-      const matchEnd = ed ? dayNum <= ed : true
-      return matchSession && matchSlot && matchKeyword && matchStart && matchEnd
-    })
-  }, [allRows, sessionType, slotStatus, keyword, startDate, endDate])
+      const res = await fetch(`${MAIN}/api/teacher/punctuality/fetchreport?${query.toString()}`, { credentials: "include" });
+      const data = await res.json();
+
+      setAllRows(data);
+    } catch (err) {
+      console.error("Error loading report:", err);
+    }
+  }
+
+  loadData();
+}, [startDate, endDate, sessionType, slotStatus, keyword]);
+
+
+
+  // ⬇️ EXISTING LOGIC → NO CHANGES
+const filtered = useMemo(() => {
+  return allRows.filter((r) => {
+    const matchSession = sessionType === "All Classes" || r.sessionType === sessionType;
+    const matchSlot = slotStatus === "All Slots" || r.slotStatus === slotStatus;
+    const matchKeyword =
+      !keyword ||
+      r.students.some(s => s.toLowerCase().includes(keyword.toLowerCase())) ||
+      r.classType.toLowerCase().includes(keyword.toLowerCase());
+
+    // date filter
+   const d = r.rawDateTime ? new Date(r.rawDateTime) : null;
+
+const sd = startDate ? new Date(startDate + "T00:00:00") : null;
+const ed = endDate ? new Date(endDate + "T23:59:59") : null;
+
+const matchStart = sd ? d >= sd : true;
+const matchEnd = ed ? d <= ed : true;
+
+
+    return matchSession && matchSlot && matchKeyword && matchStart && matchEnd;
+  });
+}, [allRows, sessionType, slotStatus, keyword, startDate, endDate]);
 
   const onDownload = () => {
     const csv = toCsv(filtered)
@@ -209,9 +248,9 @@ export default function PunctualityReport() {
                 <th>Class Date &amp; Time</th>
                 <th>Students</th>
                 <th>Check-in Time</th>
-                <th>Checkout Time</th>
+                {/* <th>Checkout Time</th> */}
                 <th>Check-in Status</th>
-                <th>Checkout Status</th>
+                {/* <th>Checkout Status</th> */}
                 <th>Class Duration</th>
                 {/* <th>Reason</th> */}
               </tr>
@@ -230,17 +269,17 @@ export default function PunctualityReport() {
                     </div>
                   </td>
                   <td>{r.checkinTime}</td>
-                  <td>{r.checkoutTime}</td>
+                 {/*  <td>{r.checkoutTime}</td> */}
                   <td>
                     <span className={`chip ${r.checkinStatus.toLowerCase().replace(/\s/g, "-")}`}>
-                      {r.checkinStatus}
+                      {mapStatusForDisplay(r.checkinStatus)}
                     </span>
                   </td>
-                  <td>
+                  {/* <td>
                     <span className={`chip ${r.checkoutStatus.toLowerCase().replace(/\s/g, "-")}`}>
                       {r.checkoutStatus}
                     </span>
-                  </td>
+                  </td> */}
                   <td>{r.duration}</td>
                   {/* <td>{r.reason || "-"}</td> */}
                 </tr>

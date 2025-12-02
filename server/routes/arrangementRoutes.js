@@ -112,15 +112,24 @@ const shouldCreateAssessments = existingAssessments.length === 0;
 if (shouldCreateAssessments) {
   console.log("🚀 Creating assessments for:", arrangement_id);
 
-  // Generate checkpoints (every 8 sessions)
+  // Generate checkpoints: STRICT multiples of 8 only (8,16,24,...)
   const checkpoints = [];
   for (let cp = 8; cp <= no_of_sessions; cp += 8) {
     checkpoints.push(cp);
   }
 
+  // If no_of_sessions < 8, checkpoints will be empty → no assessments created.
+  if (checkpoints.length === 0) {
+    console.log("ℹ️ no_of_sessions < 8 — no assessment checkpoints created.");
+  }
+
+  // ===========================================================
+  // CREATE ASSESSMENTS FOR EACH CHECKPOINT
+  // ===========================================================
   for (const cp of checkpoints) {
+
     // ---------------------------------------------------
-    // 1️⃣ CREATE student_to_teacher (students evaluate the teacher)
+    // 1️⃣ student_to_teacher  (students evaluate teacher)
     // ---------------------------------------------------
     const { data: stuToTeach, error: s2tErr } = await supabase
       .from("assessments")
@@ -138,15 +147,21 @@ if (shouldCreateAssessments) {
 
     if (s2tErr) throw s2tErr;
 
-    // STUDENTS must be the ones answering (targets)
+    // STUDENTS = user_id, teacher = receiver_id
     const stt_targets = [
-      { assessment_id: stuToTeach.id, user_id: student1_id, role: "student" },
+      {
+        assessment_id: stuToTeach.id,
+        user_id: student1_id,
+        receiver_id: teacher_id,
+        role: "student",
+      },
     ];
 
     if (batch_type === "dual" && student2_id) {
       stt_targets.push({
         assessment_id: stuToTeach.id,
         user_id: student2_id,
+        receiver_id: teacher_id,
         role: "student",
       });
     }
@@ -154,7 +169,7 @@ if (shouldCreateAssessments) {
     await supabase.from("assessment_targets").insert(stt_targets);
 
     // ---------------------------------------------------
-    // 2️⃣ CREATE teacher_to_student (teacher evaluates the student(s))
+    // 2️⃣ teacher_to_student (teacher evaluates student(s))
     // ---------------------------------------------------
     const { data: teachToStu, error: t2sErr } = await supabase
       .from("assessments")
@@ -172,19 +187,34 @@ if (shouldCreateAssessments) {
 
     if (t2sErr) throw t2sErr;
 
-    // The TEACHER must be the one answering (target)
-    await supabase.from("assessment_targets").insert([
-      {
+    // TEACHER = user_id, STUDENTS = receiver_id (multiple rows)
+    const tts_targets = [];
+
+    if (student1_id) {
+      tts_targets.push({
         assessment_id: teachToStu.id,
         user_id: teacher_id,
+        receiver_id: student1_id,
         role: "teacher",
-      },
-    ]);
+      });
+    }
+
+    if (batch_type === "dual" && student2_id) {
+      tts_targets.push({
+        assessment_id: teachToStu.id,
+        user_id: teacher_id,
+        receiver_id: student2_id,
+        role: "teacher",
+      });
+    }
+
+    await supabase.from("assessment_targets").insert(tts_targets);
   }
+
 } else {
   console.log("⚠️ Assessments already exist for", arrangement_id);
 }
-
+// ============================================
 
     return res.status(200).json({
       success: true,
