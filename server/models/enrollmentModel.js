@@ -30,6 +30,7 @@ async function getEnrollments() {
           ...user,
           experiencelevel: teacher?.exp_lvl || null,
           image: teacher?.profile || null,
+          salary: teacher?.salary || 0
         };
       }
       return user;
@@ -154,6 +155,7 @@ async function updateEnrollment(id, updates) {
       username: updates.username,
       password: updates.password,
       role, // ensure role stays lowercase
+      salary: updates.salary || 0,
     };
 
     const { data: userData, error: userError } = await supabase
@@ -185,6 +187,7 @@ async function updateEnrollment(id, updates) {
      const teacherUpdates = {
     exp_lvl: updates.experiencelevel,
     profile: updates.image || null, // ✅ add this line
+    salary: updates.salary || 0,
   };
 
       const { error: teacherError } = await supabase
@@ -230,6 +233,7 @@ async function getEnrollmentById(id) {
       extraData = {
         experiencelevel: teacher?.exp_lvl || null,
         image: teacher?.profile || null,
+        salary: teacher?.salary || 0,
       };
     }
 

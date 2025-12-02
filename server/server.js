@@ -206,6 +206,8 @@ app.use("/api/assessments", require("./routes/assessmentRoutes"));
 //Teacher Routes
 app.use("/api/teacher",require("./routes/teacher/teacherRoutes"));
 
+app.use("/api/teacher/profile",require("./routes/teacher/profileRoutes"));
+
 
 //Common Routes
 app.use("/api/upload", require("./routes/cloudinaryRoutes"));

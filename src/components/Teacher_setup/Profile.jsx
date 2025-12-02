@@ -4,6 +4,10 @@ import { useState, useRef, useEffect } from "react"
 import "./Profile.css"
 
 const Profile = () => {
+
+  const MAIN=import.meta.env.VITE_MAIN;
+  const TEST=import.meta.env.VITE_TEST;
+
   const [activeSection, setActiveSection] = useState("videos")
   const [newProfileImage, setNewProfileImage] = useState(null)
   const [uploadedVideos, setUploadedVideos] = useState([])
@@ -17,51 +21,177 @@ const Profile = () => {
     name: "Teacher",
     email: "",
     username: "",
-    avatar: "images/Profile_pic.jpg?height=200&width=200",
+    avatar: "/placeholder.svg",
     salary: 0,
-    previousStudents: 0,
     totalClasses: 0,
-    reviews: "NA",
+    /* reviews: "NA", */
     rating: 0,
-    totalRatings: 0,
-    subjects: [],
+    subjects: "Keyboard",
     videos: [],
     photos: [],
   })
+// -------------------- FETCH PROFILE --------------------
+ useEffect(() => {
+    const fetchProfile = async () => {
+      const userId = localStorage.getItem("user_id")
+      if (!userId) return
 
-  useEffect(() => {
-    const storedProfile = localStorage.getItem('profile_teacher')
-    if (storedProfile) {
-      const profileData = JSON.parse(storedProfile)
-      setUserProfile(prev => ({
-        ...prev,
-        name: profileData.name || prev.name,
-        email: profileData.email || "",
-        username: profileData.username || "",
-        avatar: profileData.image || prev.avatar,
-        salary: profileData.salary || prev.salary,
-        subjects: [profileData.profession || "Piano"],
-      }))
+      try {
+        const res = await fetch(`${MAIN}/api/teacher/profile/${userId}`, { credentials: 'include' })
+        if (res.ok) {
+          const data = await res.json()
+          /* console.log("Fetched profile data:", data) */
+          setUserProfile({
+            name: data.name || "Teacher",
+            email: data.email || "",
+            username: data.username || "",
+            avatar: data.profile || "/placeholder.svg",
+            subjects: data.subjects || " ",
+            rating: data.rating || 0,
+            videos: data.media?.videos || [],
+            photos: data.media?.photos || [],
+            salary: data.salary || 0,
+
+          })
+        } else if (res.status === 404) {
+          console.log("Profile not found. Initialize it first.")
+        }
+      } catch (err) {
+        console.error("Error fetching profile:", err)
+      }
     }
+
+    fetchProfile()
   }, [])
 
-  const handleProfileImageChange = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      setNewProfileImage(URL.createObjectURL(file))
+    // -------------------- FETCH MEDIA --------------------
+ useEffect(() => {
+  const fetchMedia = async () => {
+    try {
+      const userId = localStorage.getItem("user_id");
+      const res = await fetch(`${MAIN}/api/teacher/profile/media/${userId}`, { credentials: 'include' });
+      if (!res.ok) throw new Error("Failed to fetch media");
+
+      const data = await res.json();
+
+      // Map to include only the fields needed and ensure we use secure_url
+      const videos = data
+        .filter((m) => m.resource_type === "video")
+        .map((m) => ({
+          name: m.original_filename || "video",
+          url: m.secure_url, // Use secure_url, not public_id
+        }));
+
+      const photos = data
+        .filter((m) => m.resource_type === "photo")
+        .map((m) => ({
+          name: m.original_filename || "photo",
+          url: m.secure_url,
+        }));
+
+      setUploadedVideos(videos);
+      setUploadedPhotos(photos);
+    } catch (err) {
+      console.error("Error fetching media:", err);
+    }
+  };
+
+  fetchMedia();
+}, []);
+
+  // -------------------- HANDLE PROFILE IMAGE --------------------
+const handleProfileImageChange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  try {
+    const userId = localStorage.getItem("user_id"); // current logged-in user
+
+    // Prepare form data for upload
+    const formData = new FormData();
+    formData.append("avatar", file); // must match upload.single("avatar")
+// must match backend parser.single("avatar")
+
+    // Upload to media endpoint
+    const mediaRes = await fetch(`${MAIN}/api/teacher/profile/avatar/${userId}`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!mediaRes.ok) throw new Error("Failed to upload image");
+
+    const mediaData = await mediaRes.json();
+    /* console.log("Media upload response:", mediaData.secure_url); */
+    const newAvatarUrl = mediaData.secure_url; // URL returned from backend
+
+    // Update frontend state
+    setUserProfile((prev) => ({
+      ...prev,
+      avatar: newAvatarUrl,
+    }));
+
+    window.alert("Profile image updated successfully!");
+  } catch (err) {
+    console.error("Error updating profile image:", err);
+  }
+};
+
+
+  // -------------------- HANDLE VIDEO UPLOAD --------------------
+const handleVideoUpload = async (e) => {
+  const files = Array.from(e.target.files);
+  const userId = localStorage.getItem("user_id");
+    const uploaded = [];
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append("file", file); // instead of "media"
+      formData.append("type", "video");
+
+      try {
+        const res = await fetch(`${MAIN}/api/teacher/profile/media/${userId}/upload`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!res.ok) throw new Error("Video upload failed");
+        const data = await res.json();
+        uploaded.push({ name: file.name, url: data.secure_url, resource_type: "video" });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    setUploadedVideos((prev) => [...prev, ...uploaded]);
+};
+
+// -------------------- HANDLE PHOTO UPLOAD --------------------
+
+const handlePhotoUpload = async (e) => {
+  const files = Array.from(e.target.files);
+  const userId = localStorage.getItem("user_id");
+  const uploaded = [];
+
+  for (const file of files) {
+    const formData = new FormData();
+    formData.append("file", file); // instead of "media"
+    formData.append("type", "photo");
+
+    try {
+      const res = await fetch(`${MAIN}/api/teacher/profile/media/${userId}/upload`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("Photo upload failed");
+      const data = await res.json();
+      uploaded.push({ name: file.name, url: data.secure_url, resource_type: "photo" });
+    } catch (err) {
+      console.error(err);
     }
   }
 
-  const handleVideoUpload = (e) => {
-    const files = Array.from(e.target.files)
-    setUploadedVideos(prev => [...prev, ...files.map(file => ({ name: file.name, url: URL.createObjectURL(file) }))])
-  }
-
-  const handlePhotoUpload = (e) => {
-    const files = Array.from(e.target.files)
-    setUploadedPhotos(prev => [...prev, ...files.map(file => ({ name: file.name, url: URL.createObjectURL(file) }))])
-  }
-
+  setUploadedPhotos((prev) => [...prev, ...uploaded]);
+};
   return (
     <div className="profile-container">
       
@@ -120,7 +250,7 @@ const Profile = () => {
                         </span>
                       ))}
                     </div> */}
-                    <span className="rating-text">{userProfile.totalRatings}</span>
+                    <span className="rating-text">{userProfile.rating}</span>
                   </div>
                 </div>
               </div>
@@ -198,11 +328,10 @@ const Profile = () => {
               </div>
               <div className="section-content">
                 <div className="subjects-list">
-                  {userProfile.subjects.map((subject, index) => (
-                    <span key={index} className="subject-tag">
-                      {subject}
+                    <span className="subject-tag">
+                      {userProfile.subjects}
                     </span>
-                  ))}
+                
                 </div>
               </div>
             </div>

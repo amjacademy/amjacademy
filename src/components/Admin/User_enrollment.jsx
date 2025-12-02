@@ -3,11 +3,15 @@ import "./User_enrollment.css"
 import PopupNotification from "../common/PopupNotification.jsx"
 
 function IdTools({ value, onChange, students, teachers, role, setStudents, setTeachers  }) {
+
+  const MAIN=import.meta.env.VITE_MAIN;
+  const TEST=import.meta.env.VITE_TEST;
+
   const [disabled, setDisabled] = useState(false)
   const [timer, setTimer] = useState(0)
 const fetchEnrollments = async () => {
   try {
-    const res = await fetch("https://amjacademy-working.onrender.com/api/enrollments/getall", {
+    const res = await fetch(`${MAIN}/api/enrollments/getall`, {
       method: "GET",
       credentials: "include"
     });
@@ -92,6 +96,9 @@ useEffect(() => {
 }
 
 function ImagePicker({ value, onChange, label }) {
+
+    const MAIN=import.meta.env.VITE_MAIN;
+  const TEST=import.meta.env.VITE_TEST;
    const [preview, setPreview] = useState(value || "");
   const [loading, setLoading] = useState(false);
 
@@ -111,7 +118,7 @@ function ImagePicker({ value, onChange, label }) {
     formData.append("file", file);
 
     try {
-      const res = await fetch("https://amjacademy-working.onrender.com/api/upload", {
+      const res = await fetch(`${MAIN}/api/upload`, {
         method: "POST",
         body: formData,
         credentials: "include",
@@ -169,7 +176,8 @@ function EmptyState({ title, subtitle }) {
 
 export default function User_enrollment({ students, setStudents, teachers, setTeachers, editingRow, setEditingRow, notification, setNotification }) {
   const [isLoading, setIsLoading] = useState(false); // loading state added
-
+  const MAIN=import.meta.env.VITE_MAIN;
+  const TEST=import.meta.env.VITE_TEST;
   // If editingRow is passed, populate the form
   /* console.log("Editing row:", editingRow); */
   useEffect(() => {
@@ -317,7 +325,7 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
     };
 
     try {
-      const response = await fetch(`https://amjacademy-working.onrender.com/api/enrollments/update/${editingId}`, {
+      const response = await fetch(`${MAIN}/api/enrollments/update/${editingId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updateData),
@@ -386,7 +394,7 @@ export default function User_enrollment({ students, setStudents, teachers, setTe
     };
 
     try {
-      const response = await fetch("https://amjacademy-working.onrender.com/api/enrollments/addusers", {
+      const response = await fetch(`${MAIN}/api/enrollments/addusers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newEntry),
