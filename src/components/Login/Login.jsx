@@ -301,12 +301,12 @@ const handleOtpSubmit = async (e) => {
             Forgot Password?
           </a>
           <p className="signup-link">
-            Don't have an account? <a href="#">Sign up here</a>
+            Don't have an account? <a href="#">Sign up here.</a>
           </p>
         </div>
       </div>
 
-      {/* Coming Soon Modal for Sudents */}
+      {/* Coming Soon Modal for Students */}
       {showComingSoon && (
         <div className="coming-soon-modal">
           <div className="coming-soon-content">
