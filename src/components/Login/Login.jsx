@@ -306,7 +306,7 @@ const handleOtpSubmit = async (e) => {
         </div>
       </div>
 
-      {/* Coming Soon Modal for Students */}
+      {/* Coming Soon Modal for Sudents */}
       {showComingSoon && (
         <div className="coming-soon-modal">
           <div className="coming-soon-content">
