@@ -97,7 +97,7 @@
   transform: translateY(-2px);
 }
 
-.contacts-panel{
+.contacts-panel {
   position: fixed;
 }
 
@@ -274,17 +274,30 @@
 .chat-contact-name {
   font-size: 1.3rem;
   font-weight: bold;
+  color: white;
 }
 
 .chat-contact-status {
-  font-size: 0.9rem;
-  opacity: 0.8;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.9);
   margin-top: 2px;
+  font-weight: 500;
+}
+
+/* Online status - slightly brighter */
+.chat-contact-status.online {
+  color: #a5f3a5;
+}
+
+/* Typing status - italic */
+.chat-contact-status.typing {
+  color: #a5f3a5;
+  font-style: italic;
 }
 
 .chat-messages {
   min-height: 0;
-  padding: 20px;;
+  padding: 20px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -446,39 +459,60 @@
 
 .message-meta {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   margin-top: 5px;
+  gap: 4px;
 }
 
 .message-time {
-  font-size: 0.8rem;
-  opacity: 0.7;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.message.other .message-time {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .message-status {
   display: flex;
   align-items: center;
+  margin-left: 4px;
 }
 
 .tick {
-  font-size: 0.8rem;
+  font-size: 12px;
   margin-left: 2px;
 }
 
+/* Sending - clock icon */
+.tick.clock {
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+/* Failed - red X */
+.tick.failed {
+  font-size: 12px;
+  color: #ff4444;
+}
+
+/* Sent - single grey tick */
 .tick.single {
-  color: #666;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
 }
 
+/* Delivered - double grey ticks */
 .tick.double {
-  color: #666;
-  font-weight: bold;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
 }
 
+/* Read - double blue ticks (WhatsApp style) */
 .tick.double.blue {
-  color: #f87035;
+  color: #53bdeb;
   font-weight: bold;
-  border-color: #f87035;
 }
 
 .chat-input-container {
@@ -811,7 +845,8 @@
     padding: 10px;
   }
 
-  .modal-image, .modal-video {
+  .modal-image,
+  .modal-video {
     max-height: 70vh;
   }
 }
@@ -862,11 +897,57 @@
     height: 100vh;
   }
 }
+
+/* ===== TYPING INDICATOR ANIMATION ===== */
+.typing-indicator {
+  padding: 12px 16px !important;
+  min-width: 60px;
+}
+
+.typing-dots {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.typing-dots span {
+  width: 8px;
+  height: 8px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  animation: typingBounce 1.4s infinite ease-in-out both;
+}
+
+.typing-dots span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.typing-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typingBounce {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  40% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
 @media (max-width: 460px) {
   .main_container {
     padding-right: 100px;
   }
-  .chat-placeholder{
+  .chat-placeholder {
     display: none;
   }
   .contact-item {
@@ -882,7 +963,7 @@
 
   .contrat-list {
     padding: 5px 0;
-  } 
+  }
 
   .contact-name {
     font-size: 1rem;

@@ -12,18 +12,26 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: (req, file) => {
     let folder = "amj-academy";
-    let allowed_formats = ["jpg", "jpeg", "png", "mp4", "mov", "avi"];
+    let resourceType = "auto"; // Let Cloudinary detect the type
     let transformation = [];
 
     if (file.mimetype.startsWith("image/")) {
+      resourceType = "image";
       transformation = [{ width: 800, crop: "limit" }];
-    } 
-    // videos don't need transformations
+    } else if (file.mimetype.startsWith("video/")) {
+      resourceType = "video";
+    } else {
+      // Documents (PDF, DOC, etc.) - use "raw" resource type
+      resourceType = "raw";
+    }
+
     return {
       folder,
-      allowed_formats,
-      resource_type: file.mimetype.startsWith("video/") ? "video" : "image",
-      transformation,
+      resource_type: resourceType,
+      transformation: transformation.length > 0 ? transformation : undefined,
+      // Preserve original filename for documents
+      use_filename: true,
+      unique_filename: true,
     };
   },
 });
@@ -56,29 +64,26 @@ const messageUploadFile = (fileBuffer, mimetype, fileName) => {
       resourceType = "video";
     }
 
-    cloudinary.uploader.upload_stream(
-      {
-        folder: "message-uploads",
-        resource_type: resourceType,
+    cloudinary.uploader
+      .upload_stream(
+        {
+          folder: "message-uploads",
+          resource_type: resourceType,
 
-        // ⭐ THESE THREE FIX THE FILENAME PROBLEM ⭐
-        use_filename: true,
-        filename_override: fileName,     // keeps original file name
-        unique_filename: false,         // do NOT randomize name
-      },
-      (err, result) => {
-        if (err) reject(err);
-        else resolve(result);
-      }
-    ).end(fileBuffer);
+          // ⭐ THESE THREE FIX THE FILENAME PROBLEM ⭐
+          use_filename: true,
+          filename_override: fileName, // keeps original file name
+          unique_filename: false, // do NOT randomize name
+        },
+        (err, result) => {
+          if (err) reject(err);
+          else resolve(result);
+        }
+      )
+      .end(fileBuffer);
   });
 };
-
-
-
-
 
 const parser = multer({ storage });
 
 module.exports = { cloudinary, parser, streamUpload, messageUploadFile };
-

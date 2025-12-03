@@ -258,10 +258,21 @@
   margin-bottom: 5px;
 }
 
+.message-meta {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+}
+
 .message-time {
-  font-size: 0.8rem;
-  opacity: 0.7;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.8);
   text-align: right;
+}
+
+.message.other .message-time {
+  color: rgba(0, 0, 0, 0.5);
 }
 
 .chat-input-container {
@@ -368,4 +379,138 @@
   .chat-panel {
     height: calc(100vh - 350px);
   }
+}
+
+/* Typing Indicator */
+.typing-indicator {
+  padding: 12px 16px !important;
+  background: #e8e8e8 !important;
+  border-radius: 18px 18px 18px 4px !important;
+  display: inline-block;
+}
+
+.typing-dots {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.typing-dots span {
+  width: 8px;
+  height: 8px;
+  background: #999;
+  border-radius: 50%;
+  animation: typingBounce 1.4s infinite ease-in-out;
+}
+
+.typing-dots span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.typing-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typingBounce {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  40% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
+/* Message Status Indicators */
+.tick.sending {
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+.tick.failed {
+  font-size: 12px;
+  color: #ff4444;
+}
+
+.tick.single {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+}
+
+.tick.double {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+}
+
+.tick.double.blue {
+  color: #53bdeb;
+  font-weight: bold;
+}
+
+/* Online Status Indicator */
+.chat-contact-status {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.chat-contact-status.online {
+  color: #a5f3a5;
+}
+
+.chat-contact-status.typing {
+  color: #a5f3a5;
+  font-style: italic;
+}
+
+/* Unread Count Badge */
+.unread-count {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 8px;
+  border-radius: 12px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.total-unread-count {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+/* Broken/Unavailable File Placeholder */
+.broken-file-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 30px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+  border: 2px dashed #ccc;
+  min-width: 150px;
+}
+
+.broken-file-placeholder .broken-icon {
+  font-size: 32px;
+  opacity: 0.5;
+  margin-bottom: 8px;
+}
+
+.broken-file-placeholder .broken-text {
+  font-size: 12px;
+  color: #999;
+  text-align: center;
 }

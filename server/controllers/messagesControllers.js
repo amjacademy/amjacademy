@@ -40,14 +40,14 @@ exports.sendMessage = asyncHandler(async (req, res) => {
   }
 
   const {
-  conversationId,
-  content,
-  type,
-  fileUrl,        // ADD THIS
-  thumbnailUrl,
-  fileName,
-  fileSize
-} = req.body;
+    conversationId,
+    content,
+    type,
+    fileUrl, // ADD THIS
+    thumbnailUrl,
+    fileName,
+    fileSize,
+  } = req.body;
 
   if (!conversationId || !type) {
     return res
@@ -56,16 +56,15 @@ exports.sendMessage = asyncHandler(async (req, res) => {
   }
 
   const msg = await messagesModel.sendMessage({
-  senderId,
-  conversationId,
-  content,
-  type,
-  fileUrl,        // ADD THIS
-  thumbnailUrl,
-  fileName,
-  fileSize
-});
-
+    senderId,
+    conversationId,
+    content,
+    type,
+    fileUrl, // ADD THIS
+    thumbnailUrl,
+    fileName,
+    fileSize,
+  });
 
   res.status(201).json(msg);
 });
@@ -129,8 +128,6 @@ exports.getMessages = asyncHandler(async (req, res) => {
   res.json(messages);
 });
 
-
-
 exports.uploadFile = async (req, res) => {
   try {
     if (!req.file) {
@@ -155,9 +152,6 @@ exports.uploadFile = async (req, res) => {
   }
 };
 
-
-
-
 // Get chat history for a user (only teachers student has chatted with)
 exports.getMyChats = asyncHandler(async (req, res) => {
   const userId = req.query.userId;
@@ -175,3 +169,60 @@ exports.getMyChats = asyncHandler(async (req, res) => {
   }
 });
 
+// --------------------------------------------------
+// UPDATE LAST SEEN (used for "Online / last seen")
+// --------------------------------------------------
+exports.updateLastSeen = asyncHandler(async (req, res) => {
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ error: "userId is required" });
+  }
+
+  await messagesModel.updateLastSeen(userId);
+  res.json({ success: true });
+});
+
+// --------------------------------------------------
+// SET TYPING STATUS
+// --------------------------------------------------
+exports.setTyping = asyncHandler(async (req, res) => {
+  const { conversationId, userId, isTyping } = req.body;
+
+  if (!conversationId || !userId) {
+    return res
+      .status(400)
+      .json({ error: "conversationId and userId are required" });
+  }
+
+  await messagesModel.setTyping(conversationId, userId, isTyping);
+  res.json({ success: true });
+});
+
+// --------------------------------------------------
+// GET PRESENCE (is_typing, last_seen_at)
+// --------------------------------------------------
+exports.getPresence = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+
+  if (!userId) {
+    return res.status(400).json({ error: "userId is required" });
+  }
+
+  const data = await messagesModel.getPresence(userId);
+  res.json(data);
+});
+
+// --------------------------------------------------
+// GET TOTAL UNREAD MESSAGE COUNT
+// --------------------------------------------------
+exports.getUnreadCount = asyncHandler(async (req, res) => {
+  const userId = req.query.userId;
+
+  if (!userId) {
+    return res.status(400).json({ error: "userId is required" });
+  }
+
+  const count = await messagesModel.getTotalUnreadCount(userId);
+  res.json({ success: true, unreadCount: count });
+});

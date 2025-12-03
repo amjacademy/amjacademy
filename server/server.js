@@ -214,6 +214,7 @@ app.use("/api/teacher/punctuality",require("./routes/teacher/punctualityRoutes")
 
 app.use("/api/teacher/assignment",require("./routes/teacher/assignmentRoutes"));
 
+app.use("/api/teacher/messages", require("./routes/teacher/messagesRoutes"));
 
 //Common Routes
 app.use("/api/upload", require("./routes/cloudinaryRoutes"));

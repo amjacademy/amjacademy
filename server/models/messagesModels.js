@@ -131,12 +131,18 @@ exports.sendMessage = async (msg) => {
 exports.markRead = async (userId, messageId, conversationId) => {
   const nowIso = new Date().toISOString();
 
-  // Update message_statuses
-  const { error: statusErr } = await supabase
-    .from("message_statuses")
-    .update({ read_at: nowIso })
-    .eq("message_id", messageId)
-    .eq("user_id", userId);
+  // Use upsert to create or update message_statuses
+  const { error: statusErr } = await supabase.from("message_statuses").upsert(
+    {
+      message_id: messageId,
+      user_id: userId,
+      read_at: nowIso,
+      delivered_at: nowIso,
+    },
+    {
+      onConflict: "message_id,user_id",
+    }
+  );
 
   if (statusErr) {
     console.error("🔥 Supabase error (markRead - statuses):", statusErr);
@@ -221,22 +227,21 @@ exports.getTeachersForStudent = async (studentId) => {
 
   if (teacherIds.length === 0) return [];
 
-// FETCH TEACHER DETAILS FROM TEACHERS TABLE (NOT USERS)
-const { data: teachers, error: err2 } = await supabase
-  .from("teachers")
-  .select("id, name, profile")
-  .in("id", teacherIds);
+  // FETCH TEACHER DETAILS FROM TEACHERS TABLE (NOT USERS)
+  const { data: teachers, error: err2 } = await supabase
+    .from("teachers")
+    .select("id, name, profile")
+    .in("id", teacherIds);
 
-if (err2) {
-  console.error("🔥 TEACHERS TABLE ERROR:", err2);
-  throw err2;
-}
+  if (err2) {
+    console.error("🔥 TEACHERS TABLE ERROR:", err2);
+    throw err2;
+  }
 
   console.log("🟩 teachers result:", teachers);
 
   return teachers || [];
 };
-
 
 // Get chat history for a user (teachers the student has chatted with before)
 exports.getChatHistory = async (userId) => {
@@ -271,44 +276,53 @@ exports.getChatHistory = async (userId) => {
     if (!teacher) continue;
 
     // 3. Get teacher details
-   const { data: teacherInfo, error: teacherErr } = await supabase
-  .from("teachers")
-  .select("id, profile,name")
-  .eq("id", teacher.user_id)
-  .single();
-
-if (teacherErr) throw teacherErr;
-
-
-// 4. Last message (IMPORTANT: skip if none)
-const { data: lastMsgArr, error: lastMsgErr } = await supabase
-  .from("messages")
-  .select("id, content, created_at, sender_id")
-  .eq("conversation_id", convId)
-  .order("created_at", { ascending: false })
-  .limit(1);
-
-if (lastMsgErr) throw lastMsgErr;
-
-// ❗ Skip conversations with no messages
-if (!lastMsgArr || lastMsgArr.length === 0) {
-  continue;
-}
-
-const lastMsg = lastMsgArr[0];
-
-
-    // 5. unread_count from conversation_unread_counts
-    const { data: unreadObj, error: unreadErr } = await supabase
-      .from("conversation_unread_counts")
-      .select("unread_count")
-      .eq("user_id", userId)
-      .eq("conversation_id", convId)
+    const { data: teacherInfo, error: teacherErr } = await supabase
+      .from("teachers")
+      .select("id, profile,name")
+      .eq("id", teacher.user_id)
       .single();
 
-    if (unreadErr && unreadErr.code !== "PGRST116") {
-      // ignore "row not found"
-      throw unreadErr;
+    if (teacherErr) throw teacherErr;
+
+    // 4. Last message (IMPORTANT: skip if none)
+    const { data: lastMsgArr, error: lastMsgErr } = await supabase
+      .from("messages")
+      .select("id, content, created_at, sender_id")
+      .eq("conversation_id", convId)
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    if (lastMsgErr) throw lastMsgErr;
+
+    // ❗ Skip conversations with no messages
+    if (!lastMsgArr || lastMsgArr.length === 0) {
+      continue;
+    }
+
+    const lastMsg = lastMsgArr[0];
+
+    // 5. Calculate unread count from message_statuses
+    // Count messages where: sender is not current user AND (no status exists OR read_at is null)
+    const { data: convMessages, error: convMsgErr } = await supabase
+      .from("messages")
+      .select("id, sender_id")
+      .eq("conversation_id", convId)
+      .neq("sender_id", userId);
+
+    let unreadCount = 0;
+    if (!convMsgErr && convMessages) {
+      for (const msg of convMessages) {
+        const { data: statusData } = await supabase
+          .from("message_statuses")
+          .select("read_at")
+          .eq("message_id", msg.id)
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        if (!statusData || !statusData.read_at) {
+          unreadCount++;
+        }
+      }
     }
 
     chatList.push({
@@ -317,20 +331,105 @@ const lastMsg = lastMsgArr[0];
       avatar: teacherInfo.profile || "/placeholder.svg",
       lastMessage: lastMsg ? lastMsg.content : "",
       lastMessageTime: lastMsg ? lastMsg.created_at : null,
-      unreadCount: unreadObj?.unread_count || 0,
+      unreadCount: unreadCount,
       conversationId: convId,
     });
   }
 
   // Sort by last message time (newest first)
-chatList.sort((a, b) => {
-  const t1 = a.lastMessageTime ? new Date(a.lastMessageTime).getTime() : 0;
-  const t2 = b.lastMessageTime ? new Date(b.lastMessageTime).getTime() : 0;
-  return t2 - t1; // descending order
-});
+  chatList.sort((a, b) => {
+    const t1 = a.lastMessageTime ? new Date(a.lastMessageTime).getTime() : 0;
+    const t2 = b.lastMessageTime ? new Date(b.lastMessageTime).getTime() : 0;
+    return t2 - t1; // descending order
+  });
 
-return chatList;
-
+  return chatList;
 };
 
+// ─────────────────────────────────────────────
+// Get total unread message count for a user
+// ─────────────────────────────────────────────
+exports.getTotalUnreadCount = async (userId) => {
+  try {
+    // Get all conversations where user participates
+    const { data: convList, error: convErr } = await supabase
+      .from("conversation_participants")
+      .select("conversation_id")
+      .eq("user_id", userId);
 
+    if (convErr) throw convErr;
+    if (!convList || convList.length === 0) return 0;
+
+    let totalUnread = 0;
+
+    // For each conversation, count unread messages
+    for (const conv of convList) {
+      const { data: messages, error: msgErr } = await supabase
+        .from("messages")
+        .select("id, sender_id")
+        .eq("conversation_id", conv.conversation_id)
+        .neq("sender_id", userId); // Only count messages sent by others
+
+      if (msgErr) continue;
+      if (!messages || messages.length === 0) continue;
+
+      // Check which messages are unread by this user
+      for (const msg of messages) {
+        const { data: status, error: statusErr } = await supabase
+          .from("message_statuses")
+          .select("read_at")
+          .eq("message_id", msg.id)
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        if (statusErr) continue;
+        if (!status || !status.read_at) {
+          totalUnread++;
+        }
+      }
+    }
+
+    return totalUnread;
+  } catch (error) {
+    console.error("🔥 Error fetching unread counts:", error);
+    return 0; // Return 0 instead of throwing to prevent frontend errors
+  }
+};
+
+// ----------------------------------------------------------
+// UPDATE LAST SEEN - Updates ALL conversations for user
+// ----------------------------------------------------------
+exports.updateLastSeen = async (userId) => {
+  const { error } = await supabase
+    .from("conversation_participants")
+    .update({ last_seen_at: new Date().toISOString() })
+    .eq("user_id", userId);
+
+  if (error) throw new Error(error.message);
+};
+
+// ----------------------------------------------------------
+// SET TYPING STATUS
+// ----------------------------------------------------------
+exports.setTyping = async (conversationId, userId, isTyping) => {
+  const { error } = await supabase
+    .from("conversation_participants")
+    .update({ is_typing: isTyping })
+    .eq("conversation_id", conversationId)
+    .eq("user_id", userId);
+
+  if (error) throw new Error(error.message);
+};
+
+// ----------------------------------------------------------
+// GET PRESENCE (is_typing, last_seen_at)
+// ----------------------------------------------------------
+exports.getPresence = async (userId) => {
+  return await supabase
+    .from("conversation_participants")
+    .select("is_typing, last_seen_at")
+    .eq("user_id", userId)
+    .order("last_seen_at", { ascending: false })
+    .limit(1)
+    .single();
+};

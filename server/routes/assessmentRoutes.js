@@ -2,6 +2,42 @@ const express = require("express");
 const { supabase } = require("../config/supabaseClient");
 const router = express.Router();
 
+// Get incomplete assessment count for a user
+router.get("/incomplete-count/:user_id", async (req, res) => {
+  try {
+    const userId = req.params.user_id;
+
+    // Get assessment targets for this user that are not completed
+    const { data: targets, error: targetsErr } = await supabase
+      .from("assessment_targets")
+      .select("assessment_id, is_completed")
+      .eq("user_id", userId)
+      .eq("is_completed", false);
+
+    if (targetsErr) throw targetsErr;
+
+    if (!targets || targets.length === 0) {
+      return res.json({ success: true, incompleteCount: 0 });
+    }
+
+    const assessmentIds = [...new Set(targets.map((t) => t.assessment_id))];
+
+    // Get only opened assessments
+    const { data: assessments, error: assessErr } = await supabase
+      .from("assessments")
+      .select("id")
+      .in("id", assessmentIds)
+      .eq("is_opened", true);
+
+    if (assessErr) throw assessErr;
+
+    const count = assessments ? assessments.length : 0;
+    res.json({ success: true, incompleteCount: count });
+  } catch (err) {
+    console.error("Error fetching incomplete assessment count:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 router.get("/user/:user_id", async (req, res) => {
   try {
@@ -19,12 +55,11 @@ router.get("/user/:user_id", async (req, res) => {
       return res.json({ success: true, data: [] });
     }
     const targetStatus = {};
-targets.forEach(t => {
-  targetStatus[t.assessment_id] = t.is_completed;
-});
+    targets.forEach((t) => {
+      targetStatus[t.assessment_id] = t.is_completed;
+    });
 
-
-    const assessmentIds = [...new Set(targets.map(t => t.assessment_id))];
+    const assessmentIds = [...new Set(targets.map((t) => t.assessment_id))];
 
     // 2️⃣ Get assessments (is_opened & incomplete only)
     const { data: assessments, error: assessErr } = await supabase
@@ -32,7 +67,7 @@ targets.forEach(t => {
       .select("*")
       .in("id", assessmentIds)
       .eq("is_opened", true)
-      .eq("type", "student_to_teacher");;
+      .eq("type", "student_to_teacher");
 
     if (assessErr) throw assessErr;
 
@@ -40,7 +75,7 @@ targets.forEach(t => {
       return res.json({ success: true, data: [] });
     }
 
-    const arrangementIds = assessments.map(a => a.arrangement_id);
+    const arrangementIds = assessments.map((a) => a.arrangement_id);
 
     // 3️⃣ Fetch arrangements to get teacher_id
     const { data: arrangements, error: arrErr } = await supabase
@@ -52,11 +87,11 @@ targets.forEach(t => {
 
     // Make lookup: arrangement_id → teacher_id
     const arrangementLookup = {};
-    arrangements.forEach(a => {
+    arrangements.forEach((a) => {
       arrangementLookup[a.arrangement_id] = a.teacher_id;
     });
 
-    const teacherIds = arrangements.map(a => a.teacher_id);
+    const teacherIds = arrangements.map((a) => a.teacher_id);
 
     // 4️⃣ Fetch teacher names
     const { data: teachers, error: teacherErr } = await supabase
@@ -67,7 +102,7 @@ targets.forEach(t => {
     if (teacherErr) throw teacherErr;
 
     const teacherLookup = {};
-    teachers.forEach(t => {
+    teachers.forEach((t) => {
       teacherLookup[t.id] = t.name;
     });
 
@@ -81,33 +116,30 @@ targets.forEach(t => {
     if (studentErr) throw studentErr;
 
     // 6️⃣ Build final response
-const formatted = assessments.map(a => {
-  const teacherId = arrangementLookup[a.arrangement_id];
+    const formatted = assessments.map((a) => {
+      const teacherId = arrangementLookup[a.arrangement_id];
 
-  return {
-    id: a.id,
-    type: a.type,
-    subject: student.profession,
-    level: student.level,
-    due_date: a.due_time,
-    teacher_name: teacherLookup[teacherId],
-    teacher_id: teacherId,
-    progress: `${a.session_checkpoint}`,
-    is_completed: targetStatus[a.id] === true,   // ← FIXED
-    no_of_classes: student.no_of_classes,
-    total_attended_classes: a.session_checkpoint,
-  };
-});
-
+      return {
+        id: a.id,
+        type: a.type,
+        subject: student.profession,
+        level: student.level,
+        due_date: a.due_time,
+        teacher_name: teacherLookup[teacherId],
+        teacher_id: teacherId,
+        progress: `${a.session_checkpoint}`,
+        is_completed: targetStatus[a.id] === true, // ← FIXED
+        no_of_classes: student.no_of_classes,
+        total_attended_classes: a.session_checkpoint,
+      };
+    });
 
     return res.json({ success: true, data: formatted });
-
   } catch (err) {
     console.error("❌ Fetch error:", err);
     return res.status(400).json({ success: false, error: err.message });
   }
 });
-
 
 router.post("/submit", async (req, res) => {
   try {
@@ -117,7 +149,7 @@ router.post("/submit", async (req, res) => {
       return res.status(400).json({ success: false, error: "Missing fields" });
     }
 
-// 1️⃣ Prevent duplicate submission
+    // 1️⃣ Prevent duplicate submission
     const { data: existing } = await supabase
       .from("assessment_targets")
       .select("id")
@@ -133,12 +165,12 @@ router.post("/submit", async (req, res) => {
       });
     }
 
-   // Count YES values from object keys
-const user_count = Object.values(answers).filter(val =>
-  val?.trim().toLowerCase().startsWith("yes")
-).length;
+    // Count YES values from object keys
+    const user_count = Object.values(answers).filter((val) =>
+      val?.trim().toLowerCase().startsWith("yes")
+    ).length;
 
-// 3️⃣ Find the correct assessment_target row
+    // 3️⃣ Find the correct assessment_target row
     const { data: target, error: targetErr } = await supabase
       .from("assessment_targets")
       .select("id")
@@ -150,7 +182,7 @@ const user_count = Object.values(answers).filter(val =>
 
     if (targetErr || !target) throw new Error("Assessment target not found");
 
-// 4️⃣ Insert response
+    // 4️⃣ Insert response
     const { error: respErr } = await supabase
       .from("assessment_responses")
       .insert([
@@ -165,8 +197,7 @@ const user_count = Object.values(answers).filter(val =>
 
     if (respErr) throw respErr;
 
-
-   // 5️⃣ Mark completed
+    // 5️⃣ Mark completed
     await supabase
       .from("assessment_targets")
       .update({ is_completed: true })
@@ -183,6 +214,5 @@ const user_count = Object.values(answers).filter(val =>
     res.status(400).json({ success: false, error: err.message });
   }
 });
-
 
 module.exports = router;
