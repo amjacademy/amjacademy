@@ -23,7 +23,7 @@ const MyAssignments = () => {
     "Did the student recall what was taught in the previous session?",
     "Did the student follow the instructions properly during the class?",
     "Did the student stay focused throughout the session?",
-    "Did the student show improvement on the mistakes pointed out in the last class??",
+    "Did the student show improvement on the mistakes pointed out in the last class?",
     "Did the student ask for help when they didn’t understand something?",
     "Did the student cooperate well during group or pair activities?",
     "Did the student practice the assigned piece/exercise at home?",
@@ -238,7 +238,7 @@ useEffect(() => {
             <thead>
               <tr>
                 <th>Subject & Level</th>
-                <th>Student Name</th>
+                <th>Student Names</th>
                 {/* <th>Due Date</th> */}
                 <th>Progress</th>
                 <th>Status</th>
