@@ -203,8 +203,8 @@ function StudentsTable({ students, onBack, onView }) {
                   </td>
                   <td>{row.id}</td>
                   <td>{row.name}</td>
-                  <td>{row.profession || "—"}</td>
                   <td>{row.age || "—"}</td>
+                  <td>{row.profession || "—"}</td>
                   <td>{row.phone_number}</td>
                   <td>
                     <button onClick={() => onView?.(row)} style={{ backgroundColor: '#007bff', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>View</button>
@@ -254,7 +254,7 @@ function TeachersTable({ teachers, onBack, onView }) {
                 <td>{row.name}</td>
                 <td>{row.age}</td>
                 <td>{row.profession || "—"}</td>
-                <td>{row.phone}</td>
+                <td>{row.phone_number}</td>
                 <td>
                   <button onClick={() => onView?.(row)} style={{ backgroundColor: '#007bff', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>View</button>
                 </td>

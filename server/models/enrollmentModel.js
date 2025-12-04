@@ -155,7 +155,7 @@ async function updateEnrollment(id, updates) {
       username: updates.username,
       password: updates.password,
       role, // ensure role stays lowercase
-      salary: updates.salary || 0,
+      // salary: updates.salary || 0,
     };
 
     const { data: userData, error: userError } = await supabase
