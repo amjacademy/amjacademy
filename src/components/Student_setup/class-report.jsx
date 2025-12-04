@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import "./class-report.css";
 
 const ClassReport = () => {
-  const MAIN = "https://amjacademy-working.onrender.com";
-  const TEST = "http://localhost:5000";
+  const MAIN = import.meta.env.VITE_MAIN;
+  const TEST = import.meta.env.VITE_TEST;
 
   const [activeTab, setActiveTab] = useState("upcoming");
   const [filterBy, setFilterBy] = useState("all");
@@ -13,9 +13,9 @@ const ClassReport = () => {
   const [toDate, setToDate] = useState("");
   const [classData, setClassData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const image="/images/amj-logo.png";
+  const image = "/images/amj-logo.png";
   // Demo data for each tab
- /*  const getDemoData = (tab) => {
+  /*  const getDemoData = (tab) => {
     switch (tab) {
       case "upcoming":
         return [
@@ -126,20 +126,19 @@ const ClassReport = () => {
   }; */
 
   // Map frontend tab to backend status in arrangements table
-const getStatusValue = (tab) => {
-  switch (tab) {
-    case "upcoming":
-      return "upcoming";
-    case "completed":
-      return "completed";
-    case "Missing":
-      return "missing"; // send keyword Missing only
- // ✅ send all 3 to backend
-    default:
-      return "upcoming";
-  }
-};
-
+  const getStatusValue = (tab) => {
+    switch (tab) {
+      case "upcoming":
+        return "upcoming";
+      case "completed":
+        return "completed";
+      case "Missing":
+        return "missing"; // send keyword Missing only
+      // ✅ send all 3 to backend
+      default:
+        return "upcoming";
+    }
+  };
 
   // Fetch classes from backend
   const fetchClasses = async () => {
@@ -154,24 +153,24 @@ const getStatusValue = (tab) => {
 
       const status = getStatusValue(activeTab);
 
-    const subjectMap = {
-  all: "all",
-  keyboard: "Keyboard",
-  piano: "Piano",
-  guitar: "Guitar",
-  violin: "Violin",
-  drums: "Drums",
-};
+      const subjectMap = {
+        all: "all",
+        keyboard: "Keyboard",
+        piano: "Piano",
+        guitar: "Guitar",
+        violin: "Violin",
+        drums: "Drums",
+      };
 
-const subjectFilter = subjectMap[filterBy] || "all";
+      const subjectFilter = subjectMap[filterBy] || "all";
 
-const queryParams = new URLSearchParams({
-  user_id: userId,
-  status,
-  subject: subjectFilter,
-  date_from: fromDate,
-  date_to: toDate,
-});
+      const queryParams = new URLSearchParams({
+        user_id: userId,
+        status,
+        subject: subjectFilter,
+        date_from: fromDate,
+        date_to: toDate,
+      });
       const response = await fetch(
         `${MAIN}/api/classreport/fetchclasses?${queryParams}`,
         {
@@ -196,20 +195,19 @@ const queryParams = new URLSearchParams({
     fetchClasses();
   }, [activeTab, filterBy, fromDate, toDate]);
   // Badge helpers
- const getStatusBadge = (status) => {
-  const cleanStatus = status.replace(/\s+/g, "").toLowerCase();
+  const getStatusBadge = (status) => {
+    const cleanStatus = status.replace(/\s+/g, "").toLowerCase();
 
-  const statusClasses = {
-    upcoming: "status-not-started",
-    completed: "status-completed",
-    leave: "status-cancelled",
-    cancel: "status-missed",
-    "not shown": "status-notshown",
+    const statusClasses = {
+      upcoming: "status-not-started",
+      completed: "status-completed",
+      leave: "status-cancelled",
+      cancel: "status-missed",
+      "not shown": "status-notshown",
+    };
+
+    return statusClasses[cleanStatus] || "status-default";
   };
-
-  return statusClasses[cleanStatus] || "status-default";
-};
-
 
   const getSubjectBadge = (subject) => {
     const subjectClasses = {
@@ -319,10 +317,7 @@ const queryParams = new URLSearchParams({
             return (
               <div key={classItem.id} className="class-item">
                 <div className="class-image">
-                  <img
-                    src={image}
-                    alt={arrangements.subject}
-                  />
+                  <img src={image} alt={arrangements.subject} />
                 </div>
                 <div className="class-details">
                   <div className="class-date">
@@ -334,7 +329,11 @@ const queryParams = new URLSearchParams({
                     })}
                   </div>
                   <div className="class-badges">
-                    <span className="badge type-badge">
+                    <span
+                      className={`badge type-badge ${
+                        classItem.type === "group" ? "group-badge" : ""
+                      }`}
+                    >
                       {classItem.batch_type}
                     </span>
                     <span
@@ -342,7 +341,9 @@ const queryParams = new URLSearchParams({
                         arrangements.subject
                       )}`}
                     >
-                      {arrangements.subject}
+                      {classItem.type === "group"
+                        ? classItem.group_name || arrangements.subject
+                        : arrangements.subject}
                     </span>
                     <span
                       className={`badge status-badge ${getStatusBadge(
@@ -353,11 +354,14 @@ const queryParams = new URLSearchParams({
                     </span>
                   </div>
 
+                  {/* Show Class ID */}
+                  <div className="class-id">Class ID: {classItem.class_id}</div>
+
                   {/* <div className="class-curriculum">
                     Curriculum Stamp: {classItem.curriculum || "N/A"}
                   </div> */}
                   <div className="class-instructor">
-                   Instructor: {classItem.instructor_name || "N/A"}
+                    Instructor: {classItem.instructor_name || "N/A"}
                   </div>
 
                   {/* Missing tab details */}
@@ -365,12 +369,14 @@ const queryParams = new URLSearchParams({
                     <>
                       <p className="class-status-detail">
                         {(() => {
-  const s = classItem.status.replace(/\s+/g, "").toLowerCase();
-  if (s === "leave") return "Leave";
-  if (s === "cancel") return "Last Minute Cancel";
-  if (s === "notshown") return "Not Shown";
-  return "Missing";
-})()}
+                          const s = classItem.status
+                            .replace(/\s+/g, "")
+                            .toLowerCase();
+                          if (s === "leave") return "Leave";
+                          if (s === "cancel") return "Last Minute Cancel";
+                          if (s === "notshown") return "Not Shown";
+                          return "Missing";
+                        })()}
                       </p>
                       <p className="class-reason">
                         <strong>Reason:</strong>{" "}
@@ -378,7 +384,7 @@ const queryParams = new URLSearchParams({
                       </p>
                       <p className="class-reason">
                         <strong>Applied By:</strong>{" "}
-                        {classItem.issuer_name|| "No reason provided"}
+                        {classItem.issuer_name || "No reason provided"}
                       </p>
                       <p className="class-reason">
                         <strong>Role:</strong>{" "}

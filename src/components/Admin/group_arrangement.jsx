@@ -6,12 +6,11 @@ import "./group_arrangement.css";
 import PopupNotification from "../common/PopupNotification.jsx";
 
 const GroupArrangement = () => {
+  const MAIN = import.meta.env.VITE_MAIN;
+  const TEST = import.meta.env.VITE_TEST;
 
-  const MAIN = "https://amjacademy-working.onrender.com";
-  const TEST= "http://localhost:5000";
-
- // Set globally for all requests
- axios.defaults.withCredentials = true;
+  // Set globally for all requests
+  axios.defaults.withCredentials = true;
   const [arrangements, setArrangements] = useState([]);
   const [formData, setFormData] = useState({
     groupName: "",
@@ -106,14 +105,12 @@ const GroupArrangement = () => {
         sessionDay
       );
 
-   sessions.push({
-  date: sessionDate, // ISO yyyy-mm-dd
-  displayDate: new Date(sessionDate).toLocaleDateString(),
-  sessionNumber: i + 1,
-  day: sessionDay,
-});
-
-
+      sessions.push({
+        date: sessionDate, // ISO yyyy-mm-dd
+        displayDate: new Date(sessionDate).toLocaleDateString(),
+        sessionNumber: i + 1,
+        day: sessionDay,
+      });
     }
 
     return sessions;
@@ -156,7 +153,6 @@ const GroupArrangement = () => {
     formData.secondDay,
   ]);
 
-
   // -------------------------
   // 🔗 FETCH TEACHERS (BACKEND)
   // -------------------------
@@ -164,9 +160,10 @@ const GroupArrangement = () => {
     const fetchUsers = async () => {
       try {
         const { data } = await axios.get(
-          `${MAIN}/api/grouparrangements/fetchusers`, {
-  withCredentials: true
-}
+          `${MAIN}/api/grouparrangements/fetchusers`,
+          {
+            withCredentials: true,
+          }
         );
         // set teachers and students from DB
         setTeachers(data.teachers || []);
@@ -184,11 +181,9 @@ const GroupArrangement = () => {
   useEffect(() => {
     const fetchGroups = async () => {
       try {
-        const { data } = await axios.get(
-          `${MAIN}/api/grouparrangements`, {
-  withCredentials: true
-}
-        );
+        const { data } = await axios.get(`${MAIN}/api/grouparrangements`, {
+          withCredentials: true,
+        });
         setArrangements(data);
       } catch (err) {
         console.error("Error fetching groups:", err);
@@ -202,11 +197,11 @@ const GroupArrangement = () => {
   // -------------------------
 
   const convert12hto24h = (hour, minute, ampm) => {
-  let h = parseInt(hour);
-  if (ampm === "PM" && h !== 12) h += 12;
-  if (ampm === "AM" && h === 12) h = 0;
-  return `${h.toString().padStart(2, "0")}:${minute}`;
-};
+    let h = parseInt(hour);
+    if (ampm === "PM" && h !== 12) h += 12;
+    if (ampm === "AM" && h === 12) h = 0;
+    return `${h.toString().padStart(2, "0")}:${minute}`;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -217,75 +212,86 @@ const GroupArrangement = () => {
       formData.students.length === 0 ||
       !formData.classLink
     ) {
-      setNotification({ type: "error", message: "Please fill all required fields" });
+      setNotification({
+        type: "error",
+        message: "Please fill all required fields",
+      });
       setLoading(false);
       return;
     }
 
-    // Prepare timestamptz start time
-    const jsTime = new Date(
-      `2000-01-01 ${formData.hour}:${formData.minute} ${formData.ampm}`
-    );
-    const startTimeISO = jsTime.toISOString();
-
     const generatedSessions = generateScheduleSessions();
 
     const sessionPayload = generatedSessions.map((s) => {
-  const isoDate = s.date; // already "YYYY-MM-DD"
-  const time24 = convert12hto24h(formData.hour, formData.minute, formData.ampm);
+      const isoDate = s.date; // already "YYYY-MM-DD"
+      const time24 = convert12hto24h(
+        formData.hour,
+        formData.minute,
+        formData.ampm
+      );
 
-  const sessionAt = new Date(`${isoDate}T${time24}:00`).toISOString();
+      const sessionAt = new Date(`${isoDate}T${time24}:00`).toISOString();
 
-  return {
-    sessionNumber: s.sessionNumber,
-    day: s.day,
-    sessionAt,
-  };
-});
+      return {
+        sessionNumber: s.sessionNumber,
+        day: s.day,
+        sessionAt,
+      };
+    });
 
     const payload = {
       groupData: {
         group_name: formData.groupName,
-        class_link: formData.classLink,
+        link: formData.classLink,
         teacher_id: formData.teacherId,
         teacher_name: formData.teacherName,
-        session_for_week: formData.sessionForWeek,
-        schedule_for: parseInt(formData.scheduleFor),
-        day: formData.day,
+        first_day: formData.day,
         second_day: formData.secondDay || null,
-        start_time: startTimeISO,
         end_date: formData.endDate,
       },
       students: formData.students,
       sessions: sessionPayload,
+      // Extra metadata for backend processing
+      sessionForWeek: formData.sessionForWeek,
+      scheduleFor: parseInt(formData.scheduleFor),
     };
 
     try {
       if (editingId) {
-        await axios.put(
-          `${MAIN}/api/grouparrangements/${editingId}`,
-          payload, {
-  withCredentials: true
-}
-        );
+        await axios.put(`${MAIN}/api/grouparrangements/${editingId}`, payload, {
+          withCredentials: true,
+        });
       } else {
-        await axios.post(
-          `${MAIN}/api/grouparrangements`,
-          payload, {
-  withCredentials: true
-}
-        );
+        await axios.post(`${MAIN}/api/grouparrangements`, payload, {
+          withCredentials: true,
+        });
       }
 
-      const { data } = await axios.get(
-        `${MAIN}/api/grouparrangements`, {
-  withCredentials: true
-}
-      );
+      const { data } = await axios.get(`${MAIN}/api/grouparrangements`, {
+        withCredentials: true,
+      });
       setArrangements(data);
       /* console.log("FINAL PAYLOAD:", JSON.stringify(payload, null, 2)); */
 
       setNotification({ type: "success", message: "Saved successfully!" });
+
+      // Reset form after successful save
+      setFormData({
+        groupName: "",
+        students: [],
+        classLink: "",
+        teacherId: "",
+        teacherName: "",
+        sessionForWeek: "1 day",
+        scheduleFor: "12",
+        day: "",
+        secondDay: "",
+        endDate: "",
+        hour: "",
+        minute: "",
+        ampm: "AM",
+      });
+      setEditingId(null);
     } catch (err) {
       console.error("Submit error:", err);
       alert("Error saving group");
@@ -296,63 +302,69 @@ const GroupArrangement = () => {
   };
 
   // -------------------------
-// 🔗 DELETE GROUP
-// -------------------------
+  // 🔗 DELETE GROUP
+  // -------------------------
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this group?")) return;
 
     try {
       await axios.delete(`${MAIN}/api/grouparrangements/${id}`, {
-  withCredentials: true
-});
-      const { data } = await axios.get(
-        `${MAIN}/api/grouparrangements`, {
-  withCredentials: true
-}
-      );
+        withCredentials: true,
+      });
+      const { data } = await axios.get(`${MAIN}/api/grouparrangements`, {
+        withCredentials: true,
+      });
       setArrangements(data);
-      setNotification({ type: "success", message: "Group deleted successfully!" });
+      setNotification({
+        type: "success",
+        message: "Group deleted successfully!",
+      });
     } catch (err) {
       console.error("Delete error:", err);
       setNotification({ type: "error", message: "Failed to delete" });
     }
   };
 
-  // Edit - unchanged
+  // Edit - get time from first session's start_time
   const handleEdit = (arr) => {
+    // Get time from first session if available
+    let hour = "09";
+    let minute = "00";
+    let ampm = "AM";
 
-  // Convert timestamptz → hour/min/ampm
-  const dateObj = new Date(arr.start_time);
-  let hour = dateObj.getHours();
-  const minute = dateObj.getMinutes().toString().padStart(2, "0");
-  const ampm = hour >= 12 ? "PM" : "AM";
-  hour = hour % 12;
-  if (hour === 0) hour = 12;
-  hour = hour.toString().padStart(2, "0");
+    if (arr.sessions && arr.sessions.length > 0) {
+      const dateObj = new Date(arr.sessions[0].session_at);
+      let h = dateObj.getHours();
+      minute = dateObj.getMinutes().toString().padStart(2, "0");
+      ampm = h >= 12 ? "PM" : "AM";
+      h = h % 12;
+      if (h === 0) h = 12;
+      hour = h.toString().padStart(2, "0");
+    }
 
-  setFormData({
-    groupName: arr.group_name,
-    classLink: arr.class_link,
-    teacherId: arr.teacher_id,
+    setFormData({
+      groupName: arr.group_name,
+      classLink: arr.link,
+      teacherId: arr.teacher_id,
+      teacherName: arr.teacher_name || "",
 
-    sessionForWeek: arr.session_for_week,
-    scheduleFor: arr.schedule_for.toString(),
+      sessionForWeek: arr.no_of_sessions_week === 2 ? "2 days" : "1 day",
+      scheduleFor: arr.no_of_sessions?.toString() || "12",
 
-    day: arr.day,
-    secondDay: arr.second_day || "",
+      day: arr.first_day,
+      secondDay: arr.second_day || "",
 
-    hour,
-    minute,
-    ampm,
+      hour,
+      minute,
+      ampm,
 
-    endDate: arr.end_date || "",
-    students: arr.students || []
-  });
+      endDate: arr.end_date || "",
+      students: arr.students || [],
+    });
 
-  setEditingId(arr.id);
-  setShowForm(true);
-};
-
+    setEditingId(arr.id);
+    setShowForm(true);
+  };
 
   // Cancel - unchanged
   const handleCancel = () => {
@@ -361,6 +373,7 @@ const GroupArrangement = () => {
       students: [],
       classLink: "",
       teacherId: "",
+      teacherName: "",
       sessionForWeek: "1 day",
       scheduleFor: "12",
       day: "",
@@ -430,7 +443,8 @@ const GroupArrangement = () => {
                   <select
                     value={formData.teacherId}
                     onChange={(e) => {
-                      const selectedOption = e.target.options[e.target.selectedIndex];
+                      const selectedOption =
+                        e.target.options[e.target.selectedIndex];
                       setFormData({
                         ...formData,
                         teacherId: selectedOption.value,
@@ -441,9 +455,9 @@ const GroupArrangement = () => {
                   >
                     <option value="">Select Teacher</option>
                     {teachers.map((teacher) => (
-                      <option 
-                        key={teacher.id} 
-                        value={teacher.id} 
+                      <option
+                        key={teacher.id}
+                        value={teacher.id}
                         data-name={teacher.name}
                       >
                         {teacher.name}
@@ -504,7 +518,6 @@ const GroupArrangement = () => {
                       )
                       .map((student) => (
                         <option key={student.id} value={student.id}>
-
                           {student.id} - {student.name}
                         </option>
                       ))}
@@ -736,7 +749,7 @@ const GroupArrangement = () => {
                   <div className="info-item">
                     <span className="label">Class Link:</span>
                     <a
-                      href={arr.class_link}
+                      href={arr.link}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="class-link"
@@ -749,27 +762,38 @@ const GroupArrangement = () => {
                     <h4>Schedule</h4>
                     <div className="info-item">
                       <span className="label">Sessions per Week:</span>
-                      <span className="value">{arr.session_for_week}</span>
+                      <span className="value">
+                        {arr.no_of_sessions_week === 2 ? "2 days" : "1 day"}
+                      </span>
                     </div>
 
                     <div className="info-item">
                       <span className="label">Days:</span>
                       <span className="value">
-                        {arr.session_for_week === "2 days"
-                          ? `${arr.day}, ${arr.second_day}`
-                          : arr.day}
+                        {arr.no_of_sessions_week === 2
+                          ? `${arr.first_day}, ${arr.second_day}`
+                          : arr.first_day}
                       </span>
                     </div>
 
                     <div className="info-item">
-                      <span className="label">Time:</span>
-                      <span className="value">
-                        {new Date(arr.start_time).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
+                      <span className="label">Teacher:</span>
+                      <span className="value">{arr.teacher_name || "N/A"}</span>
                     </div>
+
+                    {arr.sessions && arr.sessions.length > 0 && (
+                      <div className="info-item">
+                        <span className="label">Time:</span>
+                        <span className="value">
+                          {new Date(
+                            arr.sessions[0].session_at
+                          ).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </div>
+                    )}
 
                     <div className="info-item">
                       <span className="label">Total Sessions:</span>
@@ -820,19 +844,7 @@ const GroupArrangement = () => {
                 </div>
 
                 <div className="card-actions">
-                  <button
-                    className="edit-btn"
-                    onClick={() =>
-                      handleEdit({
-                        ...arr,
-                        groupName: arr.group_name,
-                        classLink: arr.class_link,
-                        teacherId: arr.teacher_id,
-                        sessionForWeek: arr.session_for_week,
-                        scheduleFor: arr.schedule_for,
-                      })
-                    }
-                  >
+                  <button className="edit-btn" onClick={() => handleEdit(arr)}>
                     ✏️ Edit
                   </button>
 

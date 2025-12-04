@@ -171,7 +171,6 @@ const ClassReport = () => {
                 {stu.name}
               </option>
             ))}
-
           </select>
         </div>
       </div>
@@ -226,7 +225,11 @@ const ClassReport = () => {
                     })}
                   </div>
                   <div className="class-badges">
-                    <span className="badge type-badge">
+                    <span
+                      className={`badge type-badge ${
+                        classItem.type === "group" ? "group-badge" : ""
+                      }`}
+                    >
                       {classItem.batch_type}
                     </span>
                     <span
@@ -234,7 +237,9 @@ const ClassReport = () => {
                         arrangements.subject
                       )}`}
                     >
-                      {arrangements.subject}
+                      {classItem.type === "group"
+                        ? classItem.group_name || arrangements.subject
+                        : arrangements.subject}
                     </span>
                     <span
                       className={`badge status-badge ${getStatusBadge(
@@ -245,34 +250,40 @@ const ClassReport = () => {
                     </span>
                   </div>
 
+                  {/* Show Class ID */}
+                  <div className="class-id">Class ID: {classItem.class_id}</div>
+
                   {/* <div className="class-curriculum">
                     Curriculum Stamp: {classItem.curriculum || "N/A"}
                   </div> */}
                   <div className="class-instructor">
-  Student:
-  { (classItem.batch_type || classItem.arrangements?.batch_type) === "dual" ? (
-    <>
-      {" "}
-      {classItem.student1_name || "N/A"} & {classItem.student2_name || "N/A"}
-    </>
-  ) : (
-    <> {classItem.student_name || "N/A"} </>
-  )}
-</div>
-
+                    Student:
+                    {classItem.type === "group" ? (
+                      <> Group Class </>
+                    ) : (classItem.batch_type ||
+                        classItem.arrangements?.batch_type) === "dual" ? (
+                      <>
+                        {" "}
+                        {classItem.student1_name || "N/A"} &{" "}
+                        {classItem.student2_name || "N/A"}
+                      </>
+                    ) : (
+                      <> {classItem.student_name || "N/A"} </>
+                    )}
+                  </div>
 
                   {/* Missing tab details */}
                   {activeTab === "Missing" && (
                     <>
                       <p className="class-status-detail">
-  {classItem.status === "leave"
-    ? "Leave"
-    : classItem.status === "cancel"
-    ? "Last Minute Cancel"
-    : classItem.status === "notshown"
-    ? "Not Shown"
-    : "Missing"}
-</p>
+                        {classItem.status === "leave"
+                          ? "Leave"
+                          : classItem.status === "cancel"
+                          ? "Last Minute Cancel"
+                          : classItem.status === "notshown"
+                          ? "Not Shown"
+                          : "Missing"}
+                      </p>
 
                       <p className="class-reason">
                         <strong>Reason:</strong>{" "}

@@ -232,7 +232,7 @@ exports.ongoingclass = async (req, res) => {
     } else {
       studentIds = [cls.student1_id];
     }
-   
+
     const { data: students, error: studentsError } = await supabase
       .from("users")
       .select("id, name")
@@ -246,39 +246,37 @@ exports.ongoingclass = async (req, res) => {
     }
     const student1Id = cls.student1_id;
     const { data: studentProfile, error: profileError } = await supabase
-  .from("students")
-  .select("plan, level")
-  .eq("id", student1Id)
-  .single();
+      .from("students")
+      .select("plan, level")
+      .eq("id", student1Id)
+      .single();
 
-if (profileError) {
-  console.error("Fetch student profile error:", profileError);
-  return res
-    .status(500)
-    .json({ success: false, message: "Failed to fetch student profile" });
-}
-
+    if (profileError) {
+      console.error("Fetch student profile error:", profileError);
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to fetch student profile" });
+    }
 
     // Convert array → map for easy access
     const studentMap = Object.fromEntries(students.map((s) => [s.id, s.name]));
     return res.json({
-  success: true,
-  ongoingClass: {
-    ...cls,
-    students:
-      cls.batch_type === "dual"
-        ? [
-            studentMap[cls.student1_id] || "Student 1",
-            studentMap[cls.student2_id] || "Student 2",
-          ]
-        : [studentMap[cls.student1_id] || "Student"],
+      success: true,
+      ongoingClass: {
+        ...cls,
+        students:
+          cls.batch_type === "dual"
+            ? [
+                studentMap[cls.student1_id] || "Student 1",
+                studentMap[cls.student2_id] || "Student 2",
+              ]
+            : [studentMap[cls.student1_id] || "Student"],
 
-    // 👇 FIX: put them INSIDE ongoingClass
-    plan: studentProfile?.plan || "",
-    level: studentProfile?.level || ""
-  }
-});
-
+        // 👇 FIX: put them INSIDE ongoingClass
+        plan: studentProfile?.plan || "",
+        level: studentProfile?.level || "",
+      },
+    });
   } catch (err) {
     console.error("ongoing-class error:", err);
     res.status(500).json({ success: false, message: "Server error" });
@@ -289,18 +287,24 @@ exports.fetchgroupclasses = async (req, res) => {
   try {
     const teacherId = req.headers["user_id"];
     if (!teacherId) {
-      return res.status(400).json({ success: false, message: "user_id required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "user_id required" });
     }
 
     // 1️⃣ Fetch all groups taught by this teacher
     const { data: groups, error: groupError } = await supabase
       .from("group_arrangements")
-      .select("id, group_name, class_link, schedule_for, session_for_week")
+      .select(
+        "id, group_name, link, no_of_sessions, no_of_sessions_week, arrangement_id, time"
+      )
       .eq("teacher_id", teacherId);
 
     if (groupError) {
       console.error("Group fetch error:", groupError);
-      return res.status(500).json({ success: false, message: "Failed to fetch groups" });
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to fetch groups" });
     }
 
     if (!groups || groups.length === 0) {
@@ -309,90 +313,139 @@ exports.fetchgroupclasses = async (req, res) => {
 
     const groupIds = groups.map((g) => g.id);
 
-    // 2️⃣ Fetch sessions for these groups
-    const now = new Date().toISOString();
+    // 2️⃣ Fetch upcoming sessions from group_class_statuses (only status=upcoming)
+    // Show classes until start_time + 15 minutes
+    const now = new Date();
+    const fifteenMinsAgo = new Date(
+      now.getTime() - 15 * 60 * 1000
+    ).toISOString();
 
-    const { data: sessions, error: sessionError } = await supabase
-      .from("group_arrangement_sessions")
-      .select("*, group_arrangements(*)")
-      .in("group_id", groupIds)
-      .gte("session_at", now)
-      .order("session_at", { ascending: true });
+    const { data: statuses, error: statusError } = await supabase
+      .from("group_class_statuses")
+      .select("*")
+      .eq("role", "teacher")
+      .eq("user_id", teacherId)
+      .eq("status", "upcoming")
+      .in("group_arrangement_id", groupIds)
+      .gte("start_time", fifteenMinsAgo)
+      .order("start_time", { ascending: true });
 
-    if (sessionError) {
-      console.error("Session fetch error:", sessionError);
-      return res.status(500).json({ success: false, message: "Failed to fetch sessions" });
+    if (statusError) {
+      console.error("Status fetch error:", statusError);
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to fetch sessions" });
     }
+
+    // Create a map for group data lookup
+    const groupMap = Object.fromEntries(groups.map((g) => [g.id, g]));
+
+    // Calculate session numbers based on arrangement_id
+    // Group all sessions by arrangement_id and sort by time
+    const arrangementSessionsMap = {};
+    for (const g of groups) {
+      if (!g.arrangement_id) continue;
+      if (!arrangementSessionsMap[g.arrangement_id]) {
+        arrangementSessionsMap[g.arrangement_id] = [];
+      }
+      arrangementSessionsMap[g.arrangement_id].push({
+        id: g.id,
+        time: g.time,
+      });
+    }
+
+    // Sort sessions within each arrangement and assign session numbers
+    const sessionNumberMap = {}; // group_arrangement_id -> session_number
+    for (const arrId in arrangementSessionsMap) {
+      const sessions = arrangementSessionsMap[arrId];
+      sessions.sort((a, b) => new Date(a.time) - new Date(b.time));
+      sessions.forEach((s, idx) => {
+        sessionNumberMap[s.id] = idx + 1;
+      });
+    }
+
+    // Convert to session-like format with merged group data
+    const sessions = (statuses || []).map((s) => ({
+      ...s,
+      group_id: s.group_arrangement_id,
+      session_at: s.start_time,
+      group_arrangements: groupMap[s.group_arrangement_id] || {},
+      session_number: sessionNumberMap[s.group_arrangement_id] || 1,
+    }));
 
     // 3️⃣ Fetch ALL student_ids for each group from group_arrangement_students
     const { data: groupStudents, error: groupStudentsError } = await supabase
       .from("group_arrangement_students")
-      .select("group_id, student_id")
-      .in("group_id", groupIds);
+      .select("group_arrangement_id, student_id")
+      .in("group_arrangement_id", groupIds);
 
     if (groupStudentsError) {
       console.error("Group students error:", groupStudentsError);
-      return res.status(500).json({ success: false, message: "Failed to fetch group students" });
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to fetch group students" });
     }
 
-    // Create: group_id → [student_id, student_id...]
+    // Create: group_arrangement_id → [student_id, student_id...]
     const groupStudentMap = {};
-    groupStudents.forEach((gs) => {
-      if (!groupStudentMap[gs.group_id]) groupStudentMap[gs.group_id] = [];
-      groupStudentMap[gs.group_id].push(gs.student_id);
+    (groupStudents || []).forEach((gs) => {
+      if (!groupStudentMap[gs.group_arrangement_id])
+        groupStudentMap[gs.group_arrangement_id] = [];
+      groupStudentMap[gs.group_arrangement_id].push(gs.student_id);
     });
 
     // 4️⃣ Collect ALL unique student IDs for name lookup
     const allStudentIds = [
-      ...new Set(groupStudents.map((gs) => gs.student_id)),
+      ...new Set((groupStudents || []).map((gs) => gs.student_id)),
     ];
 
-    const { data: studentNames, error: studentNameErr } = await supabase
-      .from("users")
-      .select("id, name")
-      .in("id", allStudentIds);
+    let studentNameMap = {};
+    if (allStudentIds.length > 0) {
+      const { data: studentNames, error: studentNameErr } = await supabase
+        .from("users")
+        .select("id, name")
+        .in("id", allStudentIds);
 
-    if (studentNameErr) {
-      console.error("Student name error:", studentNameErr);
+      if (studentNameErr) {
+        console.error("Student name error:", studentNameErr);
+      }
+
+      studentNameMap = Object.fromEntries(
+        (studentNames || []).map((u) => [u.id, u.name])
+      );
     }
 
-    const studentNameMap = Object.fromEntries(
-      studentNames.map((u) => [u.id, u.name])
-    );
-
     // 5️⃣ Build final response
-    const final = sessions.map((s) => {
-      const studentIds = groupStudentMap[s.group_id] || [];
-      const studentNames = studentIds.map((id) => studentNameMap[id] || "Unknown");
+    const final = (sessions || []).map((s) => {
+      const studentIds = groupStudentMap[s.group_arrangement_id] || [];
+      const studentNamesList = studentIds.map(
+        (id) => studentNameMap[id] || "Unknown"
+      );
 
       return {
         ...s,
-        students: studentNames,   // ARRAY OF FULL STUDENT NAMES
+        students: studentNamesList, // ARRAY OF FULL STUDENT NAMES
         duration: "50 mins",
-        status: "upcoming",
+        status: s.status || "upcoming",
       };
     });
 
     return res.json({ success: true, classes: final });
-
   } catch (err) {
     console.error("Error in fetchgroupclasses:", err);
     return res.status(500).json({ success: false, message: err.message });
   }
 };
 
-
 exports.joinclass = async (req, res) => {
   try {
     const { class_id, status, user_id } = req.body;
 
     if (!class_id || !status || !user_id) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Missing class_id, status, or user_id",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Missing class_id, status, or user_id",
+      });
     }
 
     // Update only this user's status

@@ -37,17 +37,23 @@ export default function Admin_Dashboard() {
   const location = useLocation();
 
   const MAIN = "https://amjacademy-working.onrender.com";
-  const TEST= "http://localhost:5000";
+  const TEST = "http://localhost:5000";
 
   // Enrollment data
   const [students, setStudents] = useLocalStorage("admin_students", []);
   const [teachers, setTeachers] = useLocalStorage("admin_teachers", []);
   // Announcements
-  const [announcements, setAnnouncements] = useLocalStorage("announcements", []);
+  const [announcements, setAnnouncements] = useLocalStorage(
+    "announcements",
+    []
+  );
   // Schedules
   const [schedules, setSchedules] = useLocalStorage("admin_schedules", []);
   // Notifications (admin view)
-  const [notifications, setNotifications] = useLocalStorage("admin_notifications", []);
+  const [notifications, setNotifications] = useLocalStorage(
+    "admin_notifications",
+    []
+  );
   // Groups (local feature)
   const [groups, setGroups] = useLocalStorage("admin_groups", []);
 
@@ -85,11 +91,17 @@ export default function Admin_Dashboard() {
           withCredentials: true,
         });
         if (!res.data.success) {
-          setNotification({ type: "error", message: "Session expired. Please login again." });
+          setNotification({
+            type: "error",
+            message: "Session expired. Please login again.",
+          });
           navigate("/AdminLogin");
         }
       } catch {
-        setNotification({ type: "error", message: "Session expired. Please login again." });
+        setNotification({
+          type: "error",
+          message: "Session expired. Please login again.",
+        });
         navigate("/AdminLogin");
       }
     };
@@ -118,25 +130,37 @@ export default function Admin_Dashboard() {
     (async () => {
       try {
         setLoading(true);
-        const [enrollRes, annRes, schRes, notifRes,groupsRes] = await Promise.all([
-          fetch(`${MAIN}/api/enrollments/getall`, { credentials: "include" }),
-          fetch(`${MAIN}/api/announcements/receive`, { credentials: "include" }),
-          fetch(`${MAIN}/api/arrangements/getdetails`, { credentials: "include" }),
-          fetch(`${MAIN}/api/notifications`, { credentials: "include" }),
-          fetch(`${MAIN}/api/grouparrangements`, { credentials: "include" }),
-        ]);
 
-        const [enrollData, annData, schData, notifData, groupsData] = await Promise.all([
-          enrollRes.json(),
-          annRes.json(),
-          schRes.json(),
-          notifRes.json(),
-          groupsRes.json(),
-        ]);
+        // Fetch all data with individual error handling
+        const fetchJson = async (url) => {
+          try {
+            const res = await fetch(url, { credentials: "include" });
+            if (!res.ok) {
+              console.error(`Failed to fetch ${url}: ${res.status}`);
+              return [];
+            }
+            return await res.json();
+          } catch (err) {
+            console.error(`Error fetching ${url}:`, err);
+            return [];
+          }
+        };
 
-    const studentsList = (enrollData || []).filter((x) => (x.role || "").toLowerCase() === "student");
-    const teachersList = (enrollData || []).filter((x) => (x.role || "").toLowerCase() === "teacher");
+        const [enrollData, annData, schData, notifData, groupsData] =
+          await Promise.all([
+            fetchJson(`${MAIN}/api/enrollments/getall`),
+            fetchJson(`${MAIN}/api/announcements/receive`),
+            fetchJson(`${MAIN}/api/arrangements/getdetails`),
+            fetchJson(`${MAIN}/api/notifications`),
+            fetchJson(`${MAIN}/api/grouparrangements`),
+          ]);
 
+        const studentsList = (enrollData || []).filter(
+          (x) => (x.role || "").toLowerCase() === "student"
+        );
+        const teachersList = (enrollData || []).filter(
+          (x) => (x.role || "").toLowerCase() === "teacher"
+        );
 
         setStudents(studentsList);
         setTeachers(teachersList);
@@ -144,12 +168,12 @@ export default function Admin_Dashboard() {
         setSchedules(Array.isArray(schData) ? schData : []);
         setNotifications(Array.isArray(notifData) ? notifData : []);
 
-/*         // --- ADD THIS: keep apiCounts.notifications in sync with actual notifications array
+        /*         // --- ADD THIS: keep apiCounts.notifications in sync with actual notifications array
 setApiCounts(prev => ({
   ...prev,
   notifications: Array.isArray(notifData) ? notifData.length : (prev.notifications || 0),
 })); */
-         // <-- set groups from backend; if groupsData is an array of group objects
+        // <-- set groups from backend; if groupsData is an array of group objects
         setGroups(Array.isArray(groupsData) ? groupsData : []);
       } catch (err) {
         console.error("Error preloading dashboard data:", err);
@@ -224,9 +248,21 @@ setApiCounts(prev => ({
       case "notifications":
         return <Notification userType="admin" />;
       case "leave":
-        return <Notification userType="admin" filterKind="Leave Request" filterRole="student" />;
+        return (
+          <Notification
+            userType="admin"
+            filterKind="Leave Request"
+            filterRole="student"
+          />
+        );
       case "last_minute_cancel":
-        return <Notification userType="admin" filterKind="Last Minute Cancellation" filterRole="student" />;
+        return (
+          <Notification
+            userType="admin"
+            filterKind="Last Minute Cancellation"
+            filterRole="student"
+          />
+        );
       case "class-arrangement":
         return (
           <Class_arrangement
@@ -299,18 +335,29 @@ setApiCounts(prev => ({
           >
             <span className="arrow">→</span>
           </button>
-          <button className="menu-toggle" onClick={() => setSidebarOpen((s) => !s)}>
-            <span></span><span></span><span></span>
+          <button
+            className="menu-toggle"
+            onClick={() => setSidebarOpen((s) => !s)}
+          >
+            <span></span>
+            <span></span>
+            <span></span>
           </button>
           <div className="logo">
-            <img src="images/amj-logo.png" alt="AMJ Academy Logo" className="logo-image" />
+            <img
+              src="images/amj-logo.png"
+              alt="AMJ Academy Logo"
+              className="logo-image"
+            />
             <span className="logo-text">AMJ Academy</span>
           </div>
         </div>
 
         <div className="header-center">
           <nav className="header-nav">
-            <a href="#" className="nav-link" onClick={handleLogout}>HOME</a>
+            <a href="#" className="nav-link" onClick={handleLogout}>
+              HOME
+            </a>
             <a
               href="#"
               className="nav-link active"
@@ -327,7 +374,9 @@ setApiCounts(prev => ({
 
         <div className="header-right">
           <div className="user-info">
-            <div className="user-avatar"><span>{initials}</span></div>
+            <div className="user-avatar">
+              <span>{initials}</span>
+            </div>
             <span className="user-name">{username}</span>
           </div>
           <button className="help-btn">NEED HELP?</button>
@@ -344,13 +393,17 @@ setApiCounts(prev => ({
                   {item.id === "notifications" ? (
                     <div style={{ position: "relative" }}>
                       <button
-                        className={`nav-item ${activeTab === item.id ? "active" : ""}`}
+                        className={`nav-item ${
+                          activeTab === item.id ? "active" : ""
+                        }`}
                         onClick={() => setShowNotificationSubmenu((v) => !v)}
                       >
                         <span className="nav-icon">{item.icon}</span>
                         <span className="nav-label">{item.label}</span>
                         {apiCounts.notifications > 0 && (
-                          <span className="nav-badge">({apiCounts.notifications})</span>
+                          <span className="nav-badge">
+                            ({apiCounts.notifications})
+                          </span>
                         )}
                       </button>
                       {showNotificationSubmenu && (
@@ -374,7 +427,15 @@ setApiCounts(prev => ({
                               setSidebarOpen(false);
                               window.scrollTo(0, 0);
                             }}
-                            style={{ display: "block", width: "100%", padding: "8px 12px", border: "none", background: "none", textAlign: "left", cursor: "pointer" }}
+                            style={{
+                              display: "block",
+                              width: "100%",
+                              padding: "8px 12px",
+                              border: "none",
+                              background: "none",
+                              textAlign: "left",
+                              cursor: "pointer",
+                            }}
                           >
                             Leave
                           </button>
@@ -385,7 +446,15 @@ setApiCounts(prev => ({
                               setSidebarOpen(false);
                               window.scrollTo(0, 0);
                             }}
-                            style={{ display: "block", width: "100%", padding: "8px 12px", border: "none", background: "none", textAlign: "left", cursor: "pointer" }}
+                            style={{
+                              display: "block",
+                              width: "100%",
+                              padding: "8px 12px",
+                              border: "none",
+                              background: "none",
+                              textAlign: "left",
+                              cursor: "pointer",
+                            }}
                           >
                             Last Minute Cancel
                           </button>
@@ -394,7 +463,9 @@ setApiCounts(prev => ({
                     </div>
                   ) : (
                     <button
-                      className={`nav-item ${activeTab === item.id ? "active" : ""}`}
+                      className={`nav-item ${
+                        activeTab === item.id ? "active" : ""
+                      }`}
                       onClick={() => {
                         setActiveTab(item.id);
                         setSidebarOpen(false);
@@ -404,9 +475,12 @@ setApiCounts(prev => ({
                     >
                       <span className="nav-icon">{item.icon}</span>
                       <span className="nav-label">{item.label}</span>
-                      {item.id === "notifications" && apiCounts.notifications > 0 && (
-                        <span className="nav-badge">({apiCounts.notifications})</span>
-                      )}
+                      {item.id === "notifications" &&
+                        apiCounts.notifications > 0 && (
+                          <span className="nav-badge">
+                            ({apiCounts.notifications})
+                          </span>
+                        )}
                     </button>
                   )}
                 </div>
@@ -440,7 +514,12 @@ setApiCounts(prev => ({
         </main>
       </div>
 
-      {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
+      {sidebarOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
       <Footer />
 
@@ -451,8 +530,15 @@ setApiCounts(prev => ({
             <h3>Confirm Logout</h3>
             <p>Are you sure you want to logout?</p>
             <div className="modal-buttons">
-              <button className="btn-cancel" onClick={() => setShowLogoutModal(false)}>Cancel</button>
-              <button className="btn-confirm" onClick={handleLogout}>OK</button>
+              <button
+                className="btn-cancel"
+                onClick={() => setShowLogoutModal(false)}
+              >
+                Cancel
+              </button>
+              <button className="btn-confirm" onClick={handleLogout}>
+                OK
+              </button>
             </div>
           </div>
         </div>

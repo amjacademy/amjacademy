@@ -5,8 +5,34 @@ const { supabase } = require("../config/supabaseClient");
 // -------------------- Helper Functions ---------------------
 
 function formatDateTime(date, time) {
-  if (!date) return "-";
-  const dt = time ? new Date(time) : new Date(date);
+  if (!date && !time) return "-";
+
+  let dt;
+
+  // If time is already a full ISO timestamp (like start_time from group_class_statuses)
+  if (time && time.includes("T")) {
+    dt = new Date(time);
+  }
+  // If we have date and time as separate values (like from group_arrangements)
+  else if (date && time) {
+    // time might be "HH:MM" format
+    dt = new Date(`${date}T${time}`);
+  }
+  // If we only have date or time is in ISO format
+  else if (date) {
+    dt = new Date(date);
+  } else if (time) {
+    dt = new Date(time);
+  } else {
+    return "-";
+  }
+
+  // Check if date is valid
+  if (isNaN(dt.getTime())) {
+    console.log("⚠️ Invalid date:", { date, time });
+    return "-";
+  }
+
   return dt.toLocaleString("en-US", {
     weekday: "short",
     day: "2-digit",
@@ -58,9 +84,10 @@ function computeSlotStatus(ci, co) {
 }
 
 // classType → from batch_type
-function deriveClassType(batch) {
+function deriveClassType(batch, isGroup = false) {
+  if (isGroup) return "Group Class";
   if (!batch) return "Individual Class";
-  return batch.toLowerCase() === "group" ? "Group Class" : "Individual Class";
+  return batch.toLowerCase() === "dual" ? "Dual Class" : "Individual Class";
 }
 
 // sessionType → always Regular for now
@@ -85,16 +112,20 @@ router.get("/fetchreport", async (req, res) => {
       return res.status(400).json({ error: "user_id is required" });
     }
 
-    // 1️⃣ Fetch completed classes for the user
+    // ============================================
+    // PART 1: Fetch NORMAL completed classes
+    // ============================================
     let query = supabase
       .from("class_statuses")
-      .select(`
+      .select(
+        `
         class_id,
         start_time,
         end_time,
         entry_time,
         exit_time
-      `)
+      `
+      )
       .eq("user_id", user_id)
       .eq("status", "completed")
       .order("start_time", { ascending: false });
@@ -106,65 +137,206 @@ router.get("/fetchreport", async (req, res) => {
     const { data: statuses, error } = await query;
     if (error) throw error;
 
-    if (statuses.length === 0) return res.json([]);
+    // ============================================
+    // PART 2: Fetch GROUP completed classes
+    // ============================================
+    let groupQuery = supabase
+      .from("group_class_statuses")
+      .select(
+        `
+        id,
+        class_id,
+        group_arrangement_id,
+        start_time,
+        end_time,
+        entry_time,
+        exit_time
+      `
+      )
+      .eq("user_id", user_id)
+      .eq("status", "completed")
+      .order("start_time", { ascending: false });
 
-    // 2️⃣ Fetch arrangements rows
-    const classIds = statuses.map((c) => c.class_id);
+    // Date Filters for group classes
+    if (from) groupQuery.gte("start_time", `${from}T00:00:00Z`);
+    if (to) groupQuery.lte("start_time", `${to}T23:59:59Z`);
 
-    const { data: arrs, error: arrErr } = await supabase
-      .from("arrangements")
-      .select(`class_id, date, time, teacher_id, batch_type`)
-      .in("class_id", classIds);
+    const { data: groupStatuses, error: groupError } = await groupQuery;
+    if (groupError) console.error("Group statuses error:", groupError);
 
-    if (arrErr) throw arrErr;
+    // ============================================
+    // PART 3: Fetch arrangements for NORMAL classes
+    // ============================================
+    let normalRows = [];
 
-    // Map arrangements
-    const arrMap = {};
-    arrs.forEach((a) => (arrMap[a.class_id] = a));
+    if (statuses && statuses.length > 0) {
+      const classIds = statuses.map((c) => c.class_id);
 
-    // 3️⃣ Fetch teacher names
-    const teacherIds = [...new Set(arrs.map((a) => a.teacher_id))];
+      const { data: arrs, error: arrErr } = await supabase
+        .from("arrangements")
+        .select(`class_id, date, time, teacher_id, batch_type`)
+        .in("class_id", classIds);
 
-    const { data: teachers } = await supabase
-      .from("users")
-      .select(`id, name`)
-      .in("id", teacherIds);
+      if (arrErr) throw arrErr;
 
-    const teacherMap = {};
-    teachers.forEach((t) => (teacherMap[t.id] = t.name));
+      // Map arrangements
+      const arrMap = {};
+      arrs.forEach((a) => (arrMap[a.class_id] = a));
 
-    // 4️⃣ Build full rows
-    let rows = statuses.map((s) => {
-      const arr = arrMap[s.class_id];
+      // Fetch teacher names
+      const teacherIds = [
+        ...new Set(arrs.map((a) => a.teacher_id).filter(Boolean)),
+      ];
 
-      const teacherName = arr?.teacher_id
-        ? teacherMap[arr.teacher_id] || "Unknown"
-        : "Unknown";
+      let teacherMap = {};
+      if (teacherIds.length > 0) {
+        const { data: teachers } = await supabase
+          .from("users")
+          .select(`id, name`)
+          .in("id", teacherIds);
 
-      const checkinStatus = getCheckinStatus(s.start_time, s.entry_time);
-      const checkoutStatus = getCheckoutStatus(s.end_time, s.exit_time);
+        teachers?.forEach((t) => (teacherMap[t.id] = t.name));
+      }
 
-      const slot = computeSlotStatus(checkinStatus, checkoutStatus);
-      const classType = deriveClassType(arr?.batch_type);
-      const session = deriveSessionType();
+      // Build normal rows
+      normalRows = statuses.map((s) => {
+        const arr = arrMap[s.class_id];
 
-      return {
-        id: s.class_id,   // ✅ FIX ADDED
-        rawDateTime: s.start_time,   
-        dateTime: formatDateTime(arr?.date, arr?.time || s.start_time),
-        teacher: teacherName,
-        checkinTime: formatTime(s.entry_time),
-        checkoutTime: formatTime(s.exit_time),
-        checkinStatus,
-        checkoutStatus,
-        duration: "45 min.",
-        slotStatus: slot,
-        sessionType: session,
-        classType,
-      };
-    });
+        const teacherName = arr?.teacher_id
+          ? teacherMap[arr.teacher_id] || "Unknown"
+          : "Unknown";
 
-    // 5️⃣ Apply filters (sessionType, slotStatus, keyword)
+        const checkinStatus = getCheckinStatus(s.start_time, s.entry_time);
+        const checkoutStatus = getCheckoutStatus(s.end_time, s.exit_time);
+
+        const slot = computeSlotStatus(checkinStatus, checkoutStatus);
+        const classType = deriveClassType(arr?.batch_type, false);
+        const session = deriveSessionType();
+
+        return {
+          id: s.class_id,
+          type: "normal",
+          rawDateTime: s.start_time,
+          dateTime: formatDateTime(arr?.date, arr?.time || s.start_time),
+          teacher: teacherName,
+          checkinTime: formatTime(s.entry_time),
+          checkoutTime: formatTime(s.exit_time),
+          checkinStatus,
+          checkoutStatus,
+          duration: "45 min.",
+          slotStatus: slot,
+          sessionType: session,
+          classType,
+        };
+      });
+    }
+
+    // ============================================
+    // PART 4: Fetch group_arrangements for GROUP classes
+    // ============================================
+    let groupRows = [];
+
+    if (groupStatuses && groupStatuses.length > 0) {
+      const groupArrangementIds = [
+        ...new Set(
+          groupStatuses.map((g) => g.group_arrangement_id).filter(Boolean)
+        ),
+      ];
+
+      console.log("📋 Group Arrangement IDs:", groupArrangementIds);
+
+      let groupArrMap = {};
+      if (groupArrangementIds.length > 0) {
+        const { data: groupArrs, error: gaError } = await supabase
+          .from("group_arrangements")
+          .select(`id, date, time, teacher_id, teacher_name, group_name`)
+          .in("id", groupArrangementIds);
+
+        console.log("📋 Group Arrangements fetched:", groupArrs);
+        if (gaError) console.error("Group arrangements error:", gaError);
+
+        groupArrs?.forEach((ga) => (groupArrMap[ga.id] = ga));
+      }
+
+      // Fetch teacher names for group classes (fallback if teacher_name not in group_arrangements)
+      const groupTeacherIds = [
+        ...new Set(
+          Object.values(groupArrMap)
+            .map((ga) => ga.teacher_id)
+            .filter(Boolean)
+        ),
+      ];
+
+      let groupTeacherMap = {};
+      if (groupTeacherIds.length > 0) {
+        const { data: groupTeachers } = await supabase
+          .from("users")
+          .select(`id, name`)
+          .in("id", groupTeacherIds);
+
+        groupTeachers?.forEach((t) => (groupTeacherMap[t.id] = t.name));
+      }
+
+      // Build group rows
+      groupRows = groupStatuses.map((gs) => {
+        const ga = groupArrMap[gs.group_arrangement_id] || {};
+
+        console.log(
+          "📋 Processing group status:",
+          gs.id,
+          "arrangement_id:",
+          gs.group_arrangement_id,
+          "ga found:",
+          !!groupArrMap[gs.group_arrangement_id]
+        );
+
+        // Use teacher_name from group_arrangements first, fallback to users lookup
+        const teacherName =
+          ga.teacher_name ||
+          (ga.teacher_id ? groupTeacherMap[ga.teacher_id] : null) ||
+          "Unknown";
+
+        const checkinStatus = getCheckinStatus(gs.start_time, gs.entry_time);
+        const checkoutStatus = getCheckoutStatus(gs.end_time, gs.exit_time);
+
+        const slot = computeSlotStatus(checkinStatus, checkoutStatus);
+        const classType = deriveClassType(null, true); // isGroup = true
+        const session = deriveSessionType();
+
+        // Use group_class_statuses.start_time for date/time if group_arrangements not found
+        const classDate =
+          ga.date ||
+          (gs.start_time
+            ? new Date(gs.start_time).toISOString().split("T")[0]
+            : null);
+        const classTime = ga.time || gs.start_time;
+
+        return {
+          id: `group-${gs.id}`,
+          type: "group",
+          rawDateTime: gs.start_time,
+          dateTime: formatDateTime(classDate, classTime),
+          teacher: teacherName,
+          groupName: ga.group_name || "Group Class",
+          checkinTime: formatTime(gs.entry_time),
+          checkoutTime: formatTime(gs.exit_time),
+          checkinStatus,
+          checkoutStatus,
+          duration: "45 min.",
+          slotStatus: slot,
+          sessionType: session,
+          classType,
+        };
+      });
+    }
+
+    // ============================================
+    // PART 5: Combine and apply filters
+    // ============================================
+    let rows = [...normalRows, ...groupRows];
+
+    // Sort by date (most recent first)
+    rows.sort((a, b) => new Date(b.rawDateTime) - new Date(a.rawDateTime));
 
     // sessionType = All/Regular
     if (sessionType !== "All Classes") {
@@ -176,13 +348,14 @@ router.get("/fetchreport", async (req, res) => {
       rows = rows.filter((r) => r.slotStatus === slotStatus);
     }
 
-    // keyword -> teacher/classType
+    // keyword -> teacher/classType/groupName
     if (keyword.trim().length > 0) {
       const k = keyword.toLowerCase();
       rows = rows.filter(
         (r) =>
           r.teacher.toLowerCase().includes(k) ||
-          r.classType.toLowerCase().includes(k)
+          r.classType.toLowerCase().includes(k) ||
+          (r.groupName && r.groupName.toLowerCase().includes(k))
       );
     }
 

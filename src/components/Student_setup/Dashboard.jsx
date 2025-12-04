@@ -16,9 +16,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const userType = "student";
   const userId = localStorage.getItem("user_id");
-  const MAIN = import.meta.env.VITE_MAIN;
-  const TEST = "http://localhost:5000/api/student";
-  const API_BASE = "http://localhost:5000/api";
+  const MAIN = import.meta.env.VITE_MAIN; // Use localhost for testing
+  const TEST = import.meta.env.VITE_TEST;
 
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeTab, setActiveTab] = useState("dashboard"); // This would come from auth context
@@ -35,6 +34,7 @@ const Dashboard = () => {
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [selectedLeaveClass, setSelectedLeaveClass] = useState(null);
   const [ongoingClass, setOngoingClass] = useState(null);
+  const [ongoingGroupClass, setOngoingGroupClass] = useState(null);
   const [showAllClasses, setShowAllClasses] = useState(false);
   const [incompleteAssessmentsCount, setIncompleteAssessmentsCount] =
     useState(1); // Static count for now, 1 incomplete out of 3
@@ -327,36 +327,54 @@ const Dashboard = () => {
 
   //group classes
   useEffect(() => {
+    console.log("=== GROUP CLASSES USEEFFECT TRIGGERED ===", { userId, MAIN });
+
     const fetchGroupClasses = async () => {
+      if (!userId) {
+        console.log("No userId, skipping group classes fetch");
+        return;
+      }
+
+      const url = `${MAIN}/api/grouparrangements/student/classes`;
+      console.log("Fetching group classes from:", url);
+
       try {
-        const response = await fetch(
-          "https://amjacademy-working.onrender.com/api/grouparrangements/student/classes",
-          {
-            headers: { user_id: userId },
-            credentials: "include",
-          }
-        );
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            user_id: userId,
+          },
+          credentials: "include",
+        });
 
+        console.log("Group classes response status:", response.status);
         const data = await response.json();
+        console.log("Group classes data:", data);
 
-        if (data.success) {
+        if (data.success && data.classes) {
           const formatted = data.classes.map((cls) => {
-            const sessionAt =
-              cls.session_at || makeSessionAtFromDateTime(cls.date, cls.time);
+            const sessionAt = cls.start_time || cls.session_at;
+            const groupData = cls.group_arrangements || {};
+
             return {
               type: "group",
-              groupId: cls.group_id,
-              groupName: cls.group_arrangements.group_name,
-              teacherId: cls.group_arrangements.teacher_id,
-              classLink: cls.group_arrangements.class_link,
-              sessionAt, // ISO
-              sessionNumber: cls.session_number,
-              totalSessions: cls.group_arrangements.schedule_for,
-              sessionForWeek: cls.group_arrangements.session_for_week,
-              // day removed intentionally
+              groupId: cls.group_arrangement_id,
+              groupName: groupData.group_name || "Group Class",
+              teacherId: groupData.teacher_id,
+              teacherName: groupData.teacher_name || "Teacher",
+              classLink: groupData.link || "",
+              sessionAt,
+              sessionNumber: cls.session_number || 1,
+              totalSessions: groupData.no_of_sessions || 0,
+              sessionForWeek: groupData.no_of_sessions_week || 1,
+              duration: "50 mins",
+              status: cls.status || "upcoming",
+              classId: cls.class_id,
+              image: "/images/amj-logo.png",
             };
           });
-
+          console.log("Formatted group classes:", formatted);
           setGroupClasses(formatted);
         }
       } catch (err) {
@@ -445,6 +463,36 @@ const Dashboard = () => {
     fetchOngoing();
   }, [userId]);
 
+  // Fetch ongoing group class
+  const fetchOngoingGroupClass = async () => {
+    try {
+      const response = await fetch(
+        `${MAIN}/api/grouparrangements/ongoing?role=student`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            user_id: userId,
+          },
+          credentials: "include",
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success && data.ongoingGroupClass) {
+        setOngoingGroupClass(data.ongoingGroupClass);
+      }
+    } catch (err) {
+      console.error("Error fetching ongoing group class:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (userId) {
+      fetchOngoingGroupClass();
+    }
+  }, [userId]);
+
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: "🏠" },
     { id: "profile", label: "My Profile", icon: "👤" },
@@ -475,15 +523,30 @@ const Dashboard = () => {
     if (!selectedLeaveClass) return;
 
     try {
+      const isGroupClass = selectedLeaveClass.type === "group";
+
+      // Use different endpoint for group classes
+      const endpoint = isGroupClass
+        ? `${MAIN}/api/grouparrangements/actions/submit`
+        : `${MAIN}/api/student/actions/submit`;
+
       const payload = {
         user_id: userId,
-        class_id: selectedLeaveClass.class_id,
+        class_id: isGroupClass
+          ? selectedLeaveClass.classId
+          : selectedLeaveClass.class_id,
         action_type: leaveData.actionType,
         reason: leaveData.reason || "",
         role: "student",
       };
 
-      const response = await fetch(`${MAIN}/api/student/actions/submit`, {
+      console.log("Submitting leave/cancel:", {
+        endpoint,
+        payload,
+        isGroupClass,
+      });
+
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -497,9 +560,17 @@ const Dashboard = () => {
       if (data.success) {
         alert("Request submitted successfully!");
         setShowLeaveModal(false);
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
+
+        // Remove the class from the appropriate list
+        if (isGroupClass) {
+          setGroupClasses((prev) =>
+            prev.filter((c) => c.classId !== selectedLeaveClass.classId)
+          );
+        } else {
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        }
       } else {
         alert("Failed to submit request: " + (data.message || "Unknown error"));
       }
@@ -556,28 +627,51 @@ const Dashboard = () => {
   // JOIN GROUP CLASS HANDLER
   const handleJoinGroupClass = async (cls) => {
     try {
+      // Open the class link
       window.open(cls.classLink, "_blank");
 
-      const ongoing = {
-        type: "group",
-        title: cls.groupName,
-        time: cls.sessionAt,
-        teacherId: cls.teacherId,
-        duration: "45 mins",
-        batch: "Group",
-        level: "N/A",
-        plan: `${cls.sessionNumber} / ${cls.totalSessions}`,
-        teachers: [cls.teacherId],
-        image: "/images/amj-logo.png",
-        link: cls.classLink,
-      };
-
-      setOngoingClass(ongoing);
-
-      // remove from group list
-      setGroupClasses((prev) =>
-        prev.filter((g) => g.sessionAt !== cls.sessionAt)
+      // Update status in group_class_statuses table
+      const response = await fetch(
+        `${MAIN}/api/grouparrangements/class-status`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            class_id: cls.classId,
+            status: "ongoing",
+            user_id: userId,
+          }),
+          credentials: "include",
+        }
       );
+
+      const data = await response.json();
+      console.log("Join group class response:", data);
+
+      if (data.success) {
+        const ongoing = {
+          classId: cls.classId,
+          groupId: cls.groupId,
+          groupName: cls.groupName,
+          teacherId: cls.teacherId,
+          teacherName: cls.teacherName,
+          classLink: cls.classLink,
+          sessionAt: cls.sessionAt,
+          entryTime: new Date().toISOString(),
+          totalSessions: cls.totalSessions,
+          students: cls.students || [],
+          image: cls.image || "/images/amj-logo.png",
+        };
+
+        setOngoingGroupClass(ongoing);
+
+        // Remove from group list
+        setGroupClasses((prev) =>
+          prev.filter((g) => g.classId !== cls.classId)
+        );
+      } else {
+        console.error("Failed to update group class status:", data.message);
+      }
     } catch (err) {
       console.error("Error joining group class:", err);
     }
@@ -644,9 +738,9 @@ const Dashboard = () => {
       ? cls.groupName || "Group Class"
       : cls.title || "Class";
     const teacherName = isGroup
-      ? cls.teacherId
+      ? cls.teacherName || cls.teacherId
       : cls.teachers && cls.teachers.join(", ");
-    const duration = isGroup ? "45 mins" : cls.duration || "45 mins";
+    const duration = isGroup ? "50 mins" : cls.duration || "45 mins";
     const planBadge = isGroup
       ? `${cls.sessionNumber}/${cls.totalSessions}`
       : cls.plan || "";
@@ -689,14 +783,12 @@ const Dashboard = () => {
           </div>
 
           <div className="class-details">
+            <p>Class ID: {isGroup ? cls.classId : cls.class_id}</p>
             <p>Teacher: {teacherName}</p>
-            {!isGroup && <p>Level: {cls.level}</p>}
-            <p>Teacher ID: {isGroup ? cls.teacherId : cls.teacherId}</p>
-            {isGroup ? (
-              <p>Duration: {duration}</p>
-            ) : (
-              <p>Duration: {duration}</p>
-            )}
+            {!isGroup && cls.level && <p>Level: {cls.level}</p>}
+            {!isGroup && cls.plan && <p>Plan: {cls.plan}</p>}
+            {isGroup && <p>Group: {cls.groupName}</p>}
+            <p>Duration: {duration}</p>
           </div>
         </div>
 
@@ -787,6 +879,7 @@ const Dashboard = () => {
                   </div>
                   <div className="class-info">
                     <h3>{ongoingClass.title}</h3>
+                    <p>Class ID: {ongoingClass.class_id}</p>
                     <p>
                       Teacher Name:{" "}
                       {ongoingClass.teachers
@@ -820,6 +913,62 @@ const Dashboard = () => {
                     <button
                       className="close-btn"
                       onClick={() => setOngoingClass(null)}
+                    >
+                      CLOSE
+                    </button>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* Ongoing Group Class Section */}
+            {ongoingGroupClass && (
+              <section className="class-details-section">
+                <div className="section-header">
+                  <h2>ON GOING GROUP CLASS</h2>
+                </div>
+                <div className="class-details-card">
+                  <div className="class-image">
+                    <img
+                      src={ongoingGroupClass.image || "/images/amj-logo.png"}
+                      alt={ongoingGroupClass.groupName}
+                    />
+                  </div>
+                  <div className="class-info">
+                    <h3>{ongoingGroupClass.groupName}</h3>
+                    <p>Class ID: {ongoingGroupClass.classId}</p>
+                    <p>
+                      Teacher Name:{" "}
+                      {ongoingGroupClass.teacherName ||
+                        ongoingGroupClass.teacherId}
+                    </p>
+                    <p>
+                      Time:{" "}
+                      {new Date(ongoingGroupClass.sessionAt).toLocaleTimeString(
+                        undefined,
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        }
+                      )}
+                    </p>
+                    <p>Duration: 50 mins</p>
+                    <p>Batch: Group</p>
+                    <p>Total Sessions: {ongoingGroupClass.totalSessions}</p>
+                  </div>
+                  <div className="class-actions">
+                    <button
+                      className="rejoin-btn"
+                      onClick={() =>
+                        window.open(ongoingGroupClass.classLink, "_blank")
+                      }
+                    >
+                      RE-JOIN
+                    </button>
+                    <button
+                      className="close-btn"
+                      onClick={() => setOngoingGroupClass(null)}
                     >
                       CLOSE
                     </button>
