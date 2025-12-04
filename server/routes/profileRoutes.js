@@ -14,20 +14,21 @@ const multer = require("multer");
 const memoryStorage = multer.memoryStorage(); // keep files in memory
 const upload = multer({ memoryStorage });
 const { parser } = require("../config/cloudinaryConfig");
+const {userAuth} = require("../utils/authController");
 
 // PROFILE
-router.get("/profile/:userId", getProfile);
+router.get("/profile/:userId",userAuth("student"),  getProfile);
 
 // STORY CHARACTERS
-router.get("/story-characters", getStoryCharacters);
+router.get("/story-characters",userAuth("student"), getStoryCharacters);
 
 // MEDIA UPLOAD
-router.post("/media/:userId/upload", parser.single("file"), uploadMedia);
+router.post("/media/:userId/upload",userAuth("student"),  parser.single("file"), uploadMedia);
 
 // AVATAR UPLOAD
-router.post("/profile/:userId/avatar", upload.single("avatar"), uploadAvatar);
+router.post("/profile/:userId/avatar",userAuth("student"),  upload.single("avatar"), uploadAvatar);
 
 // GET MEDIA LIST
-router.get("/media/:userId", getMedia);
+router.get("/media/:userId",userAuth("student"),  getMedia);
 
 module.exports = router;

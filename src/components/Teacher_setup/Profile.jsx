@@ -1,20 +1,19 @@
-"use client"
+"use client";
 
-import { useState, useRef, useEffect } from "react"
-import "./Profile.css"
+import { useState, useRef, useEffect } from "react";
+import "./Profile.css";
 
 const Profile = () => {
+  const MAIN = import.meta.env.VITE_MAIN;
+  const TEST = import.meta.env.VITE_TEST;
 
-  const MAIN=import.meta.env.VITE_MAIN;
-  const TEST=import.meta.env.VITE_TEST;
-
-  const [activeSection, setActiveSection] = useState("videos")
-  const [newProfileImage, setNewProfileImage] = useState(null)
-  const [uploadedVideos, setUploadedVideos] = useState([])
-  const [uploadedPhotos, setUploadedPhotos] = useState([])
-  const profileImageInputRef = useRef(null)
-  const videoInputRef = useRef(null)
-  const photoInputRef = useRef(null)
+  const [activeSection, setActiveSection] = useState("videos");
+  const [newProfileImage, setNewProfileImage] = useState(null);
+  const [uploadedVideos, setUploadedVideos] = useState([]);
+  const [uploadedPhotos, setUploadedPhotos] = useState([]);
+  const profileImageInputRef = useRef(null);
+  const videoInputRef = useRef(null);
+  const photoInputRef = useRef(null);
 
   // Load user data from localStorage
   const [userProfile, setUserProfile] = useState({
@@ -29,17 +28,19 @@ const Profile = () => {
     subjects: "Keyboard",
     videos: [],
     photos: [],
-  })
-// -------------------- FETCH PROFILE --------------------
- useEffect(() => {
+  });
+  // -------------------- FETCH PROFILE --------------------
+  useEffect(() => {
     const fetchProfile = async () => {
-      const userId = localStorage.getItem("user_id")
-      if (!userId) return
+      const userId = localStorage.getItem("user_id");
+      if (!userId) return;
 
       try {
-        const res = await fetch(`${MAIN}/api/teacher/profile/${userId}`, { credentials: 'include' })
+        const res = await fetch(`${MAIN}/api/teacher/profile/${userId}`, {
+          credentials: "include",
+        });
         if (res.ok) {
-          const data = await res.json()
+          const data = await res.json();
           /* console.log("Fetched profile data:", data) */
           setUserProfile({
             name: data.name || "Teacher",
@@ -51,96 +52,100 @@ const Profile = () => {
             videos: data.media?.videos || [],
             photos: data.media?.photos || [],
             salary: data.salary || 0,
-
-          })
+          });
         } else if (res.status === 404) {
-          console.log("Profile not found. Initialize it first.")
+          console.log("Profile not found. Initialize it first.");
         }
       } catch (err) {
-        console.error("Error fetching profile:", err)
+        console.error("Error fetching profile:", err);
       }
-    }
+    };
 
-    fetchProfile()
-  }, [])
+    fetchProfile();
+  }, []);
 
-    // -------------------- FETCH MEDIA --------------------
- useEffect(() => {
-  const fetchMedia = async () => {
+  // -------------------- FETCH MEDIA --------------------
+  useEffect(() => {
+    const fetchMedia = async () => {
+      try {
+        const userId = localStorage.getItem("user_id");
+        const res = await fetch(`${MAIN}/api/teacher/profile/media/${userId}`, {
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error("Failed to fetch media");
+
+        const data = await res.json();
+
+        // Map to include only the fields needed and ensure we use secure_url
+        const videos = data
+          .filter((m) => m.resource_type === "video")
+          .map((m) => ({
+            name: m.original_filename || "video",
+            url: m.secure_url, // Use secure_url, not public_id
+          }));
+
+        const photos = data
+          .filter((m) => m.resource_type === "photo")
+          .map((m) => ({
+            name: m.original_filename || "photo",
+            url: m.secure_url,
+          }));
+
+        setUploadedVideos(videos);
+        setUploadedPhotos(photos);
+      } catch (err) {
+        console.error("Error fetching media:", err);
+      }
+    };
+
+    fetchMedia();
+  }, []);
+
+  // -------------------- HANDLE PROFILE IMAGE --------------------
+  const handleProfileImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
     try {
-      const userId = localStorage.getItem("user_id");
-      const res = await fetch(`${MAIN}/api/teacher/profile/media/${userId}`, { credentials: 'include' });
-      if (!res.ok) throw new Error("Failed to fetch media");
+      const userId = localStorage.getItem("user_id"); // current logged-in user
 
-      const data = await res.json();
+      // Prepare form data for upload
+      const formData = new FormData();
+      formData.append("avatar", file); // must match upload.single("avatar")
+      // must match backend parser.single("avatar")
 
-      // Map to include only the fields needed and ensure we use secure_url
-      const videos = data
-        .filter((m) => m.resource_type === "video")
-        .map((m) => ({
-          name: m.original_filename || "video",
-          url: m.secure_url, // Use secure_url, not public_id
-        }));
+      // Upload to media endpoint
+      const mediaRes = await fetch(
+        `${MAIN}/api/teacher/profile/avatar/${userId}`,
+        {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+        }
+      );
 
-      const photos = data
-        .filter((m) => m.resource_type === "photo")
-        .map((m) => ({
-          name: m.original_filename || "photo",
-          url: m.secure_url,
-        }));
+      if (!mediaRes.ok) throw new Error("Failed to upload image");
 
-      setUploadedVideos(videos);
-      setUploadedPhotos(photos);
+      const mediaData = await mediaRes.json();
+      /* console.log("Media upload response:", mediaData.secure_url); */
+      const newAvatarUrl = mediaData.secure_url; // URL returned from backend
+
+      // Update frontend state
+      setUserProfile((prev) => ({
+        ...prev,
+        avatar: newAvatarUrl,
+      }));
+
+      window.alert("Profile image updated successfully!");
     } catch (err) {
-      console.error("Error fetching media:", err);
+      console.error("Error updating profile image:", err);
     }
   };
 
-  fetchMedia();
-}, []);
-
-  // -------------------- HANDLE PROFILE IMAGE --------------------
-const handleProfileImageChange = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  try {
-    const userId = localStorage.getItem("user_id"); // current logged-in user
-
-    // Prepare form data for upload
-    const formData = new FormData();
-    formData.append("avatar", file); // must match upload.single("avatar")
-// must match backend parser.single("avatar")
-
-    // Upload to media endpoint
-    const mediaRes = await fetch(`${MAIN}/api/teacher/profile/avatar/${userId}`, {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!mediaRes.ok) throw new Error("Failed to upload image");
-
-    const mediaData = await mediaRes.json();
-    /* console.log("Media upload response:", mediaData.secure_url); */
-    const newAvatarUrl = mediaData.secure_url; // URL returned from backend
-
-    // Update frontend state
-    setUserProfile((prev) => ({
-      ...prev,
-      avatar: newAvatarUrl,
-    }));
-
-    window.alert("Profile image updated successfully!");
-  } catch (err) {
-    console.error("Error updating profile image:", err);
-  }
-};
-
-
   // -------------------- HANDLE VIDEO UPLOAD --------------------
-const handleVideoUpload = async (e) => {
-  const files = Array.from(e.target.files);
-  const userId = localStorage.getItem("user_id");
+  const handleVideoUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    const userId = localStorage.getItem("user_id");
     const uploaded = [];
     for (const file of files) {
       const formData = new FormData();
@@ -148,53 +153,69 @@ const handleVideoUpload = async (e) => {
       formData.append("type", "video");
 
       try {
-        const res = await fetch(`${MAIN}/api/teacher/profile/media/${userId}/upload`, {
-          method: "POST",
-          body: formData,
-        });
+        const res = await fetch(
+          `${MAIN}/api/teacher/profile/media/${userId}/upload`,
+          {
+            method: "POST",
+            body: formData,
+            credentials: "include",
+          }
+        );
 
+        if (!res.ok) throw new Error("Photo upload failed");
         if (!res.ok) throw new Error("Video upload failed");
         const data = await res.json();
-        uploaded.push({ name: file.name, url: data.secure_url, resource_type: "video" });
+        uploaded.push({
+          name: file.name,
+          url: data.secure_url,
+          resource_type: "video",
+        });
       } catch (err) {
         console.error(err);
       }
     }
 
     setUploadedVideos((prev) => [...prev, ...uploaded]);
-};
+  };
 
-// -------------------- HANDLE PHOTO UPLOAD --------------------
+  // -------------------- HANDLE PHOTO UPLOAD --------------------
 
-const handlePhotoUpload = async (e) => {
-  const files = Array.from(e.target.files);
-  const userId = localStorage.getItem("user_id");
-  const uploaded = [];
+  const handlePhotoUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    const userId = localStorage.getItem("user_id");
+    const uploaded = [];
 
-  for (const file of files) {
-    const formData = new FormData();
-    formData.append("file", file); // instead of "media"
-    formData.append("type", "photo");
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append("file", file); // instead of "media"
+      formData.append("type", "photo");
 
-    try {
-      const res = await fetch(`${MAIN}/api/teacher/profile/media/${userId}/upload`, {
-        method: "POST",
-        body: formData,
-      });
+      try {
+        const res = await fetch(
+          `${MAIN}/api/teacher/profile/media/${userId}/upload`,
+          {
+            method: "POST",
+            body: formData,
+            credentials: "include",
+          }
+        );
 
-      if (!res.ok) throw new Error("Photo upload failed");
-      const data = await res.json();
-      uploaded.push({ name: file.name, url: data.secure_url, resource_type: "photo" });
-    } catch (err) {
-      console.error(err);
+        if (!res.ok) throw new Error("Photo upload failed");
+        const data = await res.json();
+        uploaded.push({
+          name: file.name,
+          url: data.secure_url,
+          resource_type: "photo",
+        });
+      } catch (err) {
+        console.error(err);
+      }
     }
-  }
 
-  setUploadedPhotos((prev) => [...prev, ...uploaded]);
-};
+    setUploadedPhotos((prev) => [...prev, ...uploaded]);
+  };
   return (
     <div className="profile-container">
-      
       <div className="content-header1">
         <h1>PROFILE</h1>
       </div>
@@ -203,8 +224,17 @@ const handlePhotoUpload = async (e) => {
         <div className="profile-main">
           <div className="profile-info">
             <div className="profile-avatar">
-              <img src={newProfileImage || userProfile.avatar || "/placeholder.svg"} alt={userProfile.name} className="avatar-image" />
-              <button className="edit-button" onClick={() => profileImageInputRef.current.click()}>
+              <img
+                src={
+                  newProfileImage || userProfile.avatar || "/placeholder.svg"
+                }
+                alt={userProfile.name}
+                className="avatar-image"
+              />
+              <button
+                className="edit-button"
+                onClick={() => profileImageInputRef.current.click()}
+              >
                 Edit
               </button>
               <input
@@ -212,7 +242,7 @@ const handlePhotoUpload = async (e) => {
                 ref={profileImageInputRef}
                 onChange={handleProfileImageChange}
                 accept="image/*"
-                style={{ display: 'none' }}
+                style={{ display: "none" }}
               />
             </div>
             <div className="profile-details">
@@ -220,11 +250,15 @@ const handlePhotoUpload = async (e) => {
               <div className="profile-contact">
                 <div className="contact-item">
                   <span className="contact-label">Email:</span>
-                  <span className="contact-value">{userProfile.email || "Not provided"}</span>
+                  <span className="contact-value">
+                    {userProfile.email || "Not provided"}
+                  </span>
                 </div>
                 <div className="contact-item">
                   <span className="contact-label">Username:</span>
-                  <span className="contact-value">{userProfile.username || "Not provided"}</span>
+                  <span className="contact-value">
+                    {userProfile.username || "Not provided"}
+                  </span>
                 </div>
               </div>
               <div className="profile-stats">
@@ -264,7 +298,10 @@ const handlePhotoUpload = async (e) => {
                 <button className="section-icon">📹</button>
               </div>
               <div className="section-content">
-                <button className="upload-button" onClick={() => videoInputRef.current.click()}>
+                <button
+                  className="upload-button"
+                  onClick={() => videoInputRef.current.click()}
+                >
                   Upload Video
                 </button>
                 <input
@@ -273,7 +310,7 @@ const handlePhotoUpload = async (e) => {
                   onChange={handleVideoUpload}
                   accept="video/*"
                   multiple
-                  style={{ display: 'none' }}
+                  style={{ display: "none" }}
                 />
                 {uploadedVideos.length > 0 ? (
                   <div className="videos-grid">
@@ -296,7 +333,10 @@ const handlePhotoUpload = async (e) => {
                 <button className="section-icon">📷</button>
               </div>
               <div className="section-content">
-                <button className="upload-button" onClick={() => photoInputRef.current.click()}>
+                <button
+                  className="upload-button"
+                  onClick={() => photoInputRef.current.click()}
+                >
                   Upload Photo
                 </button>
                 <input
@@ -305,12 +345,17 @@ const handlePhotoUpload = async (e) => {
                   onChange={handlePhotoUpload}
                   accept="image/*"
                   multiple
-                  style={{ display: 'none' }}
+                  style={{ display: "none" }}
                 />
                 {uploadedPhotos.length > 0 ? (
                   <div className="photos-grid">
                     {uploadedPhotos.map((photo, index) => (
-                      <a key={index} href={photo.url} target="_blank" className="photo-item">
+                      <a
+                        key={index}
+                        href={photo.url}
+                        target="_blank"
+                        className="photo-item"
+                      >
                         📄 {photo.name}
                       </a>
                     ))}
@@ -328,10 +373,7 @@ const handlePhotoUpload = async (e) => {
               </div>
               <div className="section-content">
                 <div className="subjects-list">
-                    <span className="subject-tag">
-                      {userProfile.subjects}
-                    </span>
-                
+                  <span className="subject-tag">{userProfile.subjects}</span>
                 </div>
               </div>
             </div>
@@ -339,7 +381,7 @@ const handlePhotoUpload = async (e) => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Profile
+export default Profile;

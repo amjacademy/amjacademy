@@ -27,7 +27,7 @@ router.get("/last-arrangement-id", adminAuth, async (req, res) => {
 });
 
 // CREATE arrangement
-router.post("/create", async (req, res) => {
+router.post("/create",adminAuth, async (req, res) => {
   try {
     const {
       arrangement_id,
@@ -299,7 +299,7 @@ router.put("/update/:id", adminAuth, async (req, res) => {
 });
 
 // DELETE arrangement + reduce no_of_classes
-router.delete("/delete/:id", async (req, res) => {
+router.delete("/delete/:id",adminAuth, async (req, res) => {
   try {
     const { id } = req.params;
 

@@ -8,8 +8,8 @@ const API_BASE = import.meta.env.VITE_TEST
   : "https://amjacademy-working.onrender.com/api/messages";
 
 const Message = ({ onMessagesRead }) => {
-  const MAIN=import.meta.env.VITE_MAIN;
-  const TEST =import.meta.env.VITE_TEST;
+  const MAIN = import.meta.env.VITE_MAIN;
+  const TEST = import.meta.env.VITE_TEST;
   const [selectedContact, setSelectedContact] = useState("");
   const [messageText, setMessageText] = useState("");
   const [currentUser, setCurrentUser] = useState({ id: "", name: "" });
@@ -56,7 +56,8 @@ const Message = ({ onMessagesRead }) => {
     const fetchPresence = async () => {
       try {
         const res = await fetch(
-          `${MAIN}/api/messages/presence/${selectedContact}`
+          `${MAIN}/api/messages/presence/${selectedContact}`,
+          { credentials: "include" }
         );
         if (!res.ok) return;
 

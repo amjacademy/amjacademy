@@ -2,9 +2,10 @@
 const express = require("express");
 const router = express.Router();
 const { supabase } = require("../../config/supabaseClient");
+const { userAuth} = require("../../utils/authController");
 
 // GET all students assigned to a teacher
-router.get("/getstudents", async (req, res) => {
+router.get("/getstudents", userAuth("teacher"), async (req, res) => {
   try {
     const { user_id } = req.query;
     if (!user_id) return res.status(400).json({ error: "user_id is required" });
@@ -55,7 +56,7 @@ router.get("/getstudents", async (req, res) => {
 });
 
 // GET classes for Teacher (supports student filter + normalized statuses + student names + GROUP CLASSES)
-router.get("/fetchclasses", async (req, res) => {
+router.get("/fetchclasses",userAuth("teacher"), async (req, res) => {
   try {
     const { user_id, status, student_id, date_from, date_to } = req.query;
     if (!user_id) return res.status(400).json({ error: "user_id is required" });

@@ -7,10 +7,10 @@ const { supabase } = require("../config/supabaseClient");
 const {userAuth} = require("../utils/authController");
 
 router.get("/fetchannouncements",userAuth("student"),  fetch);
-router.get("/upcoming-classes",fetchUpcomingClasses);
+router.get("/upcoming-classes",userAuth("student"),fetchUpcomingClasses);
 
 // POST /api/actions/submit
-router.post("/actions/submit", async (req, res) => {
+router.post("/actions/submit",userAuth(), async (req, res) => {
   try {
     const { user_id, class_id, action_type, reason, role } = req.body;
 
@@ -100,7 +100,7 @@ router.post("/actions/submit", async (req, res) => {
 
 
 
-router.put("/class-status",/* userAuth, roleAuth(["student"]),  */ async (req, res) => {
+router.put("/class-status",userAuth(),  async (req, res) => {
   try {
     const { class_id, status, user_id } = req.body;
 
@@ -129,7 +129,7 @@ router.put("/class-status",/* userAuth, roleAuth(["student"]),  */ async (req, r
   }
 });
 
-router.get("/ongoing-class", async (req, res) => {
+router.get("/ongoing-class",userAuth("student"), async (req, res) => {
   try {
     const user_id = req.headers["user_id"];
 

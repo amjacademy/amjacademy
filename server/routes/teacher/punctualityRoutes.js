@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const dayjs = require("dayjs");
 const { supabase } = require("../../config/supabaseClient");
+const { userAuth } = require("../../utils/authController");
 
 // -------------------- Helper Functions ---------------------
 
@@ -98,7 +99,7 @@ function deriveSessionType() {
 
 // -------------------- MAIN API ----------------------------
 
-router.get("/fetchreport", async (req, res) => {
+router.get("/fetchreport", userAuth("teacher"), async (req, res) => {
   try {
     const {
       user_id, // teacher_id

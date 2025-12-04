@@ -52,7 +52,8 @@ const Message = ({ onMessagesRead }) => {
     const fetchPresence = async () => {
       try {
         const res = await fetch(
-          `${MAIN}/api/teacher/messages/presence/${selectedContact}`
+          `${MAIN}/api/teacher/messages/presence/${selectedContact}`,
+          { credentials: "include" }
         );
 
         if (!res.ok) return;

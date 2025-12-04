@@ -1,9 +1,10 @@
 const express = require("express");
 const { supabase } = require("../config/supabaseClient");
 const router = express.Router();
+const { userAuth } = require("../utils/authController");
 
-// Get incomplete assessment count for a user
-router.get("/incomplete-count/:user_id", async (req, res) => {
+// Get incomplete assessment count for a user (used by both Student & Teacher dashboards)
+router.get("/incomplete-count/:user_id", userAuth(), async (req, res) => {
   try {
     const userId = req.params.user_id;
 
@@ -39,7 +40,7 @@ router.get("/incomplete-count/:user_id", async (req, res) => {
   }
 });
 
-router.get("/user/:user_id", async (req, res) => {
+router.get("/user/:user_id", userAuth("student"), async (req, res) => {
   try {
     const userId = req.params.user_id;
 
@@ -141,7 +142,7 @@ router.get("/user/:user_id", async (req, res) => {
   }
 });
 
-router.post("/submit", async (req, res) => {
+router.post("/submit", userAuth("student"), async (req, res) => {
   try {
     const { assessment_id, user_id, answers, teacher_id } = req.body;
 

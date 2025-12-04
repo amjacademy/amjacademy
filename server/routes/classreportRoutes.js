@@ -1,10 +1,10 @@
 const express = require("express");
 const { supabase } = require("../config/supabaseClient");
-const { userAuth, roleAuth } = require("../utils/authController");
+const { userAuth} = require("../utils/authController");
 const router = express.Router();
 
 // ✅ Fetch classes for a specific user (normal + group classes)
-router.get("/fetchclasses", async (req, res) => {
+router.get("/fetchclasses",userAuth("student"), async (req, res) => {
   try {
     const { user_id, status, subject, date_from, date_to } = req.query;
 
