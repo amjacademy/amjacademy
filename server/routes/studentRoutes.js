@@ -4,10 +4,10 @@ const { fetchUpcomingClasses } = require("../controllers/upcomingclassController
 const router = express.Router();
 const { supabase } = require("../config/supabaseClient");
 
-const {userAuth, roleAuth } = require("../utils/authController");
+const {userAuth} = require("../utils/authController");
 
-router.get("/fetchannouncements",userAuth, roleAuth(["student"]),  fetch);
-router.get("/upcoming-classes",/* userAuth, roleAuth(["student"]),  */ fetchUpcomingClasses);
+router.get("/fetchannouncements",userAuth("student"),  fetch);
+router.get("/upcoming-classes",fetchUpcomingClasses);
 
 // POST /api/actions/submit
 router.post("/actions/submit", async (req, res) => {
