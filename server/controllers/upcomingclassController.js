@@ -3,7 +3,7 @@ const { supabase } = require("../config/supabaseClient");
 // Fetch upcoming classes for a logged-in student
 exports.fetchUpcomingClasses = async (req, res) => {
   try {
-    const userId = req.headers["user_id"];
+    const userId = req.userId;
     if (!userId) {
       return res
         .status(400)

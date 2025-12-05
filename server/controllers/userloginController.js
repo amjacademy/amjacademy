@@ -5,8 +5,7 @@ const { Resend } = require("resend");
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // JWT Secret
-const USER_JWT = process.env.USER_JWT_SECRET ;
-
+const USER_JWT = process.env.USER_JWT_SECRET;
 
 // In-memory OTP store: { "email": { otp, expiresAt, verified } }
 const otpStore = {};
@@ -29,7 +28,6 @@ const sendOtpEmail = async (email, otp) => {
   }
 };
 
-
 // -------------------------------
 // Step 1: Send OTP
 // -------------------------------
@@ -37,7 +35,12 @@ exports.sendOtp = async (req, res) => {
   const { username, email, role } = req.body;
 
   if (!username || !email || !role)
-    return res.status(400).json({ success: false, message: "Username, email, and role are required" });
+    return res
+      .status(400)
+      .json({
+        success: false,
+        message: "Username, email, and role are required",
+      });
 
   const cleanUser = username.trim();
   const cleanEmail = email.trim().toLowerCase();
@@ -47,12 +50,17 @@ exports.sendOtp = async (req, res) => {
     const { data: user, error } = await supabase
       .from("users")
       .select("*")
-      .eq("username", cleanUser)   // ✔ Matches schema
+      .eq("username", cleanUser) // ✔ Matches schema
       .eq("role", cleanRole)
       .single();
 
     if (error || !user) {
-      return res.status(404).json({ success: false, message: "User not found with this username and role" });
+      return res
+        .status(404)
+        .json({
+          success: false,
+          message: "User not found with this username and role",
+        });
     }
 
     const mainEmail = user.email?.toLowerCase();
@@ -63,7 +71,12 @@ exports.sendOtp = async (req, res) => {
     if (cleanEmail === mainEmail) targetEmail = mainEmail;
     else if (cleanEmail === altEmail) targetEmail = altEmail;
     else {
-      return res.status(400).json({ success: false, message: `Email does not match user's records` });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: `Email does not match user's records`,
+        });
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -73,20 +86,17 @@ exports.sendOtp = async (req, res) => {
       username: cleanUser,
       role: cleanRole,
       expiresAt: Date.now() + 5 * 60 * 1000,
-      verified: false
+      verified: false,
     };
 
     await sendOtpEmail(targetEmail, otp);
 
     return res.json({ success: true, message: `OTP sent to ${targetEmail}` });
-
   } catch (err) {
     console.error("sendOtp error:", err);
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
-
 
 // -------------------------------
 // Step 2: Verify OTP
@@ -95,7 +105,9 @@ exports.verifyOtp = async (req, res) => {
   const { email, otp } = req.body;
 
   if (!email || !otp)
-    return res.status(400).json({ success: false, message: "Email and OTP required" });
+    return res
+      .status(400)
+      .json({ success: false, message: "Email and OTP required" });
 
   const cleanEmail = email.trim().toLowerCase();
 
@@ -116,7 +128,6 @@ exports.verifyOtp = async (req, res) => {
   return res.json({ success: true, message: "OTP verified successfully" });
 };
 
-
 // -------------------------------
 // Step 3: Login
 // -------------------------------
@@ -124,7 +135,9 @@ exports.Login = async (req, res) => {
   const { username, email, password, role } = req.body;
 
   if (!username || !email || !password || !role)
-    return res.status(400).json({ success: false, message: "All fields are required" });
+    return res
+      .status(400)
+      .json({ success: false, message: "All fields are required" });
 
   const cleanEmail = email.trim().toLowerCase();
   const cleanUser = username.trim();
@@ -132,23 +145,29 @@ exports.Login = async (req, res) => {
 
   const otpRecord = otpStore[cleanEmail];
   if (!otpRecord || !otpRecord.verified)
-    return res.status(401).json({ success: false, message: "OTP verification required" });
+    return res
+      .status(401)
+      .json({ success: false, message: "OTP verification required" });
 
   try {
     const { data: user, error } = await supabase
       .from("users")
       .select("*")
-      .eq("username", cleanUser)    // ✔ FIXED
+      .eq("username", cleanUser) // ✔ FIXED
       .or(`email.eq.${cleanEmail},additional_email.eq.${cleanEmail}`)
       .eq("role", cleanRole)
       .single();
 
     if (error || !user)
-      return res.status(401).json({ success: false, message: "Invalid credentials" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid credentials" });
 
     const isMatch = password === user.password;
     if (!isMatch)
-      return res.status(401).json({ success: false, message: "Incorrect password" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Incorrect password" });
 
     // Fetch enrollment data for profile information
     const { data: enrollment, error: enrollmentError } = await supabase
@@ -157,11 +176,9 @@ exports.Login = async (req, res) => {
       .eq("id", user.enrollment_id)
       .single();
 
-    const token = jwt.sign(
-      { id: user.id, role: user.role },
-      USER_JWT,
-      { expiresIn: "30d" }
-    );
+    const token = jwt.sign({ id: user.id, role: user.role }, USER_JWT, {
+      expiresIn: "30d",
+    });
 
     delete otpStore[cleanEmail];
 
@@ -177,37 +194,25 @@ exports.Login = async (req, res) => {
       success: true,
       message: "Login successful",
       id: user.id,
-      profile: enrollment || null
+      profile: enrollment || null,
     });
-
   } catch (err) {
     console.error("Login error:", err);
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
-
-
-// Middleware: protect user routes
-exports.userAuth = (req, res, next) => {
-  const token = req.cookies.userToken;
-  if (!token) return res.status(401).json({ success: false, message: "No token provided" });
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (err) {
-    return res.status(401).json({ success: false, message: "Invalid or expired token" });
-  }
-};
-
 // Check user authentication status
 exports.checkAuth = (req, res) => {
   const token = req.cookies.userToken;
-  if (!token) return res.status(401).json({ success: false, message: "Not logged in" });
+  if (!token)
+    return res.status(401).json({ success: false, message: "Not logged in" });
   try {
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
-      if (err) return res.status(401).json({ success: false, message: "Token expired" });
+      if (err)
+        return res
+          .status(401)
+          .json({ success: false, message: "Token expired" });
       res.json({ success: true, userId: decoded.id, email: decoded.email });
     });
   } catch (err) {
@@ -220,27 +225,30 @@ exports.checkAuth = (req, res) => {
 exports.Logout = (req, res) => {
   res.clearCookie("userToken", {
     httpOnly: true,
-  secure: process.env.NODE_ENV === "production", // ✅ true only in production
-  sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+    secure: process.env.NODE_ENV === "production", // ✅ true only in production
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
   });
   res.json({ success: true, message: "User Logged out successfully" });
-};    
+};
 
 // Step 4: Verify Login (Persistent Check)
 exports.verifyLogin = async (req, res) => {
   try {
     const userToken = req.cookies?.userToken;
     const adminToken = req.cookies?.adminToken;
-     // 1️⃣ Admin token check (no database verification)
+    // 1️⃣ Admin token check (no database verification)
     if (adminToken) {
       try {
-        const decodedAdmin = jwt.verify(adminToken, process.env.ADMIN_JWT_SECRET);
+        const decodedAdmin = jwt.verify(
+          adminToken,
+          process.env.ADMIN_JWT_SECRET
+        );
 
         return res.status(200).json({
           success: true,
           role: "admin",
           redirect: "/admin-dashboard",
-          user: { username: decodedAdmin.user  },
+          user: { username: decodedAdmin.user },
         });
       } catch (err) {
         return res.status(401).json({
@@ -263,7 +271,7 @@ exports.verifyLogin = async (req, res) => {
           });
         }
 
-        // Both Student & Teacher are in 'enrollments' table
+        // Both Student & Teacher are in 'users' table
         const { data: user, error } = await supabase
           .from("users")
           .select("id, username, email, role")
@@ -279,9 +287,9 @@ exports.verifyLogin = async (req, res) => {
 
         // Redirect based on role
         const redirectPath =
-          role === "Student"
+          role === "student"
             ? "/student-dashboard"
-            : role === "Teacher"
+            : role === "teacher"
             ? "/teacher-dashboard"
             : null;
 
