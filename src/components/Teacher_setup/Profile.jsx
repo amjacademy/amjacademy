@@ -36,7 +36,7 @@ const Profile = () => {
       if (!userId) return;
 
       try {
-        const res = await fetch(`${MAIN}/api/teacher/profile/${userId}`, {
+        const res = await fetch(`${MAIN}/api/teacher/profile`, {
           credentials: "include",
         });
         if (res.ok) {
@@ -69,7 +69,7 @@ const Profile = () => {
     const fetchMedia = async () => {
       try {
         const userId = localStorage.getItem("user_id");
-        const res = await fetch(`${MAIN}/api/teacher/profile/media/${userId}`, {
+        const res = await fetch(`${MAIN}/api/teacher/profile/media`, {
           credentials: "include",
         });
         if (!res.ok) throw new Error("Failed to fetch media");
@@ -116,7 +116,7 @@ const Profile = () => {
 
       // Upload to media endpoint
       const mediaRes = await fetch(
-        `${MAIN}/api/teacher/profile/avatar/${userId}`,
+        `${MAIN}/api/teacher/profile/avatar`,
         {
           method: "POST",
           body: formData,
@@ -154,7 +154,7 @@ const Profile = () => {
 
       try {
         const res = await fetch(
-          `${MAIN}/api/teacher/profile/media/${userId}/upload`,
+          `${MAIN}/api/teacher/profile/media/upload`,
           {
             method: "POST",
             body: formData,
@@ -192,7 +192,7 @@ const Profile = () => {
 
       try {
         const res = await fetch(
-          `${MAIN}/api/teacher/profile/media/${userId}/upload`,
+          `${MAIN}/api/teacher/profile/media/upload`,
           {
             method: "POST",
             body: formData,

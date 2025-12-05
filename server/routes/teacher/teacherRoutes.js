@@ -7,6 +7,6 @@ const {userAuth} = require("../../utils/authController");
 router.get("/fetchannouncements",userAuth("teacher"), fetch);
 router.get("/upcoming-classes", userAuth("teacher"), fetchUpcomingClasses);
 router.get("/ongoing-class", userAuth("teacher"), ongoingclass);
-router.get("/fetchgroupclasses",userAuth(), fetchgroupclasses);
+router.get("/fetchgroupclasses",userAuth("teacher"), fetchgroupclasses);
 router.put("/joinclass",userAuth("teacher"), joinclass);
 module.exports = router;

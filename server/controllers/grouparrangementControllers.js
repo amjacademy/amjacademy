@@ -157,7 +157,7 @@ const GroupController = {
   // GET student group classes
   async getStudentGroupClasses(req, res) {
     try {
-      const studentId = req.headers["user_id"];
+      const studentId = req.userId;
       if (!studentId)
         return res.status(400).json({ error: "user_id is required" });
 
@@ -171,7 +171,7 @@ const GroupController = {
   // GET ongoing group class for a user
   async getOngoingGroupClass(req, res) {
     try {
-      const userId = req.headers["user_id"];
+      const userId = req.userId;
       const role = req.query.role || "student";
 
       if (!userId) {
@@ -210,7 +210,8 @@ const GroupController = {
   // UPDATE group class status (for JOIN)
   async updateGroupClassStatus(req, res) {
     try {
-      const { class_id, status, user_id } = req.body;
+      const { class_id, status} = req.body;
+      const user_id = req.userId;
 
       if (!class_id || !status || !user_id) {
         return res.status(400).json({
@@ -234,7 +235,8 @@ const GroupController = {
   // SUBMIT group class action (leave/cancel) - saves to notifications table like normal classes
   async submitGroupClassAction(req, res) {
     try {
-      const { user_id, class_id, action_type, reason, role } = req.body;
+      const {class_id, action_type, reason, role } = req.body;
+      const user_id=req.userId;
 
       if (!user_id || !class_id || !action_type) {
         return res.status(400).json({

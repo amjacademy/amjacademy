@@ -7,7 +7,8 @@ const { userAuth} = require("../../utils/authController");
 // GET all students assigned to a teacher
 router.get("/getstudents", userAuth("teacher"), async (req, res) => {
   try {
-    const { user_id } = req.query;
+    const user_id = req.userId;
+
     if (!user_id) return res.status(400).json({ error: "user_id is required" });
 
     // fetch arrangements for this teacher
@@ -58,7 +59,8 @@ router.get("/getstudents", userAuth("teacher"), async (req, res) => {
 // GET classes for Teacher (supports student filter + normalized statuses + student names + GROUP CLASSES)
 router.get("/fetchclasses",userAuth("teacher"), async (req, res) => {
   try {
-    const { user_id, status, student_id, date_from, date_to } = req.query;
+    const { status, student_id, date_from, date_to } = req.query;
+    const user_id = req.userId;
     if (!user_id) return res.status(400).json({ error: "user_id is required" });
 
     // ==========================================

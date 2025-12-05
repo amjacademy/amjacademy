@@ -47,7 +47,7 @@ exports.fetch = async (req, res) => {
 // Fetch upcoming classes for a logged-in TEACHER
 exports.fetchUpcomingClasses = async (req, res) => {
   try {
-    const userId = req.headers["user_id"];
+    const userId = req.userId;
     if (!userId) {
       return res
         .status(400)
@@ -180,7 +180,7 @@ exports.fetchUpcomingClasses = async (req, res) => {
 
 exports.ongoingclass = async (req, res) => {
   try {
-    const user_id = req.headers["user_id"];
+    const user_id = req.userId;
 
     if (!user_id) {
       return res.status(400).json({
@@ -285,7 +285,7 @@ exports.ongoingclass = async (req, res) => {
 
 exports.fetchgroupclasses = async (req, res) => {
   try {
-    const teacherId = req.headers["user_id"];
+    const teacherId = req.userId;
     if (!teacherId) {
       return res
         .status(400)
@@ -439,7 +439,8 @@ exports.fetchgroupclasses = async (req, res) => {
 
 exports.joinclass = async (req, res) => {
   try {
-    const { class_id, status, user_id } = req.body;
+    const { class_id, status} = req.body;
+    const user_id = req.userId;
 
     if (!class_id || !status || !user_id) {
       return res.status(400).json({

@@ -101,7 +101,7 @@ exports.markAsDelivered = asyncHandler(async (req, res) => {
 
 // Get all teachers assigned to student (based on arrangements table)
 exports.getMyTeachers = asyncHandler(async (req, res) => {
-  const studentId = req.query.studentId;
+  const studentId = req.userId;
 
   if (!studentId) {
     return res.status(400).json({ error: "studentId required" });
@@ -154,7 +154,7 @@ exports.uploadFile = async (req, res) => {
 
 // Get chat history for a user (only teachers student has chatted with)
 exports.getMyChats = asyncHandler(async (req, res) => {
-  const userId = req.query.userId;
+  const userId = req.userId;
 
   if (!userId) {
     return res.status(400).json({ error: "userId is required" });
@@ -173,7 +173,7 @@ exports.getMyChats = asyncHandler(async (req, res) => {
 // UPDATE LAST SEEN (used for "Online / last seen")
 // --------------------------------------------------
 exports.updateLastSeen = asyncHandler(async (req, res) => {
-  const { userId } = req.body;
+  const userId=req.userId;
 
   if (!userId) {
     return res.status(400).json({ error: "userId is required" });
@@ -217,7 +217,7 @@ exports.getPresence = asyncHandler(async (req, res) => {
 // GET TOTAL UNREAD MESSAGE COUNT
 // --------------------------------------------------
 exports.getUnreadCount = asyncHandler(async (req, res) => {
-  const userId = req.query.userId;
+  const userId = req.userId;
 
   if (!userId) {
     return res.status(400).json({ error: "userId is required" });

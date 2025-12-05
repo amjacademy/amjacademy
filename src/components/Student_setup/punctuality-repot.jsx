@@ -149,7 +149,6 @@ export default function PunctualityReport() {
     async function loadData() {
       try {
         const query = new URLSearchParams({
-          user_id: localStorage.getItem("user_id"), // adjust if needed
           from: startDate || "",
           to: endDate || "",
           sessionType,

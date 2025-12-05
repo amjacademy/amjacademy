@@ -33,11 +33,9 @@ const Profile = () => {
   // -------------------- FETCH PROFILE --------------------
   useEffect(() => {
     const fetchProfile = async () => {
-      const userId = localStorage.getItem("user_id");
-      if (!userId) return;
 
       try {
-        const res = await fetch(`${MAIN}/profile/${userId}`, {
+        const res = await fetch(`${MAIN}/profile`, {
           credentials: "include",
         });
         if (res.ok) {
@@ -90,8 +88,7 @@ const Profile = () => {
   useEffect(() => {
     const fetchMedia = async () => {
       try {
-        const userId = localStorage.getItem("user_id");
-        const res = await fetch(`${MAIN}/media/${userId}`, {
+        const res = await fetch(`${MAIN}/media`, {
           credentials: "include",
         });
         if (!res.ok) throw new Error("Failed to fetch media");
@@ -129,7 +126,6 @@ const Profile = () => {
     if (!file) return;
 
     try {
-      const userId = localStorage.getItem("user_id"); // current logged-in user
 
       // Prepare form data for upload
       const formData = new FormData();
@@ -137,7 +133,7 @@ const Profile = () => {
       // must match backend parser.single("avatar")
 
       // Upload to media endpoint
-      const mediaRes = await fetch(`${MAIN}/profile/${userId}/avatar`, {
+      const mediaRes = await fetch(`${MAIN}/profile/avatar`, {
         method: "POST",
         body: formData,
         credentials: "include",
@@ -164,7 +160,6 @@ const Profile = () => {
   // -------------------- HANDLE VIDEO UPLOAD --------------------
   const handleVideoUpload = async (e) => {
     const files = Array.from(e.target.files);
-    const userId = localStorage.getItem("user_id");
     const uploaded = [];
 
     for (const file of files) {
@@ -173,7 +168,7 @@ const Profile = () => {
       formData.append("type", "video");
 
       try {
-        const res = await fetch(`${MAIN}/media/${userId}/upload`, {
+        const res = await fetch(`${MAIN}/media/upload`, {
           method: "POST",
           body: formData,
           credentials: "include",
@@ -198,7 +193,6 @@ const Profile = () => {
 
   const handlePhotoUpload = async (e) => {
     const files = Array.from(e.target.files);
-    const userId = localStorage.getItem("user_id");
     const uploaded = [];
 
     for (const file of files) {
@@ -207,7 +201,7 @@ const Profile = () => {
       formData.append("type", "photo");
 
       try {
-        const res = await fetch(`${MAIN}/media/${userId}/upload`, {
+        const res = await fetch(`${MAIN}/media/upload`, {
           method: "POST",
           body: formData,
           credentials: "include",

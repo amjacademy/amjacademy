@@ -116,12 +116,10 @@ const Dashboard = () => {
 
   // Function to refresh unread message count
   const refreshUnreadCount = async () => {
-    if (!userId) return;
     try {
-      const response = await fetch(
-        `${MAIN}/api/messages/unread-count?userId=${userId}`,
-        { credentials: "include" }
-      );
+      const response = await fetch(`${MAIN}/api/messages/unread-count`, {
+        credentials: "include",
+      });
       const data = await response.json();
       if (data.success) {
         setMessageUnreadCount(data.unreadCount || 0);
@@ -132,12 +130,31 @@ const Dashboard = () => {
     }
   };
 
-  // Fetch unread message count on mount
+  // Fetch unread message count on mount and on user activity
   useEffect(() => {
-    if (userId) {
-      refreshUnreadCount();
-    }
-  }, [userId]);
+    refreshUnreadCount();
+
+    // Refresh on window focus
+    const handleFocus = () => refreshUnreadCount();
+
+    // Refresh on visibility change (tab becomes visible)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        refreshUnreadCount();
+      }
+    };
+
+    // Refresh on user click anywhere on the page
+    const handleClick = () => refreshUnreadCount();
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
 
   // Reset count when switching to message tab, then refresh when leaving
   useEffect(() => {
@@ -162,7 +179,7 @@ const Dashboard = () => {
     const fetchIncompleteCount = async () => {
       try {
         const response = await fetch(
-          `${MAIN}/api/assessments/incomplete-count/${userId}`,
+          `${MAIN}/api/assessments/incomplete-count`,
           { credentials: "include" }
         );
         const data = await response.json();
@@ -175,10 +192,30 @@ const Dashboard = () => {
       }
     };
 
-    if (userId) {
+    
       fetchIncompleteCount();
-    }
-  }, [userId]);
+      // Refresh on window focus
+    const handleFocus = () => refreshUnreadCount();
+
+    // Refresh on visibility change (tab becomes visible)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        refreshUnreadCount();
+      }
+    };
+
+    // Refresh on user click anywhere on the page
+    const handleClick = () => refreshUnreadCount();
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+    
+  }, []);
 
   // Get username from localStorage
   const username = localStorage.getItem("username") || "User";
@@ -201,7 +238,6 @@ const Dashboard = () => {
   const fetchOngoingClass = async () => {
     try {
       const res = await fetch(`${MAIN}/api/student/ongoing-class`, {
-        headers: { user_id: userId },
         credentials: "include",
       });
 
@@ -237,7 +273,6 @@ const Dashboard = () => {
   const refreshUpcomingClasses = async () => {
     try {
       const res = await fetch(`${MAIN}/api/student/upcoming-classes`, {
-        headers: { user_id: userId },
         credentials: "include",
       });
 
@@ -261,7 +296,6 @@ const Dashboard = () => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            user_id: userId,
           },
           credentials: "include",
         });
@@ -323,17 +357,14 @@ const Dashboard = () => {
     };
 
     fetchUpcomingClasses();
-  }, [userId]);
+  }, []);
 
   //group classes
   useEffect(() => {
-    console.log("=== GROUP CLASSES USEEFFECT TRIGGERED ===", { userId, MAIN });
+
 
     const fetchGroupClasses = async () => {
-      if (!userId) {
-        console.log("No userId, skipping group classes fetch");
-        return;
-      }
+      
 
       const url = `${MAIN}/api/grouparrangements/student/classes`;
       console.log("Fetching group classes from:", url);
@@ -343,7 +374,6 @@ const Dashboard = () => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            user_id: userId,
           },
           credentials: "include",
         });
@@ -383,7 +413,7 @@ const Dashboard = () => {
     };
 
     fetchGroupClasses();
-  }, [userId]);
+  }, []);
 
   useEffect(() => {
     if (!userId) return;
@@ -424,7 +454,6 @@ const Dashboard = () => {
         const response = await fetch(`${MAIN}/api/student/ongoing-class`, {
           headers: {
             "Content-Type": "application/json",
-            user_id: userId,
           },
           credentials: "include",
         });
@@ -461,7 +490,7 @@ const Dashboard = () => {
     };
 
     fetchOngoing();
-  }, [userId]);
+  }, []);
 
   // Fetch ongoing group class
   const fetchOngoingGroupClass = async () => {
@@ -471,7 +500,6 @@ const Dashboard = () => {
         {
           headers: {
             "Content-Type": "application/json",
-            user_id: userId,
           },
           credentials: "include",
         }
@@ -488,10 +516,10 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    if (userId) {
+   
       fetchOngoingGroupClass();
-    }
-  }, [userId]);
+  
+  }, []);
 
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: "🏠" },
@@ -531,7 +559,6 @@ const Dashboard = () => {
         : `${MAIN}/api/student/actions/submit`;
 
       const payload = {
-        user_id: userId,
         class_id: isGroupClass
           ? selectedLeaveClass.classId
           : selectedLeaveClass.class_id,
@@ -604,7 +631,6 @@ const Dashboard = () => {
         body: JSON.stringify({
           class_id: classItem.class_id,
           status: "ongoing",
-          user_id: userId,
         }),
         credentials: "include",
       });
@@ -639,7 +665,6 @@ const Dashboard = () => {
           body: JSON.stringify({
             class_id: cls.classId,
             status: "ongoing",
-            user_id: userId,
           }),
           credentials: "include",
         }

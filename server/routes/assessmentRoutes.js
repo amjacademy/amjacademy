@@ -4,9 +4,9 @@ const router = express.Router();
 const { userAuth } = require("../utils/authController");
 
 // Get incomplete assessment count for a user (used by both Student & Teacher dashboards)
-router.get("/incomplete-count/:user_id", userAuth(), async (req, res) => {
+router.get("/incomplete-count", userAuth(), async (req, res) => {
   try {
-    const userId = req.params.user_id;
+    const userId = req.userId;
 
     // Get assessment targets for this user that are not completed
     const { data: targets, error: targetsErr } = await supabase
@@ -40,9 +40,9 @@ router.get("/incomplete-count/:user_id", userAuth(), async (req, res) => {
   }
 });
 
-router.get("/user/:user_id", userAuth("student"), async (req, res) => {
+router.get("/user", userAuth("student"), async (req, res) => {
   try {
-    const userId = req.params.user_id;
+    const userId = req.userId;
 
     // 1️⃣ Get assessment targets for this user
     const { data: targets, error: targetsErr } = await supabase
@@ -144,7 +144,8 @@ router.get("/user/:user_id", userAuth("student"), async (req, res) => {
 
 router.post("/submit", userAuth("student"), async (req, res) => {
   try {
-    const { assessment_id, user_id, answers, teacher_id } = req.body;
+    const { assessment_id,answers, teacher_id } = req.body;
+    const user_id=req.userId;
 
     if (!assessment_id || !user_id || !answers || !teacher_id) {
       return res.status(400).json({ success: false, error: "Missing fields" });

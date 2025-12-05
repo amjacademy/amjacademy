@@ -207,16 +207,11 @@ const Message = ({ onMessagesRead }) => {
 
   // Load teachers from backend
   const loadTeachers = async () => {
-    const id = localStorage.getItem("user_id");
 
-    if (!id) {
-      console.error("No user_id found in localStorage. Cannot load teachers.");
-      return;
-    }
 
     try {
       const res = await fetch(
-        `${MAIN}/api/messages/my-teachers?studentId=${encodeURIComponent(id)}`,
+        `${MAIN}/api/messages/my-teachers`,
         {
           method: "GET",
           credentials: "include",
@@ -247,11 +242,9 @@ const Message = ({ onMessagesRead }) => {
   };
 
   const loadChatHistory = async () => {
-    const id = localStorage.getItem("user_id");
-    if (!id) return;
 
     try {
-      const res = await fetch(`${MAIN}/api/messages/my-chats?userId=${id}`, {
+      const res = await fetch(`${MAIN}/api/messages/my-chats`, {
         method: "GET",
         credentials: "include",
       });
@@ -267,6 +260,9 @@ const Message = ({ onMessagesRead }) => {
   };
 
   // On mount: set current user from localStorage and load teachers
+
+
+  //SPECIAL CASE!!!
   useEffect(() => {
     const id = localStorage.getItem("user_id");
     const name = localStorage.getItem("username");
@@ -322,8 +318,6 @@ const Message = ({ onMessagesRead }) => {
 
   // ⭐ STUDENT PRESENCE HEARTBEAT - Update last_seen every 5 seconds
   useEffect(() => {
-    const userId = localStorage.getItem("user_id");
-    if (!userId) return;
 
     const updatePresence = async () => {
       try {
@@ -331,7 +325,6 @@ const Message = ({ onMessagesRead }) => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({ userId }),
         });
       } catch (err) {
         // Silently fail - presence is not critical

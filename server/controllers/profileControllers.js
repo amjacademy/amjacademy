@@ -14,7 +14,7 @@ const { streamUpload } = require("../config/cloudinaryConfig");
 
 // -------------------- GET FULL PROFILE --------------------
 exports.getProfile = async (req, res) => {
-  const { userId } = req.params;
+  const userId= req.userId; // from userAuth middleware
 
   try {
     // 1️⃣ Fetch user
@@ -109,7 +109,7 @@ exports.getStoryCharacters = async (req, res) => {
 
 // -------------------- UPLOAD MEDIA --------------------
 exports.uploadMedia = async (req, res) => {
-  const { userId } = req.params;
+  const userId= req.userId; // from userAuth middleware
   const { originalname, path, mimetype } = req.file;
 
   try {
@@ -135,7 +135,7 @@ exports.uploadMedia = async (req, res) => {
 
 // -------------------- UPLOAD PROFILE AVATAR --------------------
 exports.uploadAvatar = async (req, res) => {
-  const { userId } = req.params;
+  const userId= req.userId; // from userAuth middleware
 
   if (!req.file) return res.status(400).json({ error: "No file uploaded" });
 
@@ -154,7 +154,7 @@ exports.uploadAvatar = async (req, res) => {
 
 // -------------------- GET USER MEDIA LIST --------------------
 exports.getMedia = async (req, res) => {
-  const { userId } = req.params;
+  const userId= req.userId; // from userAuth middleware
 
   try {
     const { data, error } = await getMediaList(userId);

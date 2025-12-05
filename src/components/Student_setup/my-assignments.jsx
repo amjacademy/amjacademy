@@ -46,10 +46,9 @@ const applyFilters = () => {
 };
 
 const fetchAssessments = async () => {
-      const userId = localStorage.getItem("user_id");
 
       const res = await fetch(
-        `${MAIN}/api/assessments/user/${userId}`,
+        `${MAIN}/api/assessments/user`,
         { method: "GET", credentials: "include" }
       );
 
@@ -101,14 +100,12 @@ const handleViewClick = (assessmentId, teacherId) => {
 
 const handleFormSubmit = async (e) => {
       e.preventDefault();
-      const userId = localStorage.getItem("user_id");
 
       const res = await fetch(`${MAIN}/api/assessments/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           assessment_id: currentAssessmentId,
-          user_id: userId,
           answers: formAnswers, // JSON sent as-is
           teacher_id: currentTeacherId,
         }),

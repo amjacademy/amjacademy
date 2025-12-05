@@ -144,12 +144,6 @@ const ClassReport = () => {
   const fetchClasses = async () => {
     try {
       setLoading(true);
-      const userId = localStorage.getItem("user_id");
-      if (!userId) {
-        console.error("User ID not found in localStorage!");
-        setLoading(false);
-        return;
-      }
 
       const status = getStatusValue(activeTab);
 
@@ -165,7 +159,6 @@ const ClassReport = () => {
       const subjectFilter = subjectMap[filterBy] || "all";
 
       const queryParams = new URLSearchParams({
-        user_id: userId,
         status,
         subject: subjectFilter,
         date_from: fromDate,

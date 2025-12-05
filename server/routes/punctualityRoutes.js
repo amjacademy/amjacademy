@@ -101,13 +101,13 @@ function deriveSessionType() {
 router.get("/fetchreport",userAuth("student"), async (req, res) => {
   try {
     const {
-      user_id,
       from,
       to,
       sessionType = "All Classes",
       slotStatus = "All Slots",
       keyword = "",
     } = req.query;
+    const user_id = req.userId;
 
     if (!user_id) {
       return res.status(400).json({ error: "user_id is required" });

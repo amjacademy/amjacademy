@@ -35,12 +35,10 @@ exports.sendOtp = async (req, res) => {
   const { username, email, role } = req.body;
 
   if (!username || !email || !role)
-    return res
-      .status(400)
-      .json({
-        success: false,
-        message: "Username, email, and role are required",
-      });
+    return res.status(400).json({
+      success: false,
+      message: "Username, email, and role are required",
+    });
 
   const cleanUser = username.trim();
   const cleanEmail = email.trim().toLowerCase();
@@ -55,12 +53,10 @@ exports.sendOtp = async (req, res) => {
       .single();
 
     if (error || !user) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message: "User not found with this username and role",
-        });
+      return res.status(404).json({
+        success: false,
+        message: "User not found with this username and role",
+      });
     }
 
     const mainEmail = user.email?.toLowerCase();
@@ -71,12 +67,10 @@ exports.sendOtp = async (req, res) => {
     if (cleanEmail === mainEmail) targetEmail = mainEmail;
     else if (cleanEmail === altEmail) targetEmail = altEmail;
     else {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: `Email does not match user's records`,
-        });
+      return res.status(400).json({
+        success: false,
+        message: `Email does not match user's records`,
+      });
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -171,9 +165,9 @@ exports.Login = async (req, res) => {
 
     // Fetch enrollment data for profile information
     const { data: enrollment, error: enrollmentError } = await supabase
-      .from("enrollments")
+      .from("users")
       .select("*")
-      .eq("id", user.enrollment_id)
+      .eq("id", user.id)
       .single();
 
     const token = jwt.sign({ id: user.id, role: user.role }, USER_JWT, {

@@ -12,7 +12,8 @@ router.get("/upcoming-classes",userAuth("student"),fetchUpcomingClasses);
 // POST /api/actions/submit
 router.post("/actions/submit",userAuth(), async (req, res) => {
   try {
-    const { user_id, class_id, action_type, reason, role } = req.body;
+    const {class_id, action_type, reason, role } = req.body;
+    const user_id=req.userId;
 
     if (!user_id || !class_id || !action_type) {
       return res.status(400).json({
@@ -102,7 +103,8 @@ router.post("/actions/submit",userAuth(), async (req, res) => {
 
 router.put("/class-status",userAuth(),  async (req, res) => {
   try {
-    const { class_id, status, user_id } = req.body;
+    const { class_id, status} = req.body;
+    const user_id=req.userId;
 
     if (!class_id || !status || !user_id) {
       return res.status(400).json({ success: false, message: "Missing class_id, status, or user_id" });
@@ -131,7 +133,7 @@ router.put("/class-status",userAuth(),  async (req, res) => {
 
 router.get("/ongoing-class",userAuth("student"), async (req, res) => {
   try {
-    const user_id = req.headers["user_id"];
+    const user_id = req.userId;
 
     if (!user_id) {
       return res.status(400).json({

@@ -119,7 +119,7 @@ const Dashboard = () => {
     if (!userId) return;
     try {
       const response = await fetch(
-        `${MAIN}/api/messages/unread-count?userId=${userId}`,
+        `${MAIN}/api/messages/unread-count`,
         { credentials: "include" }
       );
       const data = await response.json();
@@ -134,10 +134,29 @@ const Dashboard = () => {
 
   // Fetch unread message count on mount
   useEffect(() => {
-    if (userId) {
+    
       refreshUnreadCount();
-    }
-  }, [userId]);
+       const handleFocus = () => refreshUnreadCount();
+
+    // Refresh on visibility change (tab becomes visible)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        refreshUnreadCount();
+      }
+    };
+
+    // Refresh on user click anywhere on the page
+    const handleClick = () => refreshUnreadCount();
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+    
+  }, []);
 
   // Reset count when switching to message tab, then refresh when leaving
   useEffect(() => {
@@ -162,7 +181,7 @@ const Dashboard = () => {
     const fetchIncompleteCount = async () => {
       try {
         const response = await fetch(
-          `${MAIN}/api/assessments/incomplete-count/${userId}`,
+          `${MAIN}/api/assessments/incomplete-count`,
           { credentials: "include" }
         );
         const data = await response.json();
@@ -175,10 +194,29 @@ const Dashboard = () => {
       }
     };
 
-    if (userId) {
+   
       fetchIncompleteCount();
-    }
-  }, [userId]);
+       const handleFocus = () => refreshUnreadCount();
+
+    // Refresh on visibility change (tab becomes visible)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        refreshUnreadCount();
+      }
+    };
+
+    // Refresh on user click anywhere on the page
+    const handleClick = () => refreshUnreadCount();
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+    
+  }, []);
 
   // Get username from localStorage
   const username = localStorage.getItem("username") || "User";
@@ -240,7 +278,6 @@ const Dashboard = () => {
   const refreshUpcomingClasses = async () => {
     try {
       const res = await fetch(`${MAIN}/api/teacher/upcoming-classes`, {
-        headers: { user_id: userId },
         credentials: "include",
       });
 
@@ -261,7 +298,6 @@ const Dashboard = () => {
         const response = await fetch(`${MAIN}/api/teacher/ongoing-class`, {
           headers: {
             "Content-Type": "application/json",
-            user_id: userId,
           },
           credentials: "include",
         });
@@ -307,7 +343,6 @@ const Dashboard = () => {
         {
           headers: {
             "Content-Type": "application/json",
-            user_id: userId,
           },
           credentials: "include",
         }
@@ -339,7 +374,6 @@ const Dashboard = () => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            user_id: userId,
           },
           credentials: "include",
         });
@@ -422,10 +456,6 @@ const Dashboard = () => {
     });
 
     const fetchGroupClasses = async () => {
-      if (!userId) {
-        console.log("No userId, skipping group classes fetch");
-        return;
-      }
 
       const url = `${MAIN}/api/teacher/fetchgroupclasses`;
       console.log("Fetching group classes from:", url);
@@ -435,7 +465,6 @@ const Dashboard = () => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            user_id: userId,
           },
           credentials: "include",
         });
@@ -546,7 +575,6 @@ const Dashboard = () => {
         : `${MAIN}/api/student/actions/submit`;
 
       const payload = {
-        user_id: userId,
         class_id: isGroupClass
           ? selectedLeaveClass.classId
           : selectedLeaveClass.class_id,
@@ -619,7 +647,6 @@ const Dashboard = () => {
         body: JSON.stringify({
           class_id: classItem.class_id,
           status: "ongoing",
-          user_id: userId,
         }),
         credentials: "include",
       });
@@ -654,7 +681,6 @@ const Dashboard = () => {
           body: JSON.stringify({
             class_id: cls.classId,
             status: "ongoing",
-            user_id: userId,
           }),
           credentials: "include",
         }

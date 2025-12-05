@@ -101,14 +101,15 @@ function deriveSessionType() {
 
 router.get("/fetchreport", userAuth("teacher"), async (req, res) => {
   try {
-    const {
-      user_id, // teacher_id
+    const { 
       from,
       to,
       sessionType = "All Classes",
       slotStatus = "All Slots",
       keyword = "",
     } = req.query;
+    
+      const user_id = req.userId;
 
     if (!user_id) {
       return res

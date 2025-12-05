@@ -154,14 +154,8 @@ export default function PunctualityReport() {
   useEffect(() => {
     async function loadData() {
       try {
-        const userId = localStorage.getItem("user_id");
-        if (!userId) {
-          console.error("No user_id found in localStorage");
-          return;
-        }
 
         const query = new URLSearchParams({
-          user_id: userId,
           from: startDate || "",
           to: endDate || "",
           sessionType,

@@ -33,17 +33,11 @@ const ClassReport = () => {
   const fetchClasses = async () => {
     try {
       setLoading(true);
-      const userId = localStorage.getItem("user_id");
-      if (!userId) {
-        console.error("User ID not found in localStorage!");
-        setLoading(false);
-        return;
-      }
+      
 
       const status = getStatusValue(activeTab);
 
       const queryParams = new URLSearchParams({
-        user_id: userId,
         status,
         student_id: filterBy,
         date_from: fromDate,
@@ -76,9 +70,9 @@ const ClassReport = () => {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const userId = localStorage.getItem("user_id");
+        
         const res = await fetch(
-          `${MAIN}/api/teacher/classreport/getstudents?user_id=${userId}`,
+          `${MAIN}/api/teacher/classreport/getstudents`,
           { credentials: "include" }
         );
         const data = await res.json();

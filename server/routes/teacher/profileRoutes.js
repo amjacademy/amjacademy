@@ -15,15 +15,15 @@ const upload = multer({ memoryStorage });
 const { parser } = require("../../config/cloudinaryConfig");
 const {userAuth} = require("../../utils/authController");
 // PROFILE
-router.get("/:userId",userAuth("teacher"),  getProfile);
+router.get("/",userAuth("teacher"),  getProfile);
 
 // MEDIA UPLOAD
-router.post("/media/:userId/upload",userAuth("teacher"),  parser.single("file"), uploadMedia);
+router.post("/media/upload",userAuth("teacher"),  parser.single("file"), uploadMedia);
 
 // AVATAR UPLOAD
-router.post("/avatar/:userId",userAuth("teacher"),  upload.single("avatar"), uploadAvatar);
+router.post("/avatar",userAuth("teacher"),  upload.single("avatar"), uploadAvatar);
 
 // GET MEDIA LIST
-router.get("/media/:userId",userAuth("teacher"),  getMedia);
+router.get("/media",userAuth("teacher"),  getMedia);
 
 module.exports = router;

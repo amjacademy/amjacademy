@@ -3,9 +3,9 @@ const router = express.Router();
 const { supabase } = require("../../config/supabaseClient");
 const { userAuth } = require("../../utils/authController");
 
-router.get("/user/:teacher_id", userAuth("teacher"), async (req, res) => {
+router.get("/user", userAuth("teacher"), async (req, res) => {
   try {
-    const teacherId = req.params.teacher_id;
+    const teacherId = req.userId;
 
     // 1️⃣ Fetch assessment targets where TEACHER is the filler
     const { data: targets, error: targetsErr } = await supabase
@@ -91,7 +91,8 @@ router.get("/user/:teacher_id", userAuth("teacher"), async (req, res) => {
 
 router.post("/submit", userAuth("teacher"), async (req, res) => {
   try {
-    const { assessment_id, user_id, answers, student_id } = req.body;
+    const { assessment_id, answers, student_id } = req.body;
+    const user_id = req.userId;
 
     if (!assessment_id || !user_id || !answers || !student_id) {
       return res.status(400).json({ success: false, error: "Missing fields" });

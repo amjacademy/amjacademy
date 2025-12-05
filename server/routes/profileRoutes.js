@@ -17,18 +17,18 @@ const { parser } = require("../config/cloudinaryConfig");
 const {userAuth} = require("../utils/authController");
 
 // PROFILE
-router.get("/profile/:userId",userAuth("student"),  getProfile);
+router.get("/profile",userAuth("student"),  getProfile);
 
 // STORY CHARACTERS
 router.get("/story-characters",userAuth("student"), getStoryCharacters);
 
 // MEDIA UPLOAD
-router.post("/media/:userId/upload",userAuth("student"),  parser.single("file"), uploadMedia);
+router.post("/media/upload",userAuth("student"),  parser.single("file"), uploadMedia);
 
 // AVATAR UPLOAD
-router.post("/profile/:userId/avatar",userAuth("student"),  upload.single("avatar"), uploadAvatar);
+router.post("/profile/avatar",userAuth("student"),  upload.single("avatar"), uploadAvatar);
 
 // GET MEDIA LIST
-router.get("/media/:userId",userAuth("student"),  getMedia);
+router.get("/media",userAuth("student"),  getMedia);
 
 module.exports = router;

@@ -47,10 +47,9 @@ const applyFilters = () => {
 };
 
 const fetchAssessments = async () => {
-      const userId = localStorage.getItem("user_id");
 
       const res = await fetch(
-        `${MAIN}/api/teacher/assignment/user/${userId}`,
+        `${MAIN}/api/teacher/assignment/user`,
         { method: "GET", credentials: "include" }
       );
 
@@ -103,14 +102,12 @@ useEffect(() => {
 
   const handleFormSubmit = async(e) => {
     e.preventDefault()
-    const userId = localStorage.getItem("user_id");
 
       const res = await fetch(`${MAIN}/api/teacher/assignment/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           assessment_id: currentAssessmentId,
-          user_id: userId,
           answers: formAnswers, // JSON sent as-is
           student_id:currentStudentId,
         }),
