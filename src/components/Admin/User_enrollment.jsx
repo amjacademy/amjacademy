@@ -57,11 +57,9 @@ useEffect(() => {
       .map(id => parseInt(id.slice(4), 10))
       .filter(num => !isNaN(num))
 
-    // Find the next available number
-    let nextNum = 1
-    while (numbers.includes(nextNum)) {
-      nextNum++
-    }
+    // Find the maximum existing number and increment from there
+    const maxNum = numbers.length > 0 ? Math.max(...numbers) : 0
+    const nextNum = maxNum + 1
 
     const id = `${prefix}${nextNum.toString().padStart(5, '0')}`
     onChange(id)
