@@ -808,7 +808,7 @@ const Dashboard = () => {
           </div>
 
           <div className="class-details">
-            <p>Class ID: {isGroup ? cls.classId : cls.class_id}</p>
+            {/* <p>Class ID: {isGroup ? cls.classId : cls.class_id}</p> */}
             <p>Teacher: {teacherName}</p>
             {!isGroup && cls.level && <p>Level: {cls.level}</p>}
             {!isGroup && cls.plan && <p>Plan: {cls.plan}</p>}
@@ -904,7 +904,7 @@ const Dashboard = () => {
                   </div>
                   <div className="class-info">
                     <h3>{ongoingClass.title}</h3>
-                    <p>Class ID: {ongoingClass.class_id}</p>
+                    {/* <p>Class ID: {ongoingClass.class_id}</p> */}
                     <p>
                       Teacher Name:{" "}
                       {ongoingClass.teachers
@@ -961,7 +961,7 @@ const Dashboard = () => {
                   </div>
                   <div className="class-info">
                     <h3>{ongoingGroupClass.groupName}</h3>
-                    <p>Class ID: {ongoingGroupClass.classId}</p>
+                    {/* <p>Class ID: {ongoingGroupClass.classId}</p> */}
                     <p>
                       Teacher Name:{" "}
                       {ongoingGroupClass.teacherName ||

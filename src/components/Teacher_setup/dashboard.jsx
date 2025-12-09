@@ -831,7 +831,7 @@ const Dashboard = () => {
           </div>
 
           <div className="class-details">
-            <p>Class ID: {isGroup ? cls.classId : cls.class_id}</p>
+            {/* <p>Class ID: {isGroup ? cls.classId : cls.class_id}</p> */}
             {isGroup && (
               <p style={{ fontWeight: "600", marginBottom: "4px" }}>
                 Group Name: {cls.groupName}
@@ -931,7 +931,7 @@ const Dashboard = () => {
                   </div>
                   <div className="class-info">
                     <h3>{ongoingClass.title}</h3>
-                    <p>Class ID: {ongoingClass.class_id}</p>
+                    {/* <p>Class ID: {ongoingClass.class_id}</p> */}
                     <p>
                       Student Name:{" "}
                       {ongoingClass.batch === "dual"
@@ -990,7 +990,7 @@ const Dashboard = () => {
                   </div>
                   <div className="class-info">
                     <h3>{ongoingGroupClass.groupName}</h3>
-                    <p>Class ID: {ongoingGroupClass.classId}</p>
+                    {/* <p>Class ID: {ongoingGroupClass.classId}</p> */}
                     <p>
                       Students:{" "}
                       {ongoingGroupClass.students &&
