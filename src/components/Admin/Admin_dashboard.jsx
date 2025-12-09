@@ -379,7 +379,7 @@ setApiCounts(prev => ({
             </div>
             <span className="user-name">{username}</span>
           </div>
-          <button className="help-btn">NEED HELP?</button>
+          {/* <button className="help-btn">NEED HELP?</button> */}
         </div>
       </header>
 

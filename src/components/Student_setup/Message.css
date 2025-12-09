@@ -328,14 +328,14 @@
 }
 
 .message.own .message-content {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 80%);
+  background: linear-gradient(135deg, #615eff 0%, #058d95 80%);
   color: white;
   height: auto;
   border-bottom-right-radius: 2px;
 }
 
 .message.other .message-content {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 80%);
+  background: linear-gradient(135deg, #054d8d 0%, #0bb3bc 80%);
   color: white;
   height: auto;
   border-bottom-left-radius: 2px;

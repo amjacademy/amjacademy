@@ -284,7 +284,7 @@ const Profile = () => {
                         </span>
                       ))}
                     </div> */}
-                    <span className="rating-text">{userProfile.rating}</span>
+                    <span className="rating-text">{userProfile.rating}⭐</span>
                   </div>
                 </div>
               </div>

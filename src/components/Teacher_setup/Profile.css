@@ -10,7 +10,7 @@ body {
 .main-content {
   flex: 1;
   margin-left: 280px;
-  padding: 24px 24px 100px 24px; /* Added bottom padding for footer space */
+  padding: 24px 24px 100px 24px; 
   max-width: calc(100vw - 280px);
   /* Light colorful background */
   background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
@@ -64,9 +64,9 @@ body {
 }
 
 .avatar-image {
-  width: 160px;
-  height: 160px;
-  border-radius: 50%;
+  width: 400px;
+  height: 310px;
+  border-radius: 10%;
   object-fit: cover;
   border: 6px solid #fff;
   box-shadow: 0 6px 18px rgba(255, 154, 158, 0.5);
@@ -101,7 +101,9 @@ body {
 }
 
 .contact-label {
-  font-size: 0.85rem;
+  font-size: 1rem;
+  margin-right: 13px;
+  font-weight: bolder;
   color: #666;
   display: block;
 }
@@ -109,6 +111,7 @@ body {
 .contact-value {
   font-size: 1rem;
   color: #ff6b81;
+  font-weight: bolder;
 }
 
 .profile-stats {
@@ -128,13 +131,14 @@ body {
 }
 
 .stat-label {
-  font-size: 0.9rem;
+  font-size: 2rem;
+  font-weight: bolder;
   color: #666;
 }
 
 .stat-value {
   font-size: 1.2rem;
-  font-weight: bold;
+  font-weight: bolder;
   color: #ff6b81;
 }
 
@@ -223,6 +227,7 @@ body {
   border: none;
   border-radius: 8px;
   padding: 8px 14px;
+  margin-top: 20px;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
