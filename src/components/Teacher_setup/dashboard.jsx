@@ -144,7 +144,7 @@ const handleUnauthorized = async (response, navigate) => {
         `${MAIN}/api/messages/unread-count`,
         { credentials: "include" }
       );
-      await handleUnauthorized(response, navigate);
+     
       const data = await response.json();
       if (data.success) {
         setMessageUnreadCount(data.unreadCount || 0);
@@ -207,7 +207,7 @@ const handleUnauthorized = async (response, navigate) => {
           `${MAIN}/api/assessments/incomplete-count`,
           { credentials: "include" }
         );
-        await handleUnauthorized(response, navigate);
+        
         const data = await response.json();
         if (data.success) {
           setIncompleteAssessmentsCount(data.incompleteCount || 0);
@@ -269,7 +269,7 @@ const handleUnauthorized = async (response, navigate) => {
         },
         credentials: "include",
       });
-      await handleUnauthorized(res, navigate);
+      
       const data = await res.json();
       if (!data.success || !data.ongoingClass) return;
 
@@ -304,7 +304,7 @@ const handleUnauthorized = async (response, navigate) => {
       const res = await fetch(`${MAIN}/api/teacher/upcoming-classes`, {
         credentials: "include",
       });
-      await handleUnauthorized(res, navigate);
+      
       const data = await res.json();
 
       if (data.success) {
@@ -325,7 +325,7 @@ const handleUnauthorized = async (response, navigate) => {
           },
           credentials: "include",
         });
-        await handleUnauthorized(response, navigate);
+        
         const data = await response.json();
 
         if (data.success && data.ongoingClass) {
@@ -371,7 +371,7 @@ const handleUnauthorized = async (response, navigate) => {
           credentials: "include",
         }
       );
-      await handleUnauthorized(response, navigate);
+     
       const data = await response.json();
 
       if (data.success && data.ongoingGroupClass) {
@@ -401,7 +401,7 @@ const handleUnauthorized = async (response, navigate) => {
           },
           credentials: "include",
         });
-        await handleUnauthorized(response, navigate);
+        
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -494,7 +494,7 @@ const handleUnauthorized = async (response, navigate) => {
         });
 
         console.log("Group classes response status:", response.status);
-        await handleUnauthorized(response, navigate);
+        
         const data = await response.json();
         console.log("Group classes data:", data);
 
@@ -622,7 +622,7 @@ const handleUnauthorized = async (response, navigate) => {
         body: JSON.stringify(payload),
         credentials: "include",
       });
-      await handleUnauthorized(response, navigate);
+  
       const data = await response.json();
 
       if (data.success) {
@@ -675,7 +675,7 @@ const handleUnauthorized = async (response, navigate) => {
         }),
         credentials: "include",
       });
-      await handleUnauthorized(response, navigate);
+     
       const data = await response.json();
 
       if (data.success) {
@@ -710,7 +710,6 @@ const handleUnauthorized = async (response, navigate) => {
           credentials: "include",
         }
       );
-      await handleUnauthorized(response, navigate);
       const data = await response.json();
       console.log("Join group class response:", data);
 
