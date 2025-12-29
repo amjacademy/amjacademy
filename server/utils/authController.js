@@ -25,10 +25,11 @@ exports.userAuth = (expectedRole = null) => {
   return (req, res, next) => {
     const token = req.cookies.userToken;
 
+    // 1️⃣ Token missing
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "No token provided",
+        message: "NO Token Provided. Please login again.",
       });
     }
 
@@ -36,23 +37,40 @@ exports.userAuth = (expectedRole = null) => {
       // decode jwt
       const decoded = jwt.verify(token, process.env.USER_JWT_SECRET);
 
-      // take only role
-      const role = decoded.role;
+  
 
       // if a role is required for this route → check it
-      if (expectedRole && role !== expectedRole) {
-        return res.status(403).json({
-          success: false,
-          message: "Access denied: incorrect role",
-        });
-      }
+    
+    // 2️⃣ Role mismatch
+if (expectedRole && decoded.role !== expectedRole) {
+  res.clearCookie("userToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+    path: "/",
+  });
+
+  return res.status(401).json({
+    success: false,
+    message: "Access denied. Please login again.",
+  });
+}
+
       req.userId = decoded.id;
       next();
     } catch (err) {
-      return res.status(401).json({
-        success: false,
-        message: "Expired or Invalid Token!",
-      });
-    }
+  // 3️⃣ Token expired / invalid
+  res.clearCookie("userToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+    path: "/",
+  });
+
+  return res.status(401).json({
+    success: false,
+    message: "Session expired. Please login again.",
+  });
+}
   };
 };

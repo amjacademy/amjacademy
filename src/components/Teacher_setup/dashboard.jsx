@@ -40,6 +40,27 @@ const Dashboard = () => {
     useState(1); // Static count for now, 1 incomplete out of 3
   const [messageUnreadCount, setMessageUnreadCount] = useState(2); // Static count for now, based on contacts with unread messages
 
+
+//HANDLING UNAUTHORIZED RESPONSES GLOBALLY
+const handleUnauthorized = async (response, navigate) => {
+  if (response.status === 401) {
+    const data = await response.json();
+    alert(data.message || "Session expired. Please login again.");
+
+    // clear client state
+    localStorage.clear();
+
+    // redirect to home
+    navigate("/");
+
+    // stop further execution
+    throw new Error("Unauthorized");
+  }
+
+  return response;
+};
+
+
   // helper: convert "date" + "time" strings into an ISO-like datetime (sessionAt)
   // Works for most server formats like "2025-11-17" + "14:30:00" or "14:30"
   const makeSessionAtFromDateTime = (dateStr, timeStr) => {
@@ -96,6 +117,7 @@ const Dashboard = () => {
         const res = await fetch(`${MAIN}/api/teacher/fetchannouncements?`, {
           credentials: "include",
         });
+        await handleUnauthorized(res, navigate);
         if (!res.ok) throw new Error("Failed to fetch announcements");
         const data = await res.json();
         setAnnouncements(data);
@@ -122,6 +144,7 @@ const Dashboard = () => {
         `${MAIN}/api/messages/unread-count`,
         { credentials: "include" }
       );
+      await handleUnauthorized(response, navigate);
       const data = await response.json();
       if (data.success) {
         setMessageUnreadCount(data.unreadCount || 0);
@@ -184,6 +207,7 @@ const Dashboard = () => {
           `${MAIN}/api/assessments/incomplete-count`,
           { credentials: "include" }
         );
+        await handleUnauthorized(response, navigate);
         const data = await response.json();
         if (data.success) {
           setIncompleteAssessmentsCount(data.incompleteCount || 0);
@@ -245,7 +269,7 @@ const Dashboard = () => {
         },
         credentials: "include",
       });
-
+      await handleUnauthorized(res, navigate);
       const data = await res.json();
       if (!data.success || !data.ongoingClass) return;
 
@@ -280,7 +304,7 @@ const Dashboard = () => {
       const res = await fetch(`${MAIN}/api/teacher/upcoming-classes`, {
         credentials: "include",
       });
-
+      await handleUnauthorized(res, navigate);
       const data = await res.json();
 
       if (data.success) {
@@ -301,7 +325,7 @@ const Dashboard = () => {
           },
           credentials: "include",
         });
-
+        await handleUnauthorized(response, navigate);
         const data = await response.json();
 
         if (data.success && data.ongoingClass) {
@@ -347,7 +371,7 @@ const Dashboard = () => {
           credentials: "include",
         }
       );
-
+      await handleUnauthorized(response, navigate);
       const data = await response.json();
 
       if (data.success && data.ongoingGroupClass) {
@@ -377,7 +401,7 @@ const Dashboard = () => {
           },
           credentials: "include",
         });
-
+        await handleUnauthorized(response, navigate);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -470,6 +494,7 @@ const Dashboard = () => {
         });
 
         console.log("Group classes response status:", response.status);
+        await handleUnauthorized(response, navigate);
         const data = await response.json();
         console.log("Group classes data:", data);
 
@@ -597,7 +622,7 @@ const Dashboard = () => {
         body: JSON.stringify(payload),
         credentials: "include",
       });
-
+      await handleUnauthorized(response, navigate);
       const data = await response.json();
 
       if (data.success) {
@@ -650,7 +675,7 @@ const Dashboard = () => {
         }),
         credentials: "include",
       });
-
+      await handleUnauthorized(response, navigate);
       const data = await response.json();
 
       if (data.success) {
@@ -685,7 +710,7 @@ const Dashboard = () => {
           credentials: "include",
         }
       );
-
+      await handleUnauthorized(response, navigate);
       const data = await response.json();
       console.log("Join group class response:", data);
 
