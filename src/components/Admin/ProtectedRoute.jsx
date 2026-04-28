@@ -11,9 +11,18 @@ export default function ProtectedRoute({ children }) {
   useEffect(() => {
     const verify = async () => {
       try {
+        // Read token from localStorage (Safari localStorage fallback for cross-site cookies)
+        const localToken = localStorage.getItem("adminToken");
+
+        const headers = {};
+        if (localToken) {
+          headers["Authorization"] = `Bearer ${localToken}`;
+        }
+
         const res = await fetch(`${MAIN}/api/admin/check-auth`, {
           method: "GET",
-          credentials: "include", // 🧠 send cookies
+          credentials: "include", // 🧠 send cookies (Chrome/Firefox)
+          headers,
         });
 
         const data = await res.json();
@@ -22,6 +31,7 @@ export default function ProtectedRoute({ children }) {
         if (res.ok && data.success) {
           setIsAuth(true);
         } else {
+          localStorage.removeItem("adminToken"); // clear stale token
           navigate("/AdminLogin");
         }
       } catch (err) {

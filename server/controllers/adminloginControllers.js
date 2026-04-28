@@ -21,20 +21,21 @@ exports.Login = async (req, res) => {
   secure: true,
   sameSite: "None"
 }); */
-    // Set JWT in HttpOnly cookie
-res.cookie("adminToken", token, {
+    // Set JWT in HttpOnly cookie (works on Chrome/Firefox)
+    res.cookie("adminToken", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      secure: true, // always true for cross-site (Render ↔ Vercel)
+      sameSite: "None",
       path: "/",
       maxAge: 172800 * 60 * 1000,
     });
 
-
+    // Also return token in body — Safari localStorage fallback
     return res.json({
       success: true,
       message: "Admin Login successful",
-      expiresIn: 172800 * 60, // 4months*seconds
+      token, // ← Safari uses this via localStorage + Authorization header
+      expiresIn: 172800 * 60,
     });
   }
 
@@ -58,12 +59,19 @@ exports.adminAuth = (req, res, next) => {
 
 exports.checkAuth = (req, res) => {
   try {
-    const token = req.cookies.adminToken; // read cookie
+    // Try cookie first (Chrome/Firefox), then Authorization header (Safari fallback)
+    let token = req.cookies.adminToken;
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.slice(7);
+      }
+    }
+
     if (!token) return res.status(401).json({ success: false, message: "Not logged in" });
 
     jwt.verify(token, ADMIN_JWT, (err, decoded) => {
       if (err) return res.status(401).json({ success: false, message: "Token expired" });
-
       res.json({ success: true, username: decoded.username });
     });
   } catch (err) {

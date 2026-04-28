@@ -2,22 +2,26 @@ const jwt = require("jsonwebtoken");
 const USER_JWT_SECRET = process.env.USER_JWT_SECRET;
 const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET;
 
-// Middleware to protect admin routes
+// Middleware to protect admin routes (cookie for Chrome/Firefox, Bearer header for Safari)
 exports.adminAuth = (req, res, next) => {
-  console.log("Admin Cookies received:", req.cookies); // 🧠 Debug
-  const token = req.cookies.adminToken;
+  // Try cookie first, then Authorization header (Safari localStorage fallback)
+  let token = req.cookies.adminToken;
+  if (!token) {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.slice(7);
+    }
+  }
+
   if (!token)
-    return res
-      .status(401)
-      .json({ success: false, message: "No token provided" });
+    return res.status(401).json({ success: false, message: "No token provided" });
+
   try {
     const decoded = jwt.verify(token, ADMIN_JWT_SECRET);
     req.admin = decoded;
     next();
   } catch (err) {
-    return res
-      .status(401)
-      .json({ success: false, message: "Invalid or expired token" });
+    return res.status(401).json({ success: false, message: "Invalid or expired token" });
   }
 };
 // Middleware to check user Token and  also check roles

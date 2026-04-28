@@ -83,12 +83,19 @@ export default function Admin_Dashboard() {
 
   const username = localStorage.getItem("admin_username") || "Admin";
 
+  // Helper: build auth headers (cookie for Chrome/Firefox + Bearer for Safari)
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("adminToken");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
   // Session check
   useEffect(() => {
     const checkSession = async () => {
       try {
         const res = await axios.get(`${MAIN}/api/admin/check-auth`, {
           withCredentials: true,
+          headers: getAuthHeaders(), // Safari localStorage Bearer fallback
         });
         if (!res.data.success) {
           setNotification({
@@ -116,6 +123,7 @@ export default function Admin_Dashboard() {
       try {
         const res = await fetch(`${MAIN}/api/counts`, {
           credentials: "include",
+          headers: getAuthHeaders(), // Safari Bearer fallback
         });
         const data = await res.json();
         setApiCounts(data);
@@ -134,7 +142,10 @@ export default function Admin_Dashboard() {
         // Fetch all data with individual error handling
         const fetchJson = async (url) => {
           try {
-            const res = await fetch(url, { credentials: "include" });
+            const res = await fetch(url, {
+              credentials: "include",
+              headers: getAuthHeaders(), // Safari Bearer fallback
+            });
             if (!res.ok) {
               console.error(`Failed to fetch ${url}: ${res.status}`);
               return [];
@@ -297,10 +308,12 @@ setApiCounts(prev => ({
       const res = await fetch(`${MAIN}/api/admin/logout`, {
         method: "POST",
         credentials: "include",
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
       if (data.success) {
         localStorage.removeItem("username");
+        localStorage.removeItem("adminToken"); // clear Safari localStorage token
         sessionStorage.clear();
         await new Promise((r) => setTimeout(r, 300));
         navigate("/");

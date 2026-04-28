@@ -46,6 +46,10 @@ export default function AdminLogin() {
       const data = await res.json()
 
       if (res.ok && data.success) {
+        // Store token in localStorage for Safari (cross-site cookies are blocked by ITP)
+        if (data.token) {
+          localStorage.setItem("adminToken", data.token);
+        }
         navigate("/admin-dashboard", { replace: true })
       } else {
         console.log("Login failed:", data.message)
