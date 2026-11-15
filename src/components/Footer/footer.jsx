@@ -29,7 +29,7 @@ const Footer = () => {
         <div className="footer-content">
           <div className="footer-section">
             <div className="footer-logo">
-              <img src="/images/amj-logo.png" alt="AMJ Academy" />
+              <img src="/images/AMJ-logo-website-pic.png" alt="AMJ Academy" />
               <span>AMJ Academy</span>
             </div>
             <p>

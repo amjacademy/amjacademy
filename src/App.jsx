@@ -65,7 +65,7 @@ useEffect(() => {
     return (
       <div className="splash-container">
         <motion.img
-          src="/images/amj-logo.png"
+          src="/images/AMJ-logo-website-pic.png"
           alt="Loading..."
           className="splash-logo"
           initial={{ opacity: 1, scale: 0.7 }}

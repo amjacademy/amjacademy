@@ -1,5 +1,5 @@
 .footer {
-  background: #2c3e50;
+  background: var(--amj-primary-deep);
   color: white;
   padding: 60px 0 20px;
   position: relative; 
@@ -18,7 +18,7 @@
   font-size: 1.3rem;
   font-weight: 600;
   margin-bottom: 20px;
-  color: #3498db;
+  color: var(--amj-secondary);
 }
 
 .footer-logo {
@@ -37,7 +37,7 @@
 
 .footer-section p {
   line-height: 1.7;
-  color: #bdc3c7;
+  color: #dcecf8;
   margin-bottom: 25px;
 }
 
@@ -54,13 +54,13 @@
   padding: 8px;
   border-radius: 30%;
   color: white;
-  background: rgba(52, 152, 219, 0.1);
+  background: rgba(172, 220, 238, 0.12);
   transition: all 0.3s ease;
   text-decoration: none;
 }
 
 .footer-social a:hover {
-  background: #3498db;
+  background: var(--amj-primary);
   transform: translateY(-3px);
 }
 
@@ -73,7 +73,7 @@
 }
 
 .footer-section ul li a {
-  color: #bdc3c7;
+  color: #dcecf8;
   text-decoration: none;
   transition: color 0.3s ease;
 }

@@ -52,7 +52,7 @@ const Hero = () => {
           </div>
           <div className="hero-image">
             <div className="hero-image-container">
-              <img src="images/amj-logo.png?height=400&width=400" alt="Music Teacher" />
+              <img src="/images/AMJ-logo-website-pic.png" alt="Music Teacher" />
               <div className="floating-elements">
                 <div className="floating-note note-1">♪</div>
                 <div className="floating-note note-2">♫</div>
