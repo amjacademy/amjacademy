@@ -15,15 +15,18 @@ const otpStore = {};
 // -------------------------------
 const sendOtpEmail = async (email, otp) => {
   try {
-    await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: "AMJacademy@amjacademy.in",
       to: email,
       subject: "Your OTP Code",
       text: `Your OTP code is: ${otp}. It expires in 5 minutes.`,
     });
-    console.log(`✅ OTP sent to ${email}: ${otp}`);
+    if (error) {
+      console.error("❌ OTP email provider rejected the message:", error);
+      throw new Error("OTP email could not be sent");
+    }
   } catch (err) {
-    console.error("❌ OTP send error:", err);
+    console.error("❌ OTP send error:", err.message);
     throw err;
   }
 };
@@ -75,6 +78,16 @@ exports.sendOtp = async (req, res) => {
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
+    delete otpStore[targetEmail];
+    try {
+      await sendOtpEmail(targetEmail, otp);
+    } catch {
+      return res.status(502).json({
+        success: false,
+        message: "Could not send OTP email. Please try again later.",
+      });
+    }
+
     otpStore[targetEmail] = {
       otp,
       username: cleanUser,
@@ -82,8 +95,6 @@ exports.sendOtp = async (req, res) => {
       expiresAt: Date.now() + 5 * 60 * 1000,
       verified: false,
     };
-
-    await sendOtpEmail(targetEmail, otp);
 
     return res.json({ success: true, message: `OTP sent to ${targetEmail}` });
   } catch (err) {

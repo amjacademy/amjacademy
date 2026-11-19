@@ -156,6 +156,10 @@ amjacademy/
 └── eslint.config.js           # ESLint configuration
 ```
 
+## ⚙️ Environment Variables
+
+Set `VITE_MAIN` in the frontend `.env` to the backend API URL. In `server/.env` and in the deployed backend environment, configure `RESEND_API_KEY` and `ADMIN_EMAIL` for login OTP and contact-form email delivery. Verify `AMJacademy@amjacademy.in` with Resend for login/contact mail and `no-reply@amjacademy.in` for demo-booking OTP mail. Keep service keys out of frontend variables and source control.
+
 ## 💻 Usage
 
 ### Default Admin Login

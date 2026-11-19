@@ -3,6 +3,7 @@ import { useState } from "react"
 import "./Contact.css"
 
 const Contact = () => {
+  const MAIN = (import.meta.env.VITE_MAIN || "").replace(/\/+$/, "")
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -12,6 +13,8 @@ const Contact = () => {
     message: "",
   })
   const [result, setResult] = useState("")
+  const [resultType, setResultType] = useState("")
+  const [loading, setLoading] = useState(false)
 
   const handleChange = (e) => {
     setFormData({
@@ -22,25 +25,36 @@ const Contact = () => {
 
   async function handleSubmit(event) {
     event.preventDefault()
+    setLoading(true)
+    setResultType("pending")
     setResult("Sending...")
-    const formPayload = new FormData(event.target)
-    // Web3Forms Access Key
-    // formPayload.append("access_key", "3e6b2f3b-1593-4f63-9aee-22c8f109cfdd")
-    // formPayload.append("email", "amjacademy196015@gmail.com.com")
+    const form = event.currentTarget
 
-      const response = await fetch("https://formspree.io/f/mdklygpn", {
-       method: "POST",
-       body: formPayload,
-       headers: {
-         Accept: "application/json",
-       },
-    })
+    try {
+      const response = await fetch(`${MAIN}/api/contact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          botcheck: form.elements.botcheck.value,
+        }),
+      })
+      if (!response.headers.get("content-type")?.includes("application/json")) {
+        const message = response.status === 404
+          ? "The contact email service is not available yet. Please try again later."
+          : "The contact email service returned an unexpected response. Please try again later."
+        throw new Error(message)
+      }
 
-    const data = await response.json()
+      const data = await response.json()
 
-    if (data.ok) {
-      setResult("Form Submitted Successfully!")
-      event.target.reset()
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Message could not be sent. Please try again.")
+      }
+
+      setResultType("success")
+      setResult(data.message)
+      form.reset()
       setFormData({
         name: "",
         email: "",
@@ -49,9 +63,12 @@ const Contact = () => {
         experience: "",
         message: "",
       })
-    } else {
-      console.error("Error:", data)
-      setResult(data.message)
+    } catch (error) {
+      console.error("Contact form submission failed:", error)
+      setResultType("error")
+      setResult(error.message || "Message could not be sent. Please try again.")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -130,11 +147,11 @@ const Contact = () => {
                 required
               ></textarea>
             </div> */}
-            <button type="submit" className="btn btn-primary">
-              Send Message
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? "Sending..." : "Send Message"}
             </button>
             {/* Result message */}
-            {result && <p className="form-result">{result}</p>}
+            {result && <p className={`form-result form-result-${resultType}`} role="status" aria-live="polite">{result}</p>}
           </form>
         </div>
 
@@ -162,5 +179,3 @@ const Contact = () => {
 }
 
 export default Contact
-
-

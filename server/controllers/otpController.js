@@ -36,12 +36,18 @@ exports.sendOtp = async (req, res) => {
       let template = fs.readFileSync(path.join(__dirname, "../files/otp.html"), "utf8");
       template = template.replace("{{OTP}}", otp);
 
-      await resend.emails.send({
+      const { error: sendError } = await resend.emails.send({
         from: "AMJ Academy <no-reply@amjacademy.in>", // your verified sender
         to: value,
         subject: "Verify your email address",
         html: template,
       });
+
+      if (sendError) {
+        console.error("❌ OTP email provider rejected the message:", sendError);
+        await db.collection("otp_verifications").doc(value).delete();
+        return res.status(502).json({ success: false, message: "Failed to send OTP email" });
+      }
 
       console.log(`✅ Email OTP sent to ${value}`);
       return res.json({ success: true, message: "OTP sent via Email" });

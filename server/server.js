@@ -57,6 +57,8 @@ app.get("/", (req, res) => {
 //DEMO BOOKING ROUTES
 app.use("/api/otp", require("./routes/otpRoutes"));
 
+app.use("/api/contact", require("./routes/contactRoutes"));
+
 app.use("/api/slot", require("./routes/slotbookingRoutes"));
 
 
